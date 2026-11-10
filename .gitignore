@@ -1,0 +1,31 @@
+# API Secrets and Sensitive Keys (NEVER PUSH TO GITHUB)
+cindy_secrets.json
+*_secrets.json
+.env
+.env.*
+
+# Output media & temp renders
+outputs/
+*.mp4
+*.mov
+*.wav
+*.mp3
+*.png
+*.jpg
+*.jpeg
+*.glb
+*.safetensors
+
+# Cache and logs
+__pycache__/
+*.py[cod]
+*$py.class
+*.log
+daily_pricing_cache.json
+scratch_*.py
+scratch/
+patch_*.py
+
+# OS temp
+Thumbs.db
+.DS_Store

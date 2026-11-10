@@ -1,0 +1,66 @@
+{
+  "manifest_version": 3,
+  "name": "Cindy AI — Google Flow Bridge",
+  "version": "1.3.0",
+  "description": "جسر سيندي الذكي للربط التلقائي مع حساب جوجل فلو (Veo 3.1, Omni Flash, Nano Banana)",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "permissions": [
+    "tabs",
+    "scripting",
+    "activeTab",
+    "storage",
+    "debugger"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:8765/*",
+    "http://localhost:8765/*",
+    "*://flow.google/*",
+    "*://*.flow.google/*",
+    "*://labs.google/*",
+    "*://*.labs.google/*",
+    "*://*.google.com/*",
+    "*://*.google/*",
+    "*://aitestkitchen.withgoogle.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Cindy Flow Bridge v1.3",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://127.0.0.1:8765/*",
+        "http://localhost:8765/*"
+      ],
+      "js": ["content_cindy.js"],
+      "run_at": "document_end"
+    },
+    {
+      "matches": [
+        "*://flow.google/*",
+        "*://*.flow.google/*",
+        "*://labs.google/*",
+        "*://*.labs.google/*",
+        "*://*.google.com/flow*",
+        "*://*.google.com/fx*",
+        "*://*.google.com/video-fx*",
+        "*://aitestkitchen.withgoogle.com/*",
+        "*://*.google.com/*"
+      ],
+      "js": ["content_flow.js"],
+      "run_at": "document_end"
+    }
+  ]
+}

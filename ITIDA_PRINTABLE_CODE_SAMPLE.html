@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>عينة الكود المصدري المطبوعة — إيتيدا (ITIDA Code Sample)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background: #f0f2f5;
+      padding: 30px;
+      color: #1a202c;
+    }
+    .toolbar {
+      max-width: 900px;
+      margin: 0 auto 20px auto;
+      background: #1a202c;
+      padding: 15px 20px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #edf2f7;
+    }
+    .print-btn {
+      background: #d4af37;
+      color: #000;
+      border: none;
+      padding: 10px 20px;
+      font-weight: 800;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      padding: 50px;
+      border-radius: 6px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      border: 1px solid #cbd5e0;
+    }
+    h1 { font-size: 18px; margin-bottom: 5px; color: #0d1b2a; }
+    .subtitle { font-size: 13px; color: #4a5568; margin-bottom: 20px; border-bottom: 2px solid #0d1b2a; padding-bottom: 10px; }
+    .meta-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px 15px; margin-bottom: 25px; border-radius: 4px; font-size: 12.5px; }
+    .code-title { font-size: 14px; font-weight: 800; color: #2b6cb0; margin: 20px 0 8px 0; }
+    pre {
+      direction: ltr;
+      text-align: left;
+      font-family: 'Fira Code', monospace;
+      font-size: 10.5px;
+      line-height: 1.5;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 15px;
+      border-radius: 6px;
+      overflow-x: auto;
+      color: #2d3748;
+      white-space: pre-wrap;
+    }
+    .divider { text-align: center; margin: 20px 0; font-weight: bold; color: #a0aec0; }
+    @media print {
+      body { background: white; padding: 0; }
+      .toolbar { display: none !important; }
+      .container { box-shadow: none; border: none; padding: 20px; width: 100%; }
+      pre { font-size: 9px; line-height: 1.35; background: white; }
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <div><strong>عينة الكود المصدري المطبوعة (طلب إيداع مصنف برمجي لدى إيتيدا ITIDA)</strong></div>
+    <button class="print-btn" onclick="window.print()">طباعة العينة الورقية (Paper Code Sample)</button>
+  </div>
+  <div class="container">
+    <h1>جمهورية مصر العربية — هيئة تنمية صناعة تكنولوجيا المعلومات (إيتيدا)</h1>
+    <div class="subtitle">ملحق رقم (1): عينة مقتطفات الكود المصدري الرسمي لمصنف: CINDY AI DIRECTOR™</div>
+    
+    <div class="meta-box">
+      <div><strong>اسم المصنف:</strong> منصة سيندي للإخراج السينمائي بالذكاء الاصطناعي (CINDY AI DIRECTOR™)</div>
+      <div><strong>المؤلف وصاحب الحقوق:</strong> المخرج / أستاذ إيهاب</div>
+      <div><strong>لغة البرمجة والبيئة:</strong> Python 3.14 / Asynchronous REST Micro-Services & WebGL / HTML5</div>
+      <div><strong>ملاحظة تنظيمية:</strong> طبقاً لتعليمات مكتب حماية الملكية الفكرية بإيتيدا، يُقدم كامل الكود رقمياً على (Flash Drive / CD)، وتُرفق هذه العينة المطبوعة لبداية ونهاية المحرك الأساسي (Core Architecture).</div>
+    </div>
+
+    <div class="code-title">1. بداية الكود المصدري ونواة المحرك (Engine Initialization & Routes - cindy_server.py):</div>
+    <pre>VIDEO_JOBS = {}
+# -*- coding: utf-8 -*-
+
+"""
+
+CINDY AI - 2026 Cutting-Edge Multi-Cloud Execution Server
+
+Direct API Execution:
+
+- Kling 3.0 / 4.0 & 1.5 Pro
+
+- MiniMax H3 / H3 Max
+
+- ByteDance Seedance 2.5
+
+- FLUX 3 Max & FLUX.1 Schnell/Dev/Pro
+
+- Wan 2.7 / Wan 3.0 & 2.1
+
+- Google Veo 3.1 & Google Imagen 3 (Direct API)
+
+- Luma Dream Machine & Ray 2
+
+- MMAudio v2 & Clarity Upscaler
+
+"""
+
+
+
+import http.server
+
+import socketserver
+
+import asyncio
+
+import concurrent.futures
+
+import subprocess
+
+import json
+
+import os
+
+import re
+
+import sys
+
+import time
+
+import base64
+
+import threading
+
+import urllib.parse
+
+import requests
+
+import io
+
+import zipfile
+
+import runpod_trainer
+
+from cindy_pricing import build_daily_pricing_report
+
+
+import comfyui_client
+
+try:
+
+    from PIL import Image
+
+except ImportError:
+
+    Image = None
+
+
+
+sys.stdout.reconfigure(encoding='utf-8')
+
+
+
+PORT = 8765
+
+HOST = "127.0.0.1"
+
+BASE_DIR = r"C:\Users\DELL\Desktop\Cindy-AI-Director"
+
+OUTPUTS_DIR = os.path.join(BASE_DIR, "outputs")
+
+SECRETS_FILE = os.path.join(BASE_DIR, "cindy_secrets.json")
+
+LORAS_FILE = os.path.join(BASE_DIR, "cindy_loras.json")
+
+LORAS_DIR = os.path.join(OUTPUTS_DIR, "loras")
+
+os.makedirs(LORAS_DIR, exist_ok=True)
+
+LORA_TRAINING_JOBS = {}
+
+
+
+os.makedirs(OUTPUTS_DIR, exist_ok=True)
+
+
+
+def _lock_secrets_acl():
+
+    """Restrict cindy_secrets.json on Windows so only the current user, SYSTEM, and Administrators can read it."""
+
+    if os.name == 'nt' and os.path.exists(SECRETS_FILE):
+
+        user = os.environ.get('USERNAME', '')
+
+        if user:
+
+            try:
+
+                subprocess.run(
+
+</pre>
+
+    <div class="divider">[ ... يتضمن المصنف الكامل 7,237 سطراً من البرمجيات المودعة على الأسطوانة الرقمية المرفقة ... ]</div>
+
+    <div class="code-title">2. نهاية الكود المصدري وخاتمة خادم التشغيل (Server Termination & Multimodal Wrappers):</div>
+    <pre>                    q = "query { myself { pods { id desiredStatus runtime { uptimeInSeconds } } } }"
+
+                    r = requests.post("https://api.runpod.io/graphql", headers=headers, json={"query": q}, timeout=10)
+
+                    pods = r.json().get("data", {}).get("myself", {}).get("pods", [])
+
+                    running_pods = [p for p in pods if p.get("desiredStatus") == "RUNNING"]
+
+                    for p in running_pods:
+
+                        uptime = (p.get("runtime") or {}).get("uptimeInSeconds") or 0
+
+                        if uptime >= WATCHDOG_TIMEOUT_SECONDS:
+
+                            comfyui_client.stop_runpod_pod(key, p.get("id"))
+
+                            print(f"[Watchdog] Auto-paused pod {p.get('id')} after {uptime}s uptime to protect balance!")
+
+        except Exception:
+
+            pass
+
+
+
+threading.Thread(target=run_inactivity_watchdog, daemon=True).start()
+
+
+
+
+
+def upload_file_to_fal(local_rel_path, fal_key):
+
+    """Upload a local output file to Fal.ai storage and return its public URL."""
+
+    clean_name = os.path.basename(local_rel_path.split('?')[0].rstrip('/\\'))
+    if os.path.exists(local_rel_path):
+        local_full_path = local_rel_path
+    elif os.path.exists(os.path.join(OUTPUTS_DIR, clean_name)):
+        local_full_path = os.path.join(OUTPUTS_DIR, clean_name)
+    elif os.path.exists(os.path.join(OUTPUTS_DIR, "blender_guides", clean_name)):
+        local_full_path = os.path.join(OUTPUTS_DIR, "blender_guides", clean_name)
+    else:
+        return None
+    ext = os.path.splitext(clean_name)[1].lower().lstrip('.')
+
+    content_type = 'image/png'
+
+    if ext in ('jpg', 'jpeg'): content_type = 'image/jpeg'
+
+    elif ext == 'webp': content_type = 'image/webp'
+
+    elif ext == 'mp4': content_type = 'video/mp4'
+
+    elif ext in ('wav', 'wave'): content_type = 'audio/wav'
+
+    elif ext == 'mp3': content_type = 'audio/mpeg'
+
+    
+
+    headers = {'Authorization': f'Key {fal_key}', 'Content-Type': 'application/json'}
+
+    init_url = 'https://rest.alpha.fal.ai/storage/upload/initiate'
+
+    r_init = requests.post(init_url, headers=headers, json={'file_name': clean_name, 'content_type': content_type}, timeout=15)
+
+    if r_init.status_code != 200:
+
+        return None
+
+        
+
+    data = r_init.json()
+
+    upload_url = data.get('upload_url')
+
+    file_url = data.get('file_url')
+
+    
+
+    with open(local_full_path, 'rb') as f:
+
+        r_up = requests.put(upload_url, data=f, headers={'Content-Type': content_type}, timeout=60)
+
+        if r_up.status_code in (200, 201):
+
+            return file_url
+
+    return None
+
+
+
+if __name__ == '__main__':
+
+    print(f"Starting Cindy AI Execution Server on http://{HOST}:{PORT} ...")
+
+    def _pricing_worker():
+        import time
+        from cindy_pricing import build_daily_pricing_report
+        try:
+            build_daily_pricing_report(force_refresh=False)
+        except Exception:
+            pass
+        while True:
+            time.sleep(21600)
+            try:
+                build_daily_pricing_report(force_refresh=True)
+            except Exception:
+                pass
+    threading.Thread(target=_pricing_worker, daemon=True).start()
+
+    server = ThreadedCindyServer((HOST, PORT), CindySecureHandler)
+
+    try:
+
+        server.serve_forever()
+
+    except KeyboardInterrupt:
+
+        print("Server stopped.")
+
+</pre>
+
+    <div style="margin-top: 35px; border-top: 1px solid #cbd5e0; padding-top: 15px; font-size: 12px; color: #718096; text-align: center;">
+      © 2026 CINDY AI DIRECTOR™ — كافة حقوق الملكية الفكرية والتجارية محفوظة للمخرج أستاذ إيهاب
+    </div>
+  </div>
+</body>
+</html>

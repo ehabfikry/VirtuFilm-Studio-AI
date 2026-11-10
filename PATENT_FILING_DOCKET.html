@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>ملف إيداع براءة الاختراع والملكية الفكرية — CINDY AI DIRECTOR™</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cinzel:wght@600;800;900&family=Fira+Code:wght@400;600&family=Noto+Naskh+Arabic:wght@400;600;700&family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gold-primary: #c59b27;
+      --gold-dark: #8c6b12;
+      --navy-dark: #0a1128;
+      --paper-bg: #fdfdfc;
+      --ink: #1a1e24;
+      --border-gray: #d0d7de;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #4a5568;
+      font-family: 'Tajawal', 'Noto Naskh Arabic', sans-serif;
+      color: var(--ink);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      padding: 30px 15px;
+    }
+
+    /* Print Screen Control Toolbar */
+    .no-print-bar {
+      max-width: 900px;
+      margin: 0 auto 25px auto;
+      background: #1a202c;
+      padding: 15px 25px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
+      border: 1px solid #2d3748;
+    }
+
+    .no-print-bar .title {
+      color: #ecc94b;
+      font-weight: 700;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .print-btn {
+      background: linear-gradient(135deg, #d69e2e, #b7791f);
+      color: #000;
+      border: none;
+      padding: 10px 24px;
+      font-weight: 800;
+      font-size: 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(214, 158, 46, 0.4);
+      transition: all 0.2s;
+    }
+    .print-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(214, 158, 46, 0.6);
+    }
+
+    /* Document Container - A4 Page Modeling */
+    .docket-container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: var(--paper-bg);
+      border-radius: 6px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+      overflow: hidden;
+      border: 1px solid #cbd5e0;
+    }
+
+    .page {
+      padding: 60px 70px;
+      background: white;
+      position: relative;
+    }
+
+    .page-break {
+      page-break-before: always;
+      border-top: 2px dashed #e2e8f0;
+      margin-top: 40px;
+      padding-top: 40px;
+    }
+
+    /* Official Formal Header */
+    .official-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      border-bottom: 3px double var(--navy-dark);
+      padding-bottom: 25px;
+      margin-bottom: 30px;
+    }
+
+    .official-seal {
+      width: 90px;
+      height: 90px;
+      border: 2px solid var(--gold-dark);
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 6px;
+      background: #faf8f0;
+      box-shadow: inset 0 0 0 3px #fff, inset 0 0 0 4px var(--gold-dark);
+    }
+    .official-seal .seal-star { color: var(--gold-dark); font-size: 14px; }
+    .official-seal .seal-text { font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #2d3748; }
+    .official-seal .seal-year { font-size: 11px; font-weight: 900; color: var(--gold-dark); font-family: 'Cinzel', serif; }
+
+    .header-text {
+      flex: 1;
+      padding-right: 25px;
+    }
+    .header-text h1 {
+      font-size: 21px;
+      font-weight: 900;
+      color: var(--navy-dark);
+      margin-bottom: 4px;
+      letter-spacing: -0.3px;
+    }
+    .header-text .sub-title {
+      font-size: 12px;
+      color: #4a5568;
+      font-weight: 600;
+    }
+    .header-text .ref-badge {
+      display: inline-block;
+      margin-top: 8px;
+      background: #edf2f7;
+      color: #2d3748;
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid #cbd5e0;
+      font-weight: 600;
+    }
+
+    /* Metadata Grid */
+    .meta-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 30px;
+      font-size: 13px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .meta-table td {
+      padding: 10px 14px;
+      border: 1px solid #e2e8f0;
+      vertical-align: middle;
+    }
+    .meta-table .label {
+      width: 25%;
+      font-weight: 700;
+      background: #edf2f7;
+      color: #2d3748;
+    }
+    .meta-table .value {
+      width: 75%;
+      color: #1a202c;
+    }
+    .meta-table .code {
+      font-family: 'Fira Code', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      color: #2b6cb0;
+    }
+
+    /* Section Styling */
+    .doc-section {
+      margin-bottom: 32px;
+    }
+    .doc-section h2 {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--navy-dark);
+      border-right: 4px solid var(--gold-primary);
+      padding-right: 12px;
+      margin-bottom: 12px;
+      background: #f7fafc;
+      padding-top: 6px;
+      padding-bottom: 6px;
+    }
+    .doc-section p, .doc-section li {
+      font-size: 13.5px;
+      text-align: justify;
+      color: #2d3748;
+      line-height: 1.75;
+      margin-bottom: 10px;
+    }
+
+    /* Pillar Cards */
+    .pillar-box {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      border-right: 4px solid #4a5568;
+    }
+    .pillar-box.p1 { border-right-color: #805ad5; }
+    .pillar-box.p2 { border-right-color: #3182ce; }
+    .pillar-box.p3 { border-right-color: #d69e2e; }
+    .pillar-box.p4 { border-right-color: #e53e3e; }
+    .pillar-box.p5 { border-right-color: #38a169; }
+
+    .pillar-title {
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pillar-box.p1 .pillar-title { color: #6b46c1; }
+    .pillar-box.p2 .pillar-title { color: #2b6cb0; }
+    .pillar-box.p3 .pillar-title { color: #b7791f; }
+    .pillar-box.p4 .pillar-title { color: #c53030; }
+    .pillar-box.p5 .pillar-title { color: #276749; }
+
+    .pillar-desc {
+      font-size: 12.5px;
+      color: #4a5568;
+    }
+
+    /* Formal Claims Block */
+    .claim-item {
+      background: #fafaf9;
+      border: 1px solid #e7e5e4;
+      border-radius: 6px;
+      padding: 14px 18px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      text-align: justify;
+      line-height: 1.8;
+    }
+    .claim-num {
+      font-weight: 800;
+      color: var(--navy-dark);
+      margin-left: 6px;
+    }
+
+    /* Verification Hash Banner */
+    .hash-banner {
+      background: #0f172a;
+      color: #f8fafc;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 30px 0;
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      border: 1px solid #334155;
+    }
+    .hash-banner .hash-title {
+      color: #f6ad55;
+      font-weight: 700;
+      margin-bottom: 6px;
+      font-size: 12px;
+      font-family: 'Tajawal', sans-serif;
+    }
+    .hash-banner .hash-val {
+      color: #48bb78;
+      word-break: break-all;
+      background: #000;
+      padding: 6px 10px;
+      border-radius: 4px;
+      display: block;
+      margin-top: 4px;
+    }
+
+    /* Signature Section */
+    .signature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      margin-top: 40px;
+      padding-top: 25px;
+      border-top: 1px solid #e2e8f0;
+    }
+    .sig-box {
+      text-align: center;
+      padding: 15px;
+    }
+    .sig-line {
+      height: 1px;
+      background: #718096;
+      margin: 45px auto 10px auto;
+      width: 80%;
+    }
+    .sig-name {
+      font-weight: 800;
+      font-size: 14px;
+      color: var(--navy-dark);
+    }
+    .sig-title {
+      font-size: 12px;
+      color: #718096;
+    }
+
+    /* Diagram SVG Container */
+    .diagram-container {
+      text-align: center;
+      margin: 25px 0;
+      padding: 20px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+    }
+    .diagram-caption {
+      font-size: 12px;
+      font-weight: 700;
+      color: #4a5568;
+      margin-top: 10px;
+    }
+
+    /* Print Styles */
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+      .no-print-bar {
+        display: none !important;
+      }
+      .docket-container {
+        box-shadow: none;
+        border: none;
+        max-width: 100%;
+        width: 100%;
+      }
+      .page {
+        padding: 40px 45px;
+      }
+      .page-break {
+        page-break-before: always;
+        border-top: none;
+        margin-top: 0;
+        padding-top: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Screen Toolbar -->
+  <div class="no-print-bar">
+    <div class="title">
+      <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0v12h8V4H6z"/></svg>
+      <span>جاهز للطباعة والحفظ كـ PDF رسمي لإيداع براءة الاختراع والملكية الفكرية</span>
+    </div>
+    <button class="print-btn" onclick="window.print()">
+      <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd"/></svg>
+      <span>طباعة المستند / حفظ كـ PDF</span>
+    </button>
+  </div>
+
+  <!-- Document Body -->
+  <div class="docket-container">
+    
+    <!-- PAGE 1: DOCKET COVER & FORMAL FILING SPECIFICATION -->
+    <div class="page">
+      <div class="official-header">
+        <div class="header-text">
+          <h1>ملف إيداع براءة اختراع وتسجيل ملكية فكرية</h1>
+          <div class="sub-title">CINDY AI DIRECTOR™ — الإطار المعماري للتوليد السينمائي متعدد اللغات ومحكم الحركات ثلاثية الأبعاد</div>
+          <div class="ref-badge">وثيقة رقم: CAD-IP-2026-001 | تصنيف IPC: G06T 13/00, G06T 19/00, H04N 21/00</div>
+        </div>
+        <div class="official-seal">
+          <div class="seal-star">★</div>
+          <div class="seal-text">PRIOR ART</div>
+          <div class="seal-year">2026</div>
+          <div class="seal-text">SEALED</div>
+        </div>
+      </div>
+
+      <table class="meta-table">
+        <tr>
+          <td class="label">عنوان الاختراع الرسمي:</td>
+          <td class="value"><strong>System and Method for Spatially-Constrained Character Identity, Camera Kinematics, and Multi-Modal Synthesis in Generative Video Production</strong></td>
+        </tr>
+        <tr>
+          <td class="label">المخترع وصاحب الحقوق:</td>
+          <td class="value"><strong>المخرج / أستاذ إيهاب (Ehab [The Film Director])</strong> — كامل حقوق الملكية الفكرية والإنتاج التجاري بنسبة 100%</td>
+        </tr>
+        <tr>
+          <td class="label">المهندس المعماري المساعد:</td>
+          <td class="value">Antigravity AI Systems Architecture</td>
+        </tr>
+        <tr>
+          <td class="label">تاريخ التوثيق والختم:</td>
+          <td class="value">8 نوفمبر 2026 (November 8, 2026)</td>
+        </tr>
+        <tr>
+          <td class="label">البصمة التشفيرية للوثيقة (SHA-256):</td>
+          <td class="value code">6cc73329f31a1d505bb180876b5d925a5b6b7254f5ed312fa5ee4a16e95fde90</td>
+        </tr>
+      </table>
+
+      <!-- Executive Abstract -->
+      <div class="doc-section">
+        <h2>1. ملخص الاختراع (Abstract of the Invention)</h2>
+        <p>
+          نظام حاسوبي ومعمارية برمجية هندسية أصلية تهدف إلى حل المعضلات الجوهرية في صناعة الفيديو التوليدي عبر الذكاء الاصطناعي (Generative Video Diffusion & DiTs)، وتحديداً: ضياع ملامح الشخصية (Identity Drift)، الحركات العشوائية للكاميرا (Uncontrolled Drone Floating)، وتشوه الأطراف التشريحية (Extremity Hallucination).
+        </p>
+        <p>
+          يقوم الاختراع على تجريد محركات الذكاء الاصطناعي إلى منظومة مغلقة خماسية الركائز (Five-Pillar Closed Pipeline)، تفصل تماماً بين قفل الملامح الحيوية للممثل، البناء الفراغي ثلاثي الأبعاد، مسار الكاميرا السينمائي بست درجات حرية (6-DoF)، التحويل اللغوي الإخراجي الذكي، وتوليد الفيديو المتماسك زمنياً بدون تشوهات.
+        </p>
+      </div>
+
+      <!-- System Architecture Diagram (Patent Drawing Fig. 1) -->
+      <div class="diagram-container">
+        <svg viewBox="0 0 740 220" width="100%" height="180" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#805ad5"/><stop offset="100%" stop-color="#553c9a"/></linearGradient>
+            <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#3182ce"/><stop offset="100%" stop-color="#2b6cb0"/></linearGradient>
+            <linearGradient id="g3" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#d69e2e"/><stop offset="100%" stop-color="#b7791f"/></linearGradient>
+            <linearGradient id="g4" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#38a169"/><stop offset="100%" stop-color="#276749"/></linearGradient>
+            <linearGradient id="g5" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#e53e3e"/><stop offset="100%" stop-color="#9b2c2c"/></linearGradient>
+          </defs>
+
+          <!-- Boxes -->
+          <rect x="10" y="30" width="130" height="130" rx="8" fill="url(#g1)" />
+          <text x="75" y="65" fill="#fff" font-size="11" font-weight="bold" text-anchor="middle">Pillar 1</text>
+          <text x="75" y="85" fill="#e9d8fd" font-size="9" text-anchor="middle">Neural Identity</text>
+          <text x="75" y="100" fill="#e9d8fd" font-size="9" text-anchor="middle">Anchoring (LoRA)</text>
+          <text x="75" y="130" fill="#fff" font-size="9" font-weight="bold" text-anchor="middle">قفل الممثل</text>
+
+          <path d="M 145 95 L 160 95" stroke="#4a5568" stroke-width="3" marker-end="url(#arrow)" />
+
+          <rect x="155" y="30" width="130" height="130" rx="8" fill="url(#g2)" />
+          <text x="220" y="65" fill="#fff" font-size="11" font-weight="bold" text-anchor="middle">Pillar 2</text>
+          <text x="220" y="85" fill="#bee3f8" font-size="9" text-anchor="middle">Spatial Mesh</text>
+          <text x="220" y="100" fill="#bee3f8" font-size="9" text-anchor="middle">Reconstruction</text>
+          <text x="220" y="130" fill="#fff" font-size="9" font-weight="bold" text-anchor="middle">تجسيم 3D</text>
+
+          <rect x="300" y="30" width="130" height="130" rx="8" fill="url(#g3)" />
+          <text x="365" y="65" fill="#fff" font-size="11" font-weight="bold" text-anchor="middle">Pillar 3</text>
+          <text x="365" y="85" fill="#fefcbf" font-size="9" text-anchor="middle">6-DoF Kinematic</text>
+          <text x="365" y="100" fill="#fefcbf" font-size="9" text-anchor="middle">Camera Pre-vis</text>
+          <text x="365" y="130" fill="#fff" font-size="9" font-weight="bold" text-anchor="middle">مسار الكاميرا</text>
+
+          <rect x="445" y="30" width="130" height="130" rx="8" fill="url(#g4)" />
+          <text x="510" y="65" fill="#fff" font-size="11" font-weight="bold" text-anchor="middle">Pillar 5</text>
+          <text x="510" y="85" fill="#c6f6d5" font-size="9" text-anchor="middle">Cross-Lingual</text>
+          <text x="510" y="100" fill="#c6f6d5" font-size="9" text-anchor="middle">Transmutation</text>
+          <text x="510" y="130" fill="#fff" font-size="9" font-weight="bold" text-anchor="middle">تحويل اللغات</text>
+
+          <rect x="590" y="30" width="140" height="130" rx="8" fill="url(#g5)" />
+          <text x="660" y="65" fill="#fff" font-size="11" font-weight="bold" text-anchor="middle">Pillar 4</text>
+          <text x="660" y="85" fill="#fed7d7" font-size="9" text-anchor="middle">Constrained</text>
+          <text x="660" y="100" fill="#fed7d7" font-size="9" text-anchor="middle">Temporal Diffusion</text>
+          <text x="660" y="130" fill="#fff" font-size="9" font-weight="bold" text-anchor="middle">ريندر الفيديو النهائي</text>
+        </svg>
+        <div class="diagram-caption">الشكل رقم (1): المخطط المعماري الهيكلي للمنظومة الخماسية المتكاملة (Fig. 1: Architectural Pipeline)</div>
+      </div>
+    </div>
+
+    <!-- PAGE 2: DETAILED SPECIFICATIONS & PILLARS -->
+    <div class="page page-break">
+      <div class="doc-section">
+        <h2>2. تفصيل الركائز التقنية الخمس المستقلة (Core Pillars)</h2>
+        
+        <div class="pillar-box p1">
+          <div class="pillar-title">الركيزة الأولى: Neural Identity Anchoring Module (NIAM)</div>
+          <div class="pillar-desc">
+            فصل ملامح الشخصية عن حركتها عبر مصفوفة أوزان LoRA خاصة بالممثل لتوليد كادر مرجعي 2D Seed فائق الجودة يثبت البصمة البيومترية، ملابس الشخصية، وتطابق الإضاءة قبل الشروع في توليد الفيديو.
+          </div>
+        </div>
+
+        <div class="pillar-box p2">
+          <div class="pillar-title">الركيزة الثانية: Deterministic Spatial Geometry Synthesizer (SGMS)</div>
+          <div class="pillar-desc">
+            إعادة بناء الكادر ثنائي الأبعاد وتحويله إلى مجسم هندسي ثلاثي الأبعاد (3D Polygonal Mesh) ذي طوبولوجيا نظيفة وتوزيع متناسق للأنسجة (PBR)، مما يتيح إدخاله في بيئة إحداثيات فراغية محكمة.
+          </div>
+        </div>
+
+        <div class="pillar-box p3">
+          <div class="pillar-title">الركيزة الثالثة: Kinematic Pre-vis Directorial Engine (KPDE)</div>
+          <div class="pillar-desc">
+            توجيه كاميرا سينمائية افتراضية ذات 6 درجات حرية (Dolly, Track, Pedestal, Crane, Orbit) وضبط البعد البؤري للعدسات (35mm/50mm/Anamorphic) واستخراج خرائط العمق الحسابي (Z-Depth) والتدفق البصري.
+          </div>
+        </div>
+
+        <div class="pillar-box p5">
+          <div class="pillar-title">الركيزة الخامسة: Cross-Lingual Cinematographic Transmutation Engine (CCSTE)</div>
+          <div class="pillar-desc">
+            محرك لغوي إخراجي فوري يستقبل الأوامر الطبيعية بأي لغة (عربية، فرنسية، إسبانية، إنجليزية) ويفككها إلى مصفوفة بارامترات سينمائية بصرية عالمية، مع مواءمة الحوار الصوتي العصبي بذات لغة المخرج أوتوماتيكياً.
+          </div>
+        </div>
+
+        <div class="pillar-box p4">
+          <div class="pillar-title">الركيزة الرابعة: Constrained Temporal Synthesis Backend (CTSB)</div>
+          <div class="pillar-desc">
+            حقن خرائط العمق، مسار الكاميرا، والقيود التشريحية العكسية (Automated Extremity Safety Guards لمنع تشوه الأصابع والوجه) في محركات الفيديو التوليدية (Wan / Kling / DiTs) لإنتاج لقطة سينمائية موجهة وخالية من العيوب.
+          </div>
+        </div>
+      </div>
+
+      <!-- Formal Claims Section -->
+      <div class="doc-section">
+        <h2>3. المطالبات القانونية لنطاق الحماية (Patent Claims)</h2>
+        
+        <div class="claim-item">
+          <span class="claim-num">المطالبة 1 (طريقة حاسوبية مستقلة):</span>
+          طريقة محوسبة لتوليد مشاهد فيديو سينمائية متماسكة الهوية والفراغ الحركي، تتضمن: (أ) توليد كادر مرجعي 2D بواسطة أوزان تكييف منخفضة الرتبة (LoRA) لتثبيت هوية الممثل؛ (ب) إعادة بناء الكادر إلى أصل هندسي مجسم 3D؛ (ج) إرساء المجسم في فضاء إحداثي افتراضي وتحديد مسار كاميرا سينمائي بـ 6 درجات حرية؛ (د) استخراج خرائط العمق المتزامنة؛ (هـ) ضبط نماذج انتشار الفيديو عبر الكادر المرجعي وخريطة العمق مع فرض قيود أمان تشريحية مانعة لتشوه الأطراف.
+        </div>
+
+        <div class="claim-item">
+          <span class="claim-num">المطالبة 2 (استقلالية المنظومة):</span>
+          الطريقة الواردة في المطالبة 1، حيث تكون عملية التحويل من كادر 2D إلى أصل ثلاثي الأبعاد مجردة ومستقلة تماماً عن أي طراز أو محرك تجاري محدد لتوليد الفيديو.
+        </div>
+
+        <div class="claim-item">
+          <span class="claim-num">المطالبة 3 (توحيد المسارات الحركية):</span>
+          الطريقة الواردة في المطالبة 1، حيث يتم اختيار مسار الكاميرا من مكتبة حركية سينمائية معيارية (Dolly Push-in, Dolly Pull-back, Track, Pedestal, Orbit) مع تنعيم نسبي للمسار الفيزيائي.
+        </div>
+
+        <div class="claim-item">
+          <span class="claim-num">المطالبة 4 (الحماية التشريحية الخادمة):</span>
+          الطريقة الواردة في المطالبة 1، حيث تتضمن قيود السلامة التشريحية متجهات تكييف سلبية مفروضة على مستوى الخادم تحظر تشوه الأطراف والوجه والتحرك العشوائي غير المقيد للكاميرا.
+        </div>
+
+        <div class="claim-item">
+          <span class="claim-num">المطالبة 5 (جهاز ونظام إخراجي):</span>
+          نظام حاسوبي لإدارة الإخراج التوليدي يشتمل على معالج وذاكرة وواجهة مستخدم ذات مراحل إخراجية منفصلة (غرفة الممثل، مسار الكاميرا، صالة العرض)، مع خادم وسيط يحافظ على دوام المعاملات عبر المشاهد.
+        </div>
+
+        <div class="claim-item">
+          <span class="claim-num">المطالبة 6 (محرك التحويل الدلالي متعدد اللغات):</span>
+          الطريقة الواردة في المطالبة 1، متضمنةً خطوة تحويل دلالي عابرة للغات تستقبل أوامر الإخراج المكتوبة بلغة طبيعية غير الإنجليزية، وتفككها آلياً إلى مفردات سينمائية بصرية قياسية (عدسات، عمق ميدان، مسار كاميرا) وحقنها في منظومة التوليد.
+        </div>
+
+        <div class="claim-item">
+          <span class="claim-num">المطالبة 7 (واجهة المستخدم الصوتية متعددة اللغات):</span>
+          النظام الوارد في المطالبة 5، متضمناً واجهة أوامر إخراجية تفاعلية تدعم التبديل الآلي بين العربية والإنجليزية والفرنسية والإسبانية، بحيث يتكيف توليد الصوت العصبي والردود التوجيهية ذاتياً وفق لغة المخرج المختارة.
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 3: CERTIFICATION, SIGNATURES & PRIOR-ART RECORD -->
+    <div class="page page-break">
+      <div class="doc-section">
+        <h2>4. شهادة التوثيق التشفيري والسبق التقني (Prior-Art Timestamp Certification)</h2>
+        <p>
+          تشهد هذه الوثيقة الرسمية بأنه قد تم تسجيل وتشفير كامل المنظومة المعمارية والكود المصدري والمطالبات الابتكارية الموضحة أعلاه، وتوليد بصمة تشفيرية رياضية لا رجعة فيها (Cryptographic Digest) وفق المعايير الدولية FIPS 180-4 / RFC 6234 لإثبات أسبقية الاختراع عالمياً وحظر أي ادعاء لاحق بالسبق التقني.
+        </p>
+
+        <div class="hash-banner">
+          <div class="hash-title">🛡️ شهادة النزاهة التشفيرية لبراءة الاختراع (SHA-256 Digest)</div>
+          <div>REFERENCE FILE: IP_LEGAL_SPECIFICATION.md</div>
+          <div>TIMESTAMP (UTC): 2026-11-08T11:59:23Z</div>
+          <span class="hash-val">6cc73329f31a1d505bb180876b5d925a5b6b7254f5ed312fa5ee4a16e95fde90</span>
+        </div>
+      </div>
+
+      <!-- Legal Commercial Declaration -->
+      <div class="doc-section">
+        <h2>5. إقرار الملكية والحماية التجارية (Commercial Rights Statement)</h2>
+        <p>
+          بموجب اتفاقية ترخيص المستخدم والشروط القانونية المرفقة بمنصة <strong>CINDY AI DIRECTOR™</strong>، يقر النظام بأن المخرج (أستاذ إيهاب) هو المالك الحصري والوحيد لكافة مخرجات النظام، والتصميمات المعمارية، والمطالبات الابتكارية بنسبة 100%، ويحظر حظراً تاماً على أي طرف استنساخ أو هندسة عكسية أو استغلال هذا الابتكار دون ترخيص كتابي صريح من المخترع.
+        </p>
+      </div>
+
+      <!-- Signatures Grid -->
+      <div class="signature-grid">
+        <div class="sig-box">
+          <div class="sig-line"></div>
+          <div class="sig-name">المخرج / أستاذ إيهاب</div>
+          <div class="sig-title">المخترع وصاحب حقوق الملكية الفكرية الحصري</div>
+        </div>
+        <div class="sig-box">
+          <div class="sig-line"></div>
+          <div class="sig-name">Antigravity AI Systems</div>
+          <div class="sig-title">هندسة وتوثيق النظم المعمارية المعتمدة</div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</body>
+</html>

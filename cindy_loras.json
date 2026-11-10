@@ -1,0 +1,74 @@
+[
+  {
+    "id": "01a19351-c060-7132-a010-7b93eee80907",
+    "model_name": "رجب",
+    "trigger_word": "bob",
+    "is_style": false,
+    "steps": 1000,
+    "weights_url": "https://v3b.fal.media/files/b/0ab09f78/9PsA3V28Dx3pjZ1Uphkz8_pytorch_lora_weights.safetensors",
+    "local_file": "bob_01a193.safetensors",
+    "file_size": 130958064,
+    "created_at": "2026-10-31 21:02:19",
+    "status": "ready"
+  },
+  {
+    "id": "01a19320-017e-7ff3-945c-6be259a56710",
+    "model_name": "نوسة",
+    "trigger_word": "bob",
+    "is_style": false,
+    "steps": 1000,
+    "weights_url": "https://v3b.fal.media/files/b/0ab09e3e/ueWJvAEvP2SpuMk-FpqTB_pytorch_lora_weights.safetensors",
+    "local_file": "bob_01a193.safetensors",
+    "file_size": 130958064,
+    "created_at": "2026-10-31 20:10:22",
+    "status": "ready"
+  },
+  {
+    "id": "01a19313-1cb2-7363-a76f-099cffad23ae",
+    "model_name": "عبشكور الشاب",
+    "trigger_word": "bob",
+    "is_style": false,
+    "steps": 1000,
+    "weights_url": "https://v3b.fal.media/files/b/0ab09de1/g9rL1yCFGyj07oxc5GUUg_pytorch_lora_weights.safetensors",
+    "local_file": "bob_01a193.safetensors",
+    "file_size": 130958064,
+    "created_at": "2026-10-31 19:53:19",
+    "status": "ready"
+  },
+  {
+    "id": "01a192a9-4846-72a1-b051-47e1f67d7d8f",
+    "model_name": "عبعزيز الشاب",
+    "trigger_word": "bob",
+    "is_style": false,
+    "steps": 1000,
+    "weights_url": "https://v3b.fal.media/files/b/0ab09b2f/uyaCK6V2tQe7iXcOLjjDu_pytorch_lora_weights.safetensors",
+    "local_file": "bob_01a192.safetensors",
+    "file_size": 130958064,
+    "created_at": "2026-10-31 17:58:24",
+    "status": "ready"
+  },
+  {
+    "id": "01a19289-0d36-7723-aa5e-8985152bd4b4",
+    "model_name": "عبشكور",
+    "trigger_word": "bob",
+    "is_style": false,
+    "steps": 1000,
+    "weights_url": "https://v3b.fal.media/files/b/0ab09a57/EAFj4FFGdyJKHDsZ_dQsW_pytorch_lora_weights.safetensors",
+    "local_file": "bob_01a192.safetensors",
+    "file_size": 130958064,
+    "created_at": "2026-10-31 17:22:28",
+    "status": "ready"
+  },
+  {
+    "id": "01a1925a-1755-7211-939d-4474ddae1774",
+    "model_name": "عبعزيز",
+    "trigger_word": "bob",
+    "is_style": false,
+    "steps": 1000,
+    "weights_url": "https://v3b.fal.media/files/b/0ab0992d/KyTpiycxHw6Ob52pC6EHD_pytorch_lora_weights.safetensors",
+    "local_file": "bob_01a192.safetensors",
+    "file_size": 130958064,
+    "created_at": "2026-10-31 16:32:44",
+    "status": "ready"
+  }
+]

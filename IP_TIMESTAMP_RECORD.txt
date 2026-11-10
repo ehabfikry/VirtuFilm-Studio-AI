@@ -1,0 +1,29 @@
+================================================================================
+CINDY AI DIRECTOR™ — CRYPTOGRAPHIC PRIOR-ART TIMESTAMP RECORD
+================================================================================
+
+Document: IP_LEGAL_SPECIFICATION.md
+Reference: CAD-IP-2026-001
+Title: SYSTEM AND METHOD FOR SPATIALLY-CONSTRAINED CHARACTER IDENTITY, CAMERA KINEMATICS,
+       AND MULTI-MODAL SYNTHESIS IN GENERATIVE VIDEO PRODUCTION
+Inventor: Ehab [Director]
+Lead System Architect & Assistant: Antigravity AI Engineering
+Timestamp (UTC): 2026-11-08T11:59:23.462428+00:00
+
+--------------------------------------------------------------------------------
+CRYPTOGRAPHIC INTEGRITY DIGESTS (RFC 6234 / FIPS 180-4)
+--------------------------------------------------------------------------------
+SHA-256: 6cc73329f31a1d505bb180876b5d925a5b6b7254f5ed312fa5ee4a16e95fde90
+
+Canonical Scope:
+- Pillar 1: Neural Identity Anchoring Module (NIAM)
+- Pillar 2: Spatial Geometry & Mesh Synthesizer (SGMS)
+- Pillar 3: Kinematic Pre-visualization Directorial Engine (KPDE)
+- Pillar 4: Constrained Temporal Synthesis Backend (CTSB)
+- Pillar 5: Cross-Lingual Cinematographic Semantic Transmutation Engine (CCSTE)
+- Claims 1 through 7 (Method, Apparatus, Trajectory Normalization, Anatomical Penalty, Multi-Lingual Transmutation)
+
+LEGAL CERTIFICATION:
+This cryptographic record certifies the deterministic existence, technical priority,
+and unalterable state of the CINDY AI DIRECTOR™ system architecture as of the recorded timestamp.
+================================================================================
