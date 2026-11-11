@@ -2903,8 +2903,8 @@
                 <textarea id="comfy-video-prompt" rows="3" dir="auto" spellcheck="false" placeholder="اكتب وصف حركة الكاميرا والأجواء (مثال: cinematic slow push-in, intense eye contact, atmospheric cinema lighting, 8k)... أو اتركه فارغاً للتحريك التلقائي" class="w-full bg-cinema-900 border border-cinema-700 rounded-xl p-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-400 leading-relaxed font-sans"></textarea>
               </div>
 
-              <!-- Motion & FPS -->
-              <div class="grid grid-cols-2 gap-3">
+              <!-- Motion, FPS & Model-Specific Duration -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div class="space-y-1">
                   <label class="text-xs font-bold text-slate-200">شدة حركة الكاميرا (Motion):</label>
                   <input type="range" id="comfy-video-motion" min="20" max="255" value="127" class="w-full accent-amber-500 cursor-pointer" oninput="document.getElementById('comfy-video-motion-val').innerText = this.value">
@@ -2918,9 +2918,22 @@
                 <div class="space-y-1">
                   <label class="text-xs font-bold text-slate-200">معدل الإطارات (FPS):</label>
                   <select id="comfy-video-fps" class="w-full bg-cinema-900 border border-cinema-700 rounded-xl px-2.5 py-2 text-xs text-slate-100">
-                    <option value="6" selected>6 fps (حركة ناعمة)</option>
+                    <option value="6">6 fps (حركة ناعمة)</option>
                     <option value="12">12 fps (حركة سينمائية)</option>
+                    <option value="16" selected>16 fps (قياسي Wan/Hunyuan)</option>
                     <option value="24">24 fps (قياسي كامل)</option>
+                  </select>
+                </div>
+
+                <div class="space-y-1">
+                  <label class="text-xs font-bold text-amber-300 flex items-center justify-between">
+                    <span>مدة اللقطة (حسب الموديل):</span>
+                    <span id="comfy-duration-badge" class="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-mono">Wan 2.2</span>
+                  </label>
+                  <select id="comfy-video-duration" class="w-full bg-cinema-900 border border-amber-500/60 rounded-xl px-2.5 py-2 text-xs text-amber-200 font-bold">
+                    <option value="81" selected>5 ثوانٍ (81 كادر - المعيار الأصلي 720p)</option>
+                    <option value="49">3 ثوانٍ (49 كادر - لقطة سريعة)</option>
+                    <option value="113">7 ثوانٍ (113 كادر - لقطة طويلة)</option>
                   </select>
                 </div>
               </div>
@@ -3844,6 +3857,53 @@
 
     function onComfyVideoModelChange() {
       const ckpt = (document.getElementById('comfy-video-checkpoint')?.value || '').toLowerCase();
+      const durSel = document.getElementById('comfy-video-duration');
+      const durBadge = document.getElementById('comfy-duration-badge');
+
+      if (durSel && durBadge) {
+        if (ckpt.includes('wan2.2') || ckpt.includes('2.2')) {
+          durBadge.innerText = 'Wan 2.2 (14B)';
+          durSel.innerHTML = `
+            <option value="81" selected>5 ثوانٍ (81 كادر - المعيار الذهبي 720p)</option>
+            <option value="49">3 ثوانٍ (49 كادر - حركة سريعة)</option>
+            <option value="113">7 ثوانٍ (113 كادر - مشهد ممتد)</option>
+          `;
+        } else if (ckpt.includes('wan') || ckpt.includes('2.1')) {
+          durBadge.innerText = 'Wan 2.1 (14B)';
+          durSel.innerHTML = `
+            <option value="81" selected>5 ثوانٍ (81 كادر - سينمائي 720p)</option>
+            <option value="49">3 ثوانٍ (49 كادر - لقطة تفصيلية)</option>
+            <option value="121">8 ثوانٍ (121 كادر - لقطة طويلة)</option>
+          `;
+        } else if (ckpt.includes('skyreels') || ckpt.includes('hunyuan')) {
+          durBadge.innerText = 'SkyReels / Hunyuan';
+          durSel.innerHTML = `
+            <option value="73" selected>4.5 ثانية (73 كادر - ثبات الوجوه 720p)</option>
+            <option value="49">3 ثوانٍ (49 كادر - حركة ناعمة)</option>
+            <option value="97">6 ثوانٍ (97 كادر - مشهد كامل)</option>
+          `;
+        } else if (ckpt.includes('ltx')) {
+          durBadge.innerText = 'LTX-Video (13B)';
+          durSel.innerHTML = `
+            <option value="97" selected>4 ثوانٍ (97 كادر - توليد صاروخي)</option>
+            <option value="49">2 ثانية (49 كادر - رد فعل)</option>
+            <option value="161">7 ثوانٍ (161 كادر - لقطة طويلة)</option>
+          `;
+        } else if (ckpt.includes('svd')) {
+          durBadge.innerText = 'Stability SVD-XT';
+          durSel.innerHTML = `
+            <option value="25" selected>4 ثوانٍ (25 كادر كلاسيكي 576p)</option>
+            <option value="14">2.5 ثانية (14 كادر سريع)</option>
+          `;
+        } else if (ckpt.includes('cogvideo')) {
+          durBadge.innerText = 'CogVideoX-5B';
+          durSel.innerHTML = `
+            <option value="49" selected>6 ثوانٍ (49 كادر 8fps)</option>
+            <option value="33">4 ثوانٍ (33 كادر)</option>
+          `;
+        }
+      }
+
       const btnText = document.getElementById('comfy-render-btn-text');
       const hint = document.getElementById('comfy-video-model-hint');
       const isEn = (window.currentAppLang && window.currentAppLang !== 'ar');
@@ -4983,7 +5043,8 @@
 
         const ckpt = document.getElementById('comfy-video-checkpoint')?.value || 'Tencent HunyuanVideo (13B)';
         const motion = parseInt(document.getElementById('comfy-video-motion')?.value) || 127;
-        const fps = parseInt(document.getElementById('comfy-video-fps')?.value) || 24;
+        const fps = parseInt(document.getElementById('comfy-video-fps')?.value) || 16;
+        const videoFrames = parseInt(document.getElementById('comfy-video-duration')?.value) || 81;
         const autoStop = document.getElementById('comfy-autostop')?.checked ?? true;
         pBar.style.width = '65%';
         btnText.innerText = '⏳ جاري المعالجة والريندر السحابي بأعلى دقة...';
@@ -4997,6 +5058,7 @@
             checkpoint: ckpt,
             motion_bucket_id: motion,
             fps: fps,
+            video_frames: videoFrames,
             auto_stop: autoStop,
             allow_cloud: !!allowCloud,
             prompt: (document.getElementById('comfy-video-prompt')?.value || document.getElementById('comfy-prompt')?.value || '').trim() || 'Cinematic video sequence with smooth camera motion and realistic physical lighting'
