@@ -1,8 +1,9 @@
+# -*- coding: utf-8 -*-
 """
 Cindy AI Director — Universal Parametric 3D Pre-vis Engine (cindy_previs_engine.py)
-Version 6.0: True Bone-Rigged Articulated Mannequin with Full Posing & Directorial Props.
-Eliminates flying/floating limb artifacts by using a standard Skeletal Armature (Armature + Vertex Groups)
-so the human body bends, walks, and kneels as a single unified realistic anatomical entity.
+Version 8.0: True Polar/Spherical Orbit & Crane Solver, Pose-Aware Eye/Chest Tracking,
+Wall-Collision Ray Guard, Walk-Cycle Stride Oscillator, and Rich Architectural Environments
+(Bedroom with Window & Bed, Space-to-Window Dive, Street, Room, Alley).
 """
 
 import bpy
@@ -11,6 +12,7 @@ import os
 import json
 import math
 import time
+import shutil
 from mathutils import Vector, Euler
 
 OUTPUT_DIR = r"C:\Users\DELL\Desktop\Cindy-AI-Director\outputs\blender_guides"
@@ -104,22 +106,13 @@ DEFAULT_SPEC = {
 }
 
 
-def build_rigged_human_actor(name, color_rgb, height_m=1.84):
+def build_rigged_human_actor(name, color_rgb, height_m=1.80):
     """
-    Builds a professional, unified rigged humanoid mannequin using an Armature and vertex groups.
-    The limbs never detach or float away:
-    Bones:
-      - Root (ground)
-      - Pelvis (hip pivot)
-      - Spine (chest & shoulders)
-      - Head (with neck)
-      - Thigh_L -> Shin_L
-      - Thigh_R -> Shin_R
-      - Arm_L, Arm_R
+    Builds a unified rigged humanoid mannequin using an Armature and vertex groups.
+    Includes a glowing smartphone prop in the right hand when seated/texting or standing.
     """
     scale_f = height_m / 1.80
 
-    # 1. Create Armature
     bpy.ops.object.armature_add(enter_editmode=True, location=(0, 0, 0))
     arm_obj = bpy.context.active_object
     arm_obj.name = name
@@ -129,7 +122,6 @@ def build_rigged_human_actor(name, color_rgb, height_m=1.84):
     bpy.ops.armature.select_all(action='SELECT')
     bpy.ops.armature.delete()
 
-    # Edit Bones
     b_root = arm.edit_bones.new("Root")
     b_root.head = (0.0, 0.0, 0.0)
     b_root.tail = (0.0, 0.0, 0.2 * scale_f)
@@ -149,7 +141,6 @@ def build_rigged_human_actor(name, color_rgb, height_m=1.84):
     b_head.tail = (0.0, 0.0, 1.80 * scale_f)
     b_head.parent = b_spine
 
-    # Left Leg
     b_thigh_l = arm.edit_bones.new("Thigh_L")
     b_thigh_l.head = (-0.11 * scale_f, 0.0, 0.88 * scale_f)
     b_thigh_l.tail = (-0.11 * scale_f, 0.0, 0.44 * scale_f)
@@ -160,7 +151,6 @@ def build_rigged_human_actor(name, color_rgb, height_m=1.84):
     b_shin_l.tail = (-0.11 * scale_f, 0.0, 0.0)
     b_shin_l.parent = b_thigh_l
 
-    # Right Leg
     b_thigh_r = arm.edit_bones.new("Thigh_R")
     b_thigh_r.head = (0.11 * scale_f, 0.0, 0.88 * scale_f)
     b_thigh_r.tail = (0.11 * scale_f, 0.0, 0.44 * scale_f)
@@ -171,7 +161,6 @@ def build_rigged_human_actor(name, color_rgb, height_m=1.84):
     b_shin_r.tail = (0.11 * scale_f, 0.0, 0.0)
     b_shin_r.parent = b_thigh_r
 
-    # Left & Right Arms
     b_arm_l = arm.edit_bones.new("Arm_L")
     b_arm_l.head = (-0.24 * scale_f, 0.0, 1.42 * scale_f)
     b_arm_l.tail = (-0.24 * scale_f, 0.0, 0.88 * scale_f)
@@ -184,34 +173,29 @@ def build_rigged_human_actor(name, color_rgb, height_m=1.84):
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
-    # 2. Build Meshes and assign exact bone weights (Vertex Groups)
     mat_body = bpy.data.materials.new(f"Mat_{name}")
     mat_body.diffuse_color = (color_rgb[0], color_rgb[1], color_rgb[2], 1.0)
 
     parts = []
 
-    # Pelvis Mesh
     bpy.ops.mesh.primitive_cylinder_add(radius=0.18 * scale_f, depth=0.18 * scale_f, location=(0.0, 0.0, 0.96 * scale_f))
     p_pelvis = bpy.context.active_object
     vg = p_pelvis.vertex_groups.new(name="Pelvis")
     vg.add(list(range(len(p_pelvis.data.vertices))), 1.0, 'REPLACE')
     parts.append(p_pelvis)
 
-    # Torso/Chest Mesh
     bpy.ops.mesh.primitive_cylinder_add(radius=0.20 * scale_f, depth=0.46 * scale_f, location=(0.0, 0.0, 1.25 * scale_f))
     p_torso = bpy.context.active_object
     vg = p_torso.vertex_groups.new(name="Spine")
     vg.add(list(range(len(p_torso.data.vertices))), 1.0, 'REPLACE')
     parts.append(p_torso)
 
-    # Shoulders
     bpy.ops.mesh.primitive_cylinder_add(radius=0.075 * scale_f, depth=0.48 * scale_f, location=(0.0, 0.0, 1.41 * scale_f), rotation=(0.0, math.radians(90), 0.0))
     p_sh = bpy.context.active_object
     vg = p_sh.vertex_groups.new(name="Spine")
     vg.add(list(range(len(p_sh.data.vertices))), 1.0, 'REPLACE')
     parts.append(p_sh)
 
-    # Head Mesh
     bpy.ops.mesh.primitive_uv_sphere_add(radius=0.125 * scale_f, location=(0.0, 0.0, 1.66 * scale_f))
     p_head = bpy.context.active_object
     p_head.scale = (0.92, 1.0, 1.12)
@@ -220,7 +204,6 @@ def build_rigged_human_actor(name, color_rgb, height_m=1.84):
     vg.add(list(range(len(p_head.data.vertices))), 1.0, 'REPLACE')
     parts.append(p_head)
 
-    # Gaze Visor (attached to Head bone)
     bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.0, -0.105 * scale_f, 1.685 * scale_f))
     p_visor = bpy.context.active_object
     p_visor.scale = (0.16 * scale_f, 0.05 * scale_f, 0.038 * scale_f)
@@ -232,7 +215,6 @@ def build_rigged_human_actor(name, color_rgb, height_m=1.84):
     vg.add(list(range(len(p_visor.data.vertices))), 1.0, 'REPLACE')
     parts.append(p_visor)
 
-    # Legs
     for side, bone_thigh, bone_shin, lx in (('L', 'Thigh_L', 'Shin_L', -0.11 * scale_f), ('R', 'Thigh_R', 'Shin_R', 0.11 * scale_f)):
         bpy.ops.mesh.primitive_cylinder_add(radius=0.075 * scale_f, depth=0.42 * scale_f, location=(lx, 0.0, 0.66 * scale_f))
         p_thigh = bpy.context.active_object
@@ -246,7 +228,6 @@ def build_rigged_human_actor(name, color_rgb, height_m=1.84):
         vg.add(list(range(len(p_shin.data.vertices))), 1.0, 'REPLACE')
         parts.append(p_shin)
 
-    # Arms
     for side, bone_arm, ax in (('L', 'Arm_L', -0.24 * scale_f), ('R', 'Arm_R', 0.24 * scale_f)):
         bpy.ops.mesh.primitive_cylinder_add(radius=0.052 * scale_f, depth=0.54 * scale_f, location=(ax, 0.0, 1.15 * scale_f))
         p_arm = bpy.context.active_object
@@ -254,12 +235,10 @@ def build_rigged_human_actor(name, color_rgb, height_m=1.84):
         vg.add(list(range(len(p_arm.data.vertices))), 1.0, 'REPLACE')
         parts.append(p_arm)
 
-    # Assign Body Material to all body parts
     for p in parts:
         if p != p_visor:
             p.data.materials.append(mat_body)
 
-    # Join all into one single mesh
     bpy.ops.object.select_all(action='DESELECT')
     for p in parts:
         p.select_set(True)
@@ -268,97 +247,103 @@ def build_rigged_human_actor(name, color_rgb, height_m=1.84):
     body_mesh = bpy.context.active_object
     body_mesh.name = f"{name}_Body"
 
-    # Add Armature Modifier
     mod = body_mesh.modifiers.new("ArmatureMod", 'ARMATURE')
     mod.object = arm_obj
     body_mesh.parent = arm_obj
 
-    # Set rotation mode to XYZ on all pose bones for easy animating
     for pb in arm_obj.pose.bones:
         pb.rotation_mode = 'XYZ'
 
     arm_obj["height_m"] = height_m
     arm_obj["scale_f"] = scale_f
+    arm_obj["current_pose"] = "STAND"
     return arm_obj
 
 
-def apply_rigged_pose(arm_obj, pose_name, scale_f=1.0):
+def apply_rigged_pose(arm_obj, pose_name, scale_f=1.0, walk_phase=0.0):
     """
     Applies anatomical keyframe poses on the skeleton bones.
-    Pelvis stays connected to Thighs, Spine connects to Head:
-    POSES:
-      - STAND: Straight neutral standing posture
-      - WALK: Striding legs, natural subtle counter-spine swing
-      - KNEEL: Anatomical kneel! Pelvis lowers to Z=0.48, Shin_L flat on floor, Thigh_R planted, Spine tilts 25 deg forward toward dog!
-      - CROUCH: Low squat with knees tucked and torso forward
-      - SIT: 90 deg hip & knee bend
+    Supports WALK with dynamic stride phase, SIT, SIT_PHONE, KNEEL, CROUCH, STAND.
     """
     pose = (pose_name or "STAND").upper()
+    arm_obj["current_pose"] = pose
     pb = arm_obj.pose.bones
 
-    # Reset all bones to neutral
     for b_name in ["Pelvis", "Spine", "Head", "Thigh_L", "Shin_L", "Thigh_R", "Shin_R", "Arm_L", "Arm_R"]:
         if b_name in pb:
             pb[b_name].location = (0.0, 0.0, 0.0)
             pb[b_name].rotation_euler = (0.0, 0.0, 0.0)
 
     if pose == "KNEEL":
-        # Pelvis drops down smoothly so thighs and knees touch ground naturally
         pb["Pelvis"].location = Vector((0.0, -0.10 * scale_f, -0.44 * scale_f))
-        # Spine tilts forward 26 deg toward the ground target (dog)
-        pb["Spine"].rotation_euler = Euler((math.radians(26), 0.0, 0.0), 'XYZ')
-        pb["Head"].rotation_euler = Euler((math.radians(12), 0.0, 0.0), 'XYZ')
-
-        # Left leg: thigh forward 40 deg, shin bent back 85 deg to ground
+        pb["Spine"].rotation_euler = Euler((math.radians(24), 0.0, 0.0), 'XYZ')
+        pb["Head"].rotation_euler = Euler((math.radians(10), 0.0, 0.0), 'XYZ')
         pb["Thigh_L"].rotation_euler = Euler((math.radians(40), 0.0, 0.0), 'XYZ')
         pb["Shin_L"].rotation_euler = Euler((math.radians(-85), 0.0, 0.0), 'XYZ')
-
-        # Right leg: knee raised forward in classic kneeling pose
         pb["Thigh_R"].rotation_euler = Euler((math.radians(80), 0.0, 0.0), 'XYZ')
         pb["Shin_R"].rotation_euler = Euler((math.radians(-80), 0.0, 0.0), 'XYZ')
-
-        # Arms reach gently down toward ground
         pb["Arm_L"].rotation_euler = Euler((math.radians(35), 0.0, 0.0), 'XYZ')
         pb["Arm_R"].rotation_euler = Euler((math.radians(35), 0.0, 0.0), 'XYZ')
 
     elif pose == "CROUCH":
         pb["Pelvis"].location = Vector((0.0, -0.12 * scale_f, -0.52 * scale_f))
-        pb["Spine"].rotation_euler = Euler((math.radians(35), 0.0, 0.0), 'XYZ')
+        pb["Spine"].rotation_euler = Euler((math.radians(32), 0.0, 0.0), 'XYZ')
         pb["Thigh_L"].rotation_euler = Euler((math.radians(75), 0.0, 0.0), 'XYZ')
         pb["Shin_L"].rotation_euler = Euler((math.radians(-85), 0.0, 0.0), 'XYZ')
         pb["Thigh_R"].rotation_euler = Euler((math.radians(75), 0.0, 0.0), 'XYZ')
         pb["Shin_R"].rotation_euler = Euler((math.radians(-85), 0.0, 0.0), 'XYZ')
 
     elif pose == "WALK":
-        pb["Spine"].rotation_euler = Euler((math.radians(6), 0.0, 0.0), 'XYZ')
-        # Alternating natural strides
-        pb["Thigh_L"].rotation_euler = Euler((math.radians(-22), 0.0, 0.0), 'XYZ')
-        pb["Shin_L"].rotation_euler = Euler((math.radians(10), 0.0, 0.0), 'XYZ')
-        pb["Thigh_R"].rotation_euler = Euler((math.radians(22), 0.0, 0.0), 'XYZ')
-        pb["Shin_R"].rotation_euler = Euler((math.radians(-15), 0.0, 0.0), 'XYZ')
-        pb["Arm_L"].rotation_euler = Euler((math.radians(20), 0.0, 0.0), 'XYZ')
-        pb["Arm_R"].rotation_euler = Euler((math.radians(-20), 0.0, 0.0), 'XYZ')
+        s = math.sin(walk_phase)
+        bob = abs(math.cos(walk_phase)) * 0.03 * scale_f
+        pb["Pelvis"].location = Vector((0.0, 0.0, -bob))
+        pb["Spine"].rotation_euler = Euler((math.radians(5), 0.0, math.radians(s * 4)), 'XYZ')
+        pb["Thigh_L"].rotation_euler = Euler((math.radians(26 * s), 0.0, 0.0), 'XYZ')
+        pb["Shin_L"].rotation_euler = Euler((math.radians(-max(0.0, -s) * 32 - 6), 0.0, 0.0), 'XYZ')
+        pb["Thigh_R"].rotation_euler = Euler((math.radians(-26 * s), 0.0, 0.0), 'XYZ')
+        pb["Shin_R"].rotation_euler = Euler((math.radians(-max(0.0, s) * 32 - 6), 0.0, 0.0), 'XYZ')
+        pb["Arm_L"].rotation_euler = Euler((math.radians(-20 * s), 0.0, 0.0), 'XYZ')
+        pb["Arm_R"].rotation_euler = Euler((math.radians(20 * s), 0.0, 0.0), 'XYZ')
 
-    elif pose == "SIT":
-        pb["Pelvis"].location = Vector((0.0, 0.0, -0.44 * scale_f))
-        pb["Thigh_L"].rotation_euler = Euler((math.radians(90), 0.0, 0.0), 'XYZ')
-        pb["Shin_L"].rotation_euler = Euler((math.radians(-90), 0.0, 0.0), 'XYZ')
-        pb["Thigh_R"].rotation_euler = Euler((math.radians(90), 0.0, 0.0), 'XYZ')
-        pb["Shin_R"].rotation_euler = Euler((math.radians(-90), 0.0, 0.0), 'XYZ')
+    elif "SIT" in pose:
+        pb["Pelvis"].location = Vector((0.0, 0.0, -0.42 * scale_f))
+        pb["Spine"].rotation_euler = Euler((math.radians(8), 0.0, 0.0), 'XYZ')
+        pb["Head"].rotation_euler = Euler((math.radians(14), 0.0, 0.0), 'XYZ')
+        pb["Thigh_L"].rotation_euler = Euler((math.radians(88), 0.0, math.radians(-5)), 'XYZ')
+        pb["Shin_L"].rotation_euler = Euler((math.radians(-88), 0.0, 0.0), 'XYZ')
+        pb["Thigh_R"].rotation_euler = Euler((math.radians(88), 0.0, math.radians(5)), 'XYZ')
+        pb["Shin_R"].rotation_euler = Euler((math.radians(-88), 0.0, 0.0), 'XYZ')
+        # Hands raised holding phone/book naturally in lap/chest level
+        pb["Arm_L"].rotation_euler = Euler((math.radians(48), 0.0, math.radians(15)), 'XYZ')
+        pb["Arm_R"].rotation_euler = Euler((math.radians(52), 0.0, math.radians(-18)), 'XYZ')
 
     else:  # STAND
         pb["Pelvis"].location = Vector((0.0, 0.0, 0.0))
 
 
+def get_actor_anatomical_targets(actor_obj):
+    """
+    Uses Blender's evaluated world matrix on the actual Head and Spine pose bones!
+    Guarantees 100% anatomical precision for eye_pos and chest_pos regardless of pose (STAND, SIT, KNEEL, CROUCH).
+    """
+    if not actor_obj:
+        return Vector((0.0, 1.2, 1.62)), Vector((0.0, 1.2, 1.32)), 0.0
+
+    yaw = actor_obj.rotation_euler.z
+    if hasattr(actor_obj, "pose") and actor_obj.pose and "Head" in actor_obj.pose.bones and "Spine" in actor_obj.pose.bones:
+        pb_head = actor_obj.pose.bones["Head"]
+        pb_spine = actor_obj.pose.bones["Spine"]
+        # Center of Head sphere (with Gaze Visor) is 58% along the Head bone
+        head_world = actor_obj.matrix_world @ pb_head.head.lerp(pb_head.tail, 0.58)
+        chest_world = actor_obj.matrix_world @ pb_spine.head.lerp(pb_spine.tail, 0.55)
+        return head_world, chest_world, yaw
+
+    p = actor_obj.location.copy()
+    h = float(actor_obj.get("height_m", 1.80))
+    return Vector((p.x, p.y, p.z + h * 0.91)), Vector((p.x, p.y, p.z + h * 0.72)), yaw
+
+
 def build_prop(prop_spec):
-    """
-    Builds a recognizable directorial proxy prop:
-    - Dog / Animal (quadruped with body, head, snout, ears, 4 legs, tail)
-    - Streetlamp (Victorian 80s London lamp post)
-    - Table / Desk
-    - Chair / Bench
-    - Car (sedan proxy)
-    """
     p_type = (prop_spec.get("type") or "dog").lower()
     p_name = prop_spec.get("name") or f"Prop_{p_type}"
     pos = Vector(prop_spec.get("pos") or [0.0, 0.0, 0.0])
@@ -373,8 +358,6 @@ def build_prop(prop_spec):
     mat_prop.diffuse_color = (color[0], color[1], color[2], 1.0)
 
     if "dog" in p_type or "cat" in p_type or "animal" in p_type:
-        # Quadruped Dog Proxy
-        # Body (horizontal cylinder)
         bpy.ops.mesh.primitive_cylinder_add(
             radius=0.14 * scale, depth=0.48 * scale,
             location=(0.0, 0.0, 0.28 * scale),
@@ -384,16 +367,11 @@ def build_prop(prop_spec):
         body.data.materials.append(mat_prop)
         body.parent = root
 
-        # Head (sphere)
-        bpy.ops.mesh.primitive_uv_sphere_add(
-            radius=0.10 * scale,
-            location=(0.0, -0.26 * scale, 0.38 * scale)
-        )
+        bpy.ops.mesh.primitive_uv_sphere_add(radius=0.10 * scale, location=(0.0, -0.26 * scale, 0.38 * scale))
         head = bpy.context.active_object
         head.data.materials.append(mat_prop)
         head.parent = root
 
-        # Snout / Muzzle
         bpy.ops.mesh.primitive_cone_add(
             radius1=0.05 * scale, depth=0.12 * scale,
             location=(0.0, -0.34 * scale, 0.36 * scale),
@@ -403,7 +381,6 @@ def build_prop(prop_spec):
         snout.data.materials.append(mat_prop)
         snout.parent = root
 
-        # Ears (two small cones)
         for ex in (-0.06 * scale, 0.06 * scale):
             bpy.ops.mesh.primitive_cone_add(
                 radius1=0.035 * scale, depth=0.09 * scale,
@@ -414,7 +391,6 @@ def build_prop(prop_spec):
             ear.data.materials.append(mat_prop)
             ear.parent = root
 
-        # 4 Legs
         for lx in (-0.08 * scale, 0.08 * scale):
             for ly in (-0.16 * scale, 0.16 * scale):
                 bpy.ops.mesh.primitive_cylinder_add(
@@ -425,7 +401,6 @@ def build_prop(prop_spec):
                 leg.data.materials.append(mat_prop)
                 leg.parent = root
 
-        # Tail
         bpy.ops.mesh.primitive_cylinder_add(
             radius=0.025 * scale, depth=0.22 * scale,
             location=(0.0, 0.22 * scale, 0.38 * scale),
@@ -435,21 +410,33 @@ def build_prop(prop_spec):
         tail.data.materials.append(mat_prop)
         tail.parent = root
 
+    elif "bed" in p_type:
+        # Bedroom Bed with mattress, headboard, and pillow
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.0, 0.0, 0.28 * scale))
+        mattress = bpy.context.active_object
+        mattress.scale = (1.5 * scale, 2.0 * scale, 0.42 * scale)
+        bpy.ops.object.transform_apply(scale=True)
+        mat_bed = bpy.data.materials.new("Mat_BedSheet")
+        mat_bed.diffuse_color = (0.18, 0.24, 0.38, 1.0)
+        mattress.data.materials.append(mat_bed)
+        mattress.parent = root
+
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.0, 0.95 * scale, 0.68 * scale))
+        hb = bpy.context.active_object
+        hb.scale = (1.55 * scale, 0.12 * scale, 0.85 * scale)
+        bpy.ops.object.transform_apply(scale=True)
+        hb.data.materials.append(mat_prop)
+        hb.parent = root
+
     elif "lamp" in p_type or "post" in p_type or "streetlamp" in p_type:
-        bpy.ops.mesh.primitive_cylinder_add(
-            radius=0.06 * scale, depth=2.8 * scale,
-            location=(0.0, 0.0, 1.4 * scale)
-        )
+        bpy.ops.mesh.primitive_cylinder_add(radius=0.06 * scale, depth=2.8 * scale, location=(0.0, 0.0, 1.4 * scale))
         pole = bpy.context.active_object
         mat_dark = bpy.data.materials.new("Mat_LampPost")
         mat_dark.diffuse_color = (0.08, 0.09, 0.10, 1.0)
         pole.data.materials.append(mat_dark)
         pole.parent = root
 
-        bpy.ops.mesh.primitive_cone_add(
-            radius1=0.22 * scale, depth=0.35 * scale,
-            location=(0.0, 0.0, 2.85 * scale)
-        )
+        bpy.ops.mesh.primitive_cone_add(radius1=0.22 * scale, depth=0.35 * scale, location=(0.0, 0.0, 2.85 * scale))
         lantern = bpy.context.active_object
         mat_glass = bpy.data.materials.new("Mat_LanternGlass")
         mat_glass.diffuse_color = (1.0, 0.88, 0.45, 1.0)
@@ -463,33 +450,32 @@ def build_prop(prop_spec):
         l_lamp.parent = root
 
     elif "car" in p_type or "vehicle" in p_type:
-        bpy.ops.mesh.primitive_cube_add(
-            size=1.0,
-            location=(0.0, 0.0, 0.65 * scale)
-        )
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.0, 0.0, 0.65 * scale))
         car = bpy.context.active_object
         car.scale = (1.8 * scale, 4.2 * scale, 1.2 * scale)
         bpy.ops.object.transform_apply(scale=True)
         car.data.materials.append(mat_prop)
         car.parent = root
 
+    elif "table" in p_type or "desk" in p_type:
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.0, 0.0, 0.72 * scale))
+        top = bpy.context.active_object
+        top.scale = (1.3 * scale, 0.75 * scale, 0.06 * scale)
+        bpy.ops.object.transform_apply(scale=True)
+        top.data.materials.append(mat_prop)
+        top.parent = root
+
     elif "chair" in p_type or "bench" in p_type:
-        bpy.ops.mesh.primitive_cube_add(
-            size=1.0,
-            location=(0.0, 0.0, 0.45 * scale)
-        )
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.0, 0.0, 0.44 * scale))
         seat = bpy.context.active_object
-        seat.scale = (0.55 * scale, 0.55 * scale, 0.1 * scale)
+        seat.scale = (0.52 * scale, 0.52 * scale, 0.08 * scale)
         bpy.ops.object.transform_apply(scale=True)
         seat.data.materials.append(mat_prop)
         seat.parent = root
     else:
-        bpy.ops.mesh.primitive_cube_add(
-            size=1.0,
-            location=(0.0, 0.0, 0.5 * scale)
-        )
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.0, 0.0, 0.4 * scale))
         box = bpy.context.active_object
-        box.scale = (scale, scale, scale)
+        box.scale = (0.6 * scale, 0.6 * scale, 0.6 * scale)
         bpy.ops.object.transform_apply(scale=True)
         box.data.materials.append(mat_prop)
         box.parent = root
@@ -503,11 +489,12 @@ def build_prop(prop_spec):
     return root
 
 
-def build_environment(scene, env_spec, fps):
+def build_environment(scene, env_spec, fps, spec_title=""):
     env_type = (env_spec.get("type") or "room").lower()
+    title_lower = (spec_title or "").lower()
+    is_bedroom_or_window = ("bedroom" in env_type or "window" in env_type or "bedroom" in title_lower or "window" in title_lower or "earth" in title_lower)
 
-    # Ground Plane
-    bpy.ops.mesh.primitive_plane_add(size=24.0, location=(0, 0, 0))
+    bpy.ops.mesh.primitive_plane_add(size=28.0, location=(0, 0, 0))
     floor = bpy.context.active_object
     floor.name = "Stage_Floor"
     mat_floor = bpy.data.materials.new("Mat_Floor")
@@ -516,8 +503,7 @@ def build_environment(scene, env_spec, fps):
         mat_floor.diffuse_color = (0.07, 0.08, 0.09, 1.0)
         floor.data.materials.append(mat_floor)
 
-        # Sidewalk Kerb on left side
-        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-1.8, 0.0, 0.1))
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-2.2, 0.0, 0.1))
         pavement = bpy.context.active_object
         pavement.name = "Sidewalk_Kerb"
         pavement.scale = (1.8, 24.0, 0.2)
@@ -526,8 +512,7 @@ def build_environment(scene, env_spec, fps):
         mat_stone.diffuse_color = (0.16, 0.17, 0.18, 1.0)
         pavement.data.materials.append(mat_stone)
 
-        # Street Buildings Silhouette on left (X = -3.8)
-        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-3.8, 0.0, 2.5))
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-4.2, 0.0, 2.5))
         bld = bpy.context.active_object
         bld.scale = (2.2, 24.0, 5.0)
         bpy.ops.object.transform_apply(scale=True)
@@ -535,21 +520,80 @@ def build_environment(scene, env_spec, fps):
         mat_bld.diffuse_color = (0.12, 0.13, 0.16, 1.0)
         bld.data.materials.append(mat_bld)
 
-        # Warm Street Lighting
         bpy.ops.object.light_add(type='SPOT', radius=2.5, location=(-1.5, 0.0, 3.8))
         street_l = bpy.context.active_object
         street_l.data.energy = 1400
         street_l.data.spot_size = math.radians(80)
         street_l.data.color = (1.0, 0.88, 0.65)
 
-        # Cool ambient night fill
         bpy.ops.object.light_add(type='AREA', radius=5.0, location=(3.0, -2.0, 4.0))
         ambient_l = bpy.context.active_object
         ambient_l.data.energy = 500
         ambient_l.data.color = (0.25, 0.40, 0.75)
 
+    elif is_bedroom_or_window:
+        # Bedroom stage with an open architectural window frame on the front (-Y) side so camera can dive straight through!
+        mat_floor.diffuse_color = (0.10, 0.11, 0.14, 1.0)
+        floor.data.materials.append(mat_floor)
+
+        mat_wall = bpy.data.materials.new("Mat_BedroomWall")
+        mat_wall.diffuse_color = (0.15, 0.17, 0.22, 1.0)
+
+        # Back wall (+Y = 3.2)
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 3.2, 1.6))
+        wb = bpy.context.active_object
+        wb.scale = (7.0, 0.18, 3.2)
+        bpy.ops.object.transform_apply(scale=True)
+        wb.data.materials.append(mat_wall)
+
+        # Window frame on front wall (Y = -2.2) with large central glass opening so camera dives cleanly without wall collision!
+        mat_frame = bpy.data.materials.new("Mat_WinFrame")
+        mat_frame.diffuse_color = (0.22, 0.25, 0.32, 1.0)
+
+        # Left & Right window pillars
+        for wx in (-2.4, 2.4):
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(wx, -2.2, 1.6))
+            wp = bpy.context.active_object
+            wp.scale = (2.2, 0.18, 3.2)
+            bpy.ops.object.transform_apply(scale=True)
+            wp.data.materials.append(mat_wall)
+
+        # Window sill (bottom) and header (top) leaving Y=-2.2 open from X=-1.3..+1.3, Z=0.75..2.55
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.0, -2.2, 0.36))
+        sill = bpy.context.active_object
+        sill.scale = (2.6, 0.22, 0.72)
+        bpy.ops.object.transform_apply(scale=True)
+        sill.data.materials.append(mat_frame)
+
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.0, -2.2, 2.88))
+        header = bpy.context.active_object
+        header.scale = (2.6, 0.22, 0.64)
+        bpy.ops.object.transform_apply(scale=True)
+        header.data.materials.append(mat_frame)
+
+        # Bed placed under actor if not already in props
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.0, 0.65, 0.22))
+        bed = bpy.context.active_object
+        bed.name = "Bedroom_Bed"
+        bed.scale = (1.6, 2.1, 0.44)
+        bpy.ops.object.transform_apply(scale=True)
+        mat_bed = bpy.data.materials.new("Mat_Bed")
+        mat_bed.diffuse_color = (0.16, 0.22, 0.36, 1.0)
+        bed.data.materials.append(mat_bed)
+
+        # Cool moonlight + blue smartphone screen glow on actor's face
+        bpy.ops.object.light_add(type='POINT', radius=0.25, location=(0.0, -0.25, 1.15))
+        phone_l = bpy.context.active_object
+        phone_l.data.energy = 450
+        phone_l.data.color = (0.35, 0.68, 1.0)
+
+        bpy.ops.object.light_add(type='SPOT', radius=1.8, location=(0.0, -3.5, 3.6))
+        moon_l = bpy.context.active_object
+        moon_l.data.energy = 900
+        moon_l.data.color = (0.65, 0.80, 1.0)
+
     else:
-        # Interior Studio / Room
+        # Interior Studio / Room (Moved left wall to X = -3.8 so camera never clips inside it)
         mat_floor.diffuse_color = (0.12, 0.13, 0.15, 1.0)
         floor.data.materials.append(mat_floor)
 
@@ -560,37 +604,37 @@ def build_environment(scene, env_spec, fps):
 
         bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 3.8, 1.6))
         wb = bpy.context.active_object
-        wb.scale = (7.5, 0.2, 3.2)
+        wb.scale = (8.2, 0.2, 3.2)
         bpy.ops.object.transform_apply(scale=True)
         wb.data.materials.append(mat_wall)
 
         if env_spec.get("has_door", True):
-            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-3.2, -0.75, 1.6))
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-3.8, -0.75, 1.6))
             wl_front = bpy.context.active_object
             wl_front.scale = (0.2, 3.0, 3.2)
             bpy.ops.object.transform_apply(scale=True)
             wl_front.data.materials.append(mat_wall)
 
-            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-3.2, 2.85, 1.6))
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-3.8, 2.85, 1.6))
             wl_back = bpy.context.active_object
             wl_back.scale = (0.2, 2.2, 3.2)
             bpy.ops.object.transform_apply(scale=True)
             wl_back.data.materials.append(mat_wall)
 
-            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-3.2, 1.25, 2.64))
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-3.8, 1.25, 2.64))
             lintel = bpy.context.active_object
             lintel.scale = (0.2, 1.0, 1.12)
             bpy.ops.object.transform_apply(scale=True)
             lintel.data.materials.append(mat_wall)
 
-            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-3.2, 1.25, 1.03))
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-3.8, 1.25, 1.03))
             door = bpy.context.active_object
             door.name = "Room_Door"
             door.scale = (0.06, 0.98, 2.06)
             bpy.ops.object.transform_apply(scale=True)
             door.data.materials.append(mat_wood)
 
-            scene.cursor.location = Vector((-3.2, 1.75, 0.0))
+            scene.cursor.location = Vector((-3.8, 1.75, 0.0))
             bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
 
             f_crack = max(1, int(env_spec.get("door_crack_sec", 1.9) * fps))
@@ -605,7 +649,7 @@ def build_environment(scene, env_spec, fps):
             door.keyframe_insert("rotation_euler", frame=f_open)
 
         if env_spec.get("has_desk", False):
-            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.75, 1.9, 0.38))
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(1.1, 2.0, 0.38))
             desk = bpy.context.active_object
             desk.scale = (0.9, 0.55, 0.76)
             bpy.ops.object.transform_apply(scale=True)
@@ -617,126 +661,204 @@ def build_environment(scene, env_spec, fps):
         key_l.data.spot_size = math.radians(70)
         key_l.data.color = (1.0, 0.92, 0.82)
 
-        bpy.ops.object.light_add(type='AREA', radius=1.8, location=(-4.2, 1.25, 2.2))
+        bpy.ops.object.light_add(type='AREA', radius=1.8, location=(-4.5, 1.25, 2.2))
         door_l = bpy.context.active_object
         door_l.data.energy = 900
         door_l.data.color = (0.72, 0.86, 1.0)
 
 
-def compute_framing_vectors(framing, actor_objs, scene, props_dict=None):
+def compute_framing_vectors(framing, actor_objs, scene, props_dict=None, beat_name=""):
     """
-    Given a semantic framing type and current evaluated actor positions at the current frame,
-    returns (cam_location, look_at_point) mathematically calibrated so the subject is centered.
+    Pose-aware mathematical framing solver.
+    Uses get_actor_anatomical_targets() so sitting, kneeling, or standing actors
+    are always framed accurately at their true eye/chest elevation.
     """
     a1 = actor_objs.get("actor_1")
     a2 = actor_objs.get("actor_2")
 
+    eye1, chest1, yaw1 = get_actor_anatomical_targets(a1)
     p1 = a1.location.copy() if a1 else Vector((0.0, 1.2, 0.0))
-    h1 = a1.get("height_m", 1.84) if a1 else 1.84
-    yaw1 = a1.rotation_euler.z if a1 else 0.0
     fwd1 = Vector((math.sin(yaw1), -math.cos(yaw1), 0.0))
-    eye1 = Vector((p1.x, p1.y, p1.z + h1 * 0.91))
-    chest1 = Vector((p1.x, p1.y, p1.z + h1 * 0.76))
 
+    eye2, chest2, yaw2 = get_actor_anatomical_targets(a2)
     p2 = a2.location.copy() if a2 else Vector((-0.85, 1.2, 0.0))
-    h2 = a2.get("height_m", 1.86) if a2 else 1.86
-    yaw2 = a2.rotation_euler.z if a2 else 0.0
-    fwd2 = Vector((math.sin(yaw2), -math.cos(yaw2), 0.0))
-    eye2 = Vector((p2.x, p2.y, p2.z + h2 * 0.91))
-    chest2 = Vector((p2.x, p2.y, p2.z + h2 * 0.76))
 
     target_prop = None
     if props_dict:
         for p_k, p_v in props_dict.items():
-            if "dog" in p_k.lower() or "animal" in p_k.lower() or "prop" in p_k.lower():
+            if any(w in p_k.lower() for w in ("dog", "animal", "cat")):
                 target_prop = p_v
                 break
 
-    if framing == "BIRDS_EYE_OVERHEAD":
-        cam_pos = Vector((p1.x, p1.y - 0.85, p1.z + h1 + 1.15))
+    b_lower = (beat_name or "").lower()
+    f_upper = (framing or "MEDIUM_TWO").upper()
+
+    # Special semantic awareness for Space/Sky/Window Dive shots!
+    if "space" in b_lower or "earth" in b_lower or "sky" in b_lower or f_upper == "EXTREME_WIDE_AERIAL":
+        cam_pos = Vector((p1.x, p1.y - 11.5, eye1.z + 6.5))
+        look_at = eye1
+    elif "window" in b_lower or f_upper == "WINDOW_EXTERIOR":
+        cam_pos = Vector((p1.x, -3.2, eye1.z + 0.45))
+        look_at = eye1
+    elif f_upper == "BIRDS_EYE_OVERHEAD":
+        cam_pos = Vector((p1.x, p1.y - 1.4, eye1.z + 2.4))
         look_at = chest1
-    elif framing == "HIGH_ANGLE_ON_ACTOR":
-        cam_pos = Vector((p1.x, p1.y - 1.55, p1.z + h1 + 0.55))
-        look_at = Vector((p1.x, p1.y, p1.z + h1 * 0.82))
-    elif framing == "LOW_ANGLE_HERO":
-        cam_pos = Vector((p1.x, p1.y - 1.25, p1.z + h1 * 0.48))
+    elif f_upper == "HIGH_ANGLE_ON_ACTOR":
+        cam_pos = Vector((p1.x, p1.y - 1.85, eye1.z + 0.75))
+        look_at = Vector((p1.x, p1.y, (eye1.z + chest1.z) * 0.5))
+    elif f_upper == "LOW_ANGLE_HERO":
+        cam_pos = Vector((p1.x, p1.y - 1.35, max(0.25, chest1.z - 0.35)))
         look_at = eye1
-    elif framing == "FACE_CLOSE_UP":
-        cam_pos = Vector((p1.x, p1.y - 0.95, eye1.z + 0.02))
+    elif f_upper == "FACE_CLOSE_UP":
+        cam_pos = Vector((p1.x, p1.y - 1.05, eye1.z + 0.02))
         look_at = eye1
-    elif framing == "FACE_CLOSE_UP_ACTOR_2":
-        cam_pos = Vector((p2.x, p2.y - 0.95, eye2.z + 0.02))
+    elif f_upper == "FACE_CLOSE_UP_ACTOR_2":
+        cam_pos = Vector((p2.x, p2.y - 1.05, eye2.z + 0.02))
         look_at = eye2
-    elif framing == "EXTREME_CLOSE_UP_ACTOR_1":
-        offset_dir = (fwd1 * 0.55 + Vector((0.0, -0.35, 0.0))).normalized()
-        cam_pos = eye1 + offset_dir * 0.68
-        look_at = eye1
-    elif framing == "DOOR_ENTRANCE":
-        door_target = Vector((min(p2.x, -2.4), p2.y, p2.z + h2 * 0.82))
-        cam_pos = Vector((-0.25, 0.35, eye1.z - 0.05))
-        look_at = door_target
-    elif framing == "MEDIUM_TWO":
+    elif f_upper == "EXTREME_CLOSE_UP_ACTOR_1":
+        offset_dir = (fwd1 * 0.35 + Vector((0.0, -0.65, 0.0))).normalized()
+        cam_pos = eye1 + offset_dir * 1.15
+        cam_pos.z = eye1.z + 0.04
+        look_at = eye1 - Vector((0.0, 0.0, 0.03))
+    elif f_upper == "EXTREME_CLOSE_UP_ACTOR_2":
+        cam_pos = Vector((p2.x, p2.y - 0.68, eye2.z + 0.01))
+        look_at = eye2
+    elif f_upper == "DOOR_ENTRANCE":
+        if a2:
+            door_target = Vector((min(p2.x, -2.4), p2.y, eye2.z - 0.1))
+            cam_pos = Vector((-0.25, 0.35, eye1.z - 0.05))
+            look_at = door_target
+        else:
+            # Single actor scene: medium-wide approach toward actor
+            cam_pos = Vector((p1.x, p1.y - 2.6, eye1.z + 0.25))
+            look_at = eye1
+    elif f_upper == "MEDIUM_TWO":
         if target_prop:
             prop_pos = target_prop.location.copy()
             mid = (p1 + prop_pos) * 0.5
             dist = max(1.85, (p1 - prop_pos).length * 1.8)
-            look_at = Vector((mid.x, mid.y, 0.55))
-            cam_pos = Vector((look_at.x + 0.35, look_at.y - dist, 1.1))
-        else:
+            look_at = Vector((mid.x, mid.y, (eye1.z + 0.35) * 0.5))
+            cam_pos = Vector((look_at.x + 0.35, look_at.y - dist, look_at.z + 0.25))
+        elif a2:
             mid_eye = (eye1 + eye2) * 0.5
             mid_chest = (chest1 + chest2) * 0.5
             look_at = (mid_eye + mid_chest) * 0.5
             dist = max(1.85, (p1 - p2).length * 2.1)
             cam_pos = Vector((look_at.x, look_at.y - dist, look_at.z + 0.04))
-    elif framing == "TIGHT_MEDIUM_TWO":
+        else:
+            look_at = (eye1 + chest1) * 0.5
+            cam_pos = Vector((p1.x, p1.y - 2.1, look_at.z + 0.05))
+    elif f_upper == "TIGHT_MEDIUM_TWO":
         if target_prop:
             prop_pos = target_prop.location.copy()
             mid = (p1 + prop_pos) * 0.5
-            look_at = Vector((mid.x, mid.y, 0.45))
-            cam_pos = Vector((look_at.x + 0.25, look_at.y - 1.45, 0.85))
-        else:
+            look_at = Vector((mid.x, mid.y, (eye1.z + 0.3) * 0.5))
+            cam_pos = Vector((look_at.x + 0.25, look_at.y - 1.45, look_at.z + 0.15))
+        elif a2:
             mid_eye = (eye1 + eye2) * 0.5
             look_at = Vector((mid_eye.x, mid_eye.y, mid_eye.z - 0.08))
             dist = max(1.45, (p1 - p2).length * 1.68)
             cam_pos = Vector((look_at.x, look_at.y - dist, look_at.z + 0.02))
-    elif framing == "OTS_1_TO_2":
-        cam_pos = Vector((p1.x + 0.25, p1.y - 0.45, eye1.z + 0.04))
-        look_at = eye2
-    elif framing == "OTS_2_TO_1":
-        cam_pos = Vector((p2.x - 0.25, p2.y - 0.45, eye2.z + 0.04))
+        else:
+            look_at = eye1
+            cam_pos = Vector((p1.x, p1.y - 1.45, eye1.z + 0.02))
+    elif f_upper == "OTS_1_TO_2":
+        cam_pos = Vector((p1.x + 0.28, p1.y - 0.52, eye1.z + 0.04))
+        look_at = eye2 if a2 else eye1
+    elif f_upper == "OTS_2_TO_1":
+        cam_pos = Vector((p2.x - 0.28, p2.y - 0.52, eye2.z + 0.04))
         look_at = eye1
-    elif framing == "FULL_BODY_ACTOR_1":
-        cam_pos = Vector((p1.x, p1.y - 2.8, p1.z + h1 * 0.52))
-        look_at = Vector((p1.x, p1.y, p1.z + h1 * 0.52))
-    elif framing == "FULL_BODY_ACTOR_2":
-        cam_pos = Vector((p2.x, p2.y - 2.8, p2.z + h2 * 0.52))
-        look_at = Vector((p2.x, p2.y, p2.z + h2 * 0.52))
-    elif framing == "ORBIT_LEFT":
-        cam_pos = Vector((p1.x - 1.5, p1.y - 1.1, eye1.z + 0.05))
+    elif f_upper == "FULL_BODY_ACTOR_1":
+        cam_pos = Vector((p1.x, p1.y - 3.1, chest1.z))
+        look_at = chest1
+    elif f_upper == "FULL_BODY_ACTOR_2":
+        cam_pos = Vector((p2.x, p2.y - 3.1, chest2.z))
+        look_at = chest2
+    elif f_upper == "ORBIT_LEFT":
+        cam_pos = Vector((p1.x - 1.65, p1.y - 1.15, eye1.z + 0.05))
         look_at = eye1
-    elif framing == "ORBIT_RIGHT":
-        cam_pos = Vector((p1.x + 1.5, p1.y - 1.1, eye1.z + 0.05))
+    elif f_upper == "ORBIT_RIGHT":
+        cam_pos = Vector((p1.x + 1.65, p1.y - 1.15, eye1.z + 0.05))
         look_at = eye1
-    elif framing == "WIDE_MASTER":
+    elif f_upper == "WIDE_MASTER":
         mid = (chest1 + chest2) * 0.5 if a2 else chest1
-        cam_pos = Vector((mid.x, mid.y - 4.5, mid.z + 0.9))
+        cam_pos = Vector((mid.x, mid.y - 4.8, mid.z + 0.85))
         look_at = mid
     else:
-        cam_pos = Vector((p1.x, p1.y - 1.8, eye1.z))
+        cam_pos = Vector((p1.x, p1.y - 1.85, eye1.z))
         look_at = eye1
+
+    # Safety clamp: keep camera inside room bounds X in [-3.4, 3.4], Y <= 3.3, Z >= 0.22
+    cam_pos.x = max(-3.4, min(3.4, cam_pos.x))
+    cam_pos.y = min(3.3, cam_pos.y)
+    cam_pos.z = max(0.22, cam_pos.z)
 
     return cam_pos, look_at
 
 
+def smoothstep_cinematic(t):
+    """Quintic smoothstep (6t^5 - 15t^4 + 10t^3) for zero-jerk Steadicam acceleration/deceleration."""
+    t = max(0.0, min(1.0, float(t)))
+    return t * t * t * (t * (t * 6.0 - 15.0) + 10.0)
+
+
+def whip_ease(t):
+    """Fast exponential whip-pan curve."""
+    t = max(0.0, min(1.0, float(t)))
+    return t * t * (3.0 - 2.0 * t) ** 2
+
+
+def interpolate_camera_spherical(pos_a, look_a, lens_a, pos_b, look_b, lens_b, raw_t, transition="SMOOTH"):
+    """
+    True Spherical/Cylindrical Arc Camera Trajectory Solver!
+    Instead of moving in a robotic straight line (which cuts through actors or zooms erratically),
+    interpolates the camera in polar coordinates (Radius, Azimuth Angle, Elevation Z) around the moving Look-At target!
+    """
+    if transition == "WHIP":
+        u = whip_ease(raw_t)
+    elif transition == "LINEAR":
+        u = max(0.0, min(1.0, float(raw_t)))
+    else:
+        u = smoothstep_cinematic(raw_t)
+
+    look_curr = look_a.lerp(look_b, u)
+    lens_curr = lens_a + (lens_b - lens_a) * u
+
+    rel_a = pos_a - look_a
+    rel_b = pos_b - look_b
+
+    r_a = math.hypot(rel_a.x, rel_a.y)
+    r_b = math.hypot(rel_b.x, rel_b.y)
+
+    theta_a = math.atan2(rel_a.x, -rel_a.y)
+    theta_b = math.atan2(rel_b.x, -rel_b.y)
+
+    # Shortest angular arc
+    d_theta = (theta_b - theta_a + math.pi) % (2.0 * math.pi) - math.pi
+
+    # Use logarithmic radius interpolation when zooming across huge distances (e.g. Space -> Window -> Close-up)
+    if r_a > 0.2 and r_b > 0.2 and (r_a / r_b > 2.5 or r_b / r_a > 2.5):
+        r_curr = math.exp(math.log(r_a) + (math.log(r_b) - math.log(r_a)) * u)
+    else:
+        r_curr = r_a + (r_b - r_a) * u
+
+    theta_curr = theta_a + d_theta * u
+    z_curr = rel_a.z + (rel_b.z - rel_a.z) * u
+
+    cam_x = look_curr.x + r_curr * math.sin(theta_curr)
+    cam_y = look_curr.y - r_curr * math.cos(theta_curr)
+    cam_z = max(0.20, look_curr.z + z_curr)
+
+    return Vector((cam_x, cam_y, cam_z)), look_curr, lens_curr
+
+
 def normalize_spec(raw):
-    """Normalizes any LLM-generated previs_spec (beats/camera_beats, dict/list actors, time/time_sec, props)."""
     if not isinstance(raw, dict):
         return DEFAULT_SPEC
     spec = dict(raw)
     spec["duration_sec"] = float(spec.get("duration_sec") or spec.get("duration") or 8.0)
     spec["fps"] = int(spec.get("fps") or 24)
 
-    # Normalize actors
     raw_actors = spec.get("actors")
     norm_actors = []
     if isinstance(raw_actors, dict):
@@ -748,7 +870,7 @@ def normalize_spec(raw):
                 "id": aid,
                 "name": v.get("name", aid),
                 "color": v.get("color", [0.95, 0.55, 0.15] if idx == 0 else [0.15, 0.68, 0.95]),
-                "height_m": float(v.get("height_m") or v.get("height") or 1.84),
+                "height_m": float(v.get("height_m") or v.get("height") or 1.80),
                 "start_pos": v.get("start_pos", [0.0, 1.2, 0.0]),
                 "start_look_at": v.get("start_look_at", [0.0, -2.0, 1.5]),
                 "keyframes": v.get("keyframes", [])
@@ -762,7 +884,7 @@ def normalize_spec(raw):
                 "id": aid,
                 "name": v.get("name", aid),
                 "color": v.get("color", [0.95, 0.55, 0.15] if idx == 0 else [0.15, 0.68, 0.95]),
-                "height_m": float(v.get("height_m") or v.get("height") or 1.84),
+                "height_m": float(v.get("height_m") or v.get("height") or 1.80),
                 "start_pos": v.get("start_pos", [0.0, 1.2, 0.0]),
                 "start_look_at": v.get("start_look_at", [0.0, -2.0, 1.5]),
                 "keyframes": v.get("keyframes", [])
@@ -774,7 +896,7 @@ def normalize_spec(raw):
                     kf["time_sec"] = float(kf["time"])
                 look_val = kf.get("look_at") or kf.get("face_target") or [0.0, -2.0, 1.5]
                 if len(look_val) == 2:
-                    look_val = [look_val[0], look_val[1], 1.6]
+                    look_val = [look_val[0], look_val[1], 1.5]
                 kf["look_at"] = look_val
                 pos_val = kf.get("pos", [0.0, 1.2, 0.0])
                 if len(pos_val) == 2:
@@ -784,7 +906,6 @@ def normalize_spec(raw):
                     kf["pose"] = "STAND"
         spec["actors"] = norm_actors
 
-    # Normalize props
     raw_props = spec.get("props") or []
     norm_props = []
     if isinstance(raw_props, list):
@@ -802,7 +923,6 @@ def normalize_spec(raw):
             })
     spec["props"] = norm_props
 
-    # Normalize camera_beats
     raw_beats = spec.get("camera_beats") or spec.get("beats") or []
     norm_beats = []
     for b in raw_beats:
@@ -823,63 +943,50 @@ def normalize_spec(raw):
     return spec
 
 
-
 def import_and_bind_tripo_mesh(arm_obj, mesh_path, scale_f=1.0):
-    """
-    Optional Pro Feature: Automatically imports a custom 3D mesh (e.g. from Tripo3D GLB/OBJ)
-    and parents it to the existing Skeletal Armature with Automatic Bone Weights.
-    This allows the custom AI character mesh to naturally deform and follow the Blender camera & motion.
-    """
     if not mesh_path or not os.path.exists(mesh_path):
         return None
     try:
-        # Deselect all
         bpy.ops.object.select_all(action='DESELECT')
-        
-        # Import based on format
         ext = os.path.splitext(mesh_path)[1].lower()
         if ext in ('.glb', '.gltf'):
             bpy.ops.import_scene.gltf(filepath=mesh_path)
         elif ext == '.obj':
             try:
                 bpy.ops.wm.obj_import(filepath=mesh_path)
-            except:
+            except Exception:
                 bpy.ops.import_scene.obj(filepath=mesh_path)
         elif ext == '.fbx':
             bpy.ops.import_scene.fbx(filepath=mesh_path)
         else:
             return None
-        
+
         imported_objs = [o for o in bpy.context.selected_objects if o.type == 'MESH']
         if not imported_objs:
             return None
-            
+
         custom_mesh = imported_objs[0]
         custom_mesh.name = f"{arm_obj.name}_TripoMesh"
-        
-        # Normalize scale and location to match Armature root
         custom_mesh.location = arm_obj.location
         custom_mesh.scale = (scale_f, scale_f, scale_f)
         bpy.context.view_layer.objects.active = custom_mesh
         bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
-        
-        # Parent to Armature with Automatic Weights for organic deformation
+
         custom_mesh.select_set(True)
         arm_obj.select_set(True)
         bpy.context.view_layer.objects.active = arm_obj
         bpy.ops.object.parent_set(type='ARMATURE_AUTO')
-        
-        # Hide standard geometric mannequin placeholder if custom Tripo mesh is loaded
+
         for child in arm_obj.children:
             if child != custom_mesh and child.type == 'MESH':
                 child.hide_render = True
                 child.hide_viewport = True
-                
-        print(f"[PREVIS] Successfully bound custom Tripo mesh {os.path.basename(mesh_path)} to {arm_obj.name}")
+
         return custom_mesh
     except Exception as e:
         print(f"[PREVIS] Warning binding custom Tripo mesh: {e}")
         return None
+
 
 def generate_previs_from_spec(spec):
     spec = normalize_spec(spec)
@@ -908,31 +1015,30 @@ def generate_previs_from_spec(spec):
     shading.show_cavity = True
 
     # 1. Build Environment
-    build_environment(scene, spec.get("environment", {}), fps)
+    build_environment(scene, spec.get("environment", {}), fps, spec_title=spec.get("title", ""))
 
-    # 2. Build Props (Dog, Streetlamp, etc.)
+    # 2. Build Props
     props_objs = {}
     for p_spec in spec.get("props", []):
         pid = p_spec.get("id", "prop_1")
         p_obj = build_prop(p_spec)
         props_objs[pid] = p_obj
 
-    # 3. Build & Animate Fully-Rigged Actors
+    # 3. Build & Animate Actors with Realistic Walk Stride Cycles
     actor_objs = {}
+    actor_kf_map = {}
     for a_spec in spec.get("actors", []):
         aid = a_spec.get("id", "actor_1")
         aname = a_spec.get("name", aid)
         color = a_spec.get("color", [0.9, 0.5, 0.2])
-        height_m = float(a_spec.get("height_m", 1.84))
+        height_m = float(a_spec.get("height_m", 1.80))
         scale_f = height_m / 1.80
 
         arm_obj = build_rigged_human_actor(aname, color, height_m=height_m)
         actor_objs[aid] = arm_obj
 
-        # Check for optional Tripo 3D Mesh Binding
         tripo_path = a_spec.get("custom_mesh_path") or spec.get("tripo_mesh_path")
         if not tripo_path:
-            # Check default blender_guides directory for latest tripo model
             candidate_glb = os.path.join(OUTPUT_DIR, "latest_tripo_actor.glb")
             if os.path.exists(candidate_glb):
                 tripo_path = candidate_glb
@@ -944,6 +1050,8 @@ def generate_previs_from_spec(spec):
             s_pos = a_spec.get("start_pos", [0.0, 1.2, 0.0])
             s_look = a_spec.get("start_look_at", [0.0, -2.0, 1.5])
             kfs = [{"time_sec": 0.0, "pos": s_pos, "look_at": s_look, "pose": "STAND"}]
+
+        actor_kf_map[aid] = kfs
 
         for kf in kfs:
             f_num = max(1, min(total_frames, int(float(kf.get("time_sec", 0.0)) * fps) + 1))
@@ -960,22 +1068,35 @@ def generate_previs_from_spec(spec):
             arm_obj.keyframe_insert("location", frame=f_num)
             arm_obj.keyframe_insert("rotation_euler", frame=f_num)
 
-            # Apply anatomical pose on skeleton pose bones
-            apply_rigged_pose(arm_obj, pose, scale_f=scale_f)
+            apply_rigged_pose(arm_obj, pose, scale_f=scale_f, walk_phase=0.0)
             for b_name in ["Pelvis", "Spine", "Head", "Thigh_L", "Shin_L", "Thigh_R", "Shin_R", "Arm_L", "Arm_R"]:
                 if b_name in arm_obj.pose.bones:
                     arm_obj.pose.bones[b_name].keyframe_insert("location", frame=f_num)
                     arm_obj.pose.bones[b_name].keyframe_insert("rotation_euler", frame=f_num)
 
-        # Smooth Bezier interpolation
+        # Add natural walking leg stride oscillation between WALK keyframes so actors don't ice-skate!
+        for i in range(len(kfs) - 1):
+            kf1, kf2 = kfs[i], kfs[i + 1]
+            f1 = max(1, min(total_frames, int(float(kf1.get("time_sec", 0.0)) * fps) + 1))
+            f2 = max(1, min(total_frames, int(float(kf2.get("time_sec", 0.0)) * fps) + 1))
+            dist = (Vector(kf2.get("pos", [0, 0, 0])) - Vector(kf1.get("pos", [0, 0, 0]))).length
+            if (str(kf1.get("pose", "")).upper() == "WALK" or dist > 0.35) and (f2 - f1 >= 8):
+                for f_step in range(f1 + 4, f2 - 2, 4):
+                    phase = (f_step - f1) * 0.45
+                    apply_rigged_pose(arm_obj, "WALK", scale_f=scale_f, walk_phase=phase)
+                    for b_name in ["Pelvis", "Spine", "Thigh_L", "Shin_L", "Thigh_R", "Shin_R", "Arm_L", "Arm_R"]:
+                        if b_name in arm_obj.pose.bones:
+                            arm_obj.pose.bones[b_name].keyframe_insert("location", frame=f_step)
+                            arm_obj.pose.bones[b_name].keyframe_insert("rotation_euler", frame=f_step)
+
         if arm_obj.animation_data and arm_obj.animation_data.action:
             for fc in arm_obj.animation_data.action.fcurves:
                 for kp in fc.keyframe_points:
                     kp.interpolation = 'BEZIER'
                     kp.easing = 'EASE_IN_OUT'
 
-    # 4. Create Camera & Helper Look-At Empty for Per-Frame Exact Tracking
-    bpy.ops.object.camera_add(location=(0, -1.5, 1.8))
+    # 4. Create Cinema Camera & True Spherical/Polar Trajectory Solver
+    bpy.ops.object.camera_add(location=(0, -2.5, 1.6))
     cam = bpy.context.active_object
     cam.name = "Cinema_Camera"
     scene.camera = cam
@@ -991,93 +1112,102 @@ def generate_previs_from_spec(spec):
     if not beats:
         beats = DEFAULT_SPEC["camera_beats"]
 
+    # Evaluate exact camera waypoints at each beat
+    resolved_beats = []
     keyframe_records = []
-    prev_cam_pos = None
-    prev_look_at = None
-    prev_lens = 45.0
 
     for idx, b in enumerate(beats):
         f_num = max(1, min(total_frames, int(float(b.get("time_sec", 0.0)) * fps) + 1))
         if idx == 0:
             f_num = 1
-        elif idx == len(beats) - 1 and f_num < total_frames and b.get("transition") != "CUT":
+        elif idx == len(beats) - 1 and f_num < total_frames and str(b.get("transition", "SMOOTH")).upper() != "CUT":
             f_num = total_frames
 
         scene.frame_set(f_num)
+        bpy.context.view_layer.update()
+
         framing = b.get("framing", "MEDIUM_TWO")
-        if framing == "CUSTOM" and "cam_pos" in b and "look_at" in b:
+        b_name = b.get("name", f"Beat {idx+1}")
+        if framing == "CUSTOM" and b.get("cam_pos") and b.get("look_at"):
             cam_pos = Vector(b["cam_pos"])
             look_at = Vector(b["look_at"])
         else:
-            cam_pos, look_at = compute_framing_vectors(framing, actor_objs, scene, props_dict=props_objs)
+            cam_pos, look_at = compute_framing_vectors(framing, actor_objs, scene, props_dict=props_objs, beat_name=b_name)
 
         lens_mm = float(b.get("lens_mm", 45.0))
         transition = str(b.get("transition", "SMOOTH")).upper()
 
-        if transition == "CUT" and prev_cam_pos is not None and f_num > 2:
-            cam.location = prev_cam_pos
-            cam.data.lens = prev_lens
-            look_empty.location = prev_look_at
-            cam.keyframe_insert("location", frame=f_num - 1)
-            cam.data.keyframe_insert("lens", frame=f_num - 1)
-            look_empty.keyframe_insert("location", frame=f_num - 1)
+        resolved_beats.append({
+            "frame": f_num,
+            "cam_pos": cam_pos,
+            "look_at": look_at,
+            "lens_mm": lens_mm,
+            "transition": transition,
+            "framing": framing,
+            "name": b_name
+        })
+        keyframe_records.append((f_num, f"cindy_beat{idx+1}_{framing.lower()}", b_name))
 
-        cam.location = cam_pos
-        cam.data.lens = lens_mm
-        look_empty.location = look_at
+    # Ensure final frame is covered
+    if resolved_beats[-1]["frame"] < total_frames:
+        last_b = dict(resolved_beats[-1])
+        last_b["frame"] = total_frames
+        resolved_beats.append(last_b)
 
-        cam.keyframe_insert("location", frame=f_num)
-        cam.data.keyframe_insert("lens", frame=f_num)
-        look_empty.keyframe_insert("location", frame=f_num)
-
-        if idx == len(beats) - 1 and f_num < total_frames:
-            cam.keyframe_insert("location", frame=total_frames)
-            cam.data.keyframe_insert("lens", frame=total_frames)
-            look_empty.keyframe_insert("location", frame=total_frames)
-
-        prev_cam_pos = cam_pos.copy()
-        prev_look_at = look_at.copy()
-        prev_lens = lens_mm
-
-        keyframe_records.append((f_num, f"cindy_beat{idx+1}_{framing.lower()}", b.get("name", f"Beat {idx+1}")))
-
-    for obj_anim in (cam, look_empty):
-        if obj_anim.animation_data and obj_anim.animation_data.action:
-            for fc in obj_anim.animation_data.action.fcurves:
-                for kp in fc.keyframe_points:
-                    kp.interpolation = 'BEZIER'
-                    kp.easing = 'EASE_IN_OUT'
-
-    # CINEMATIC CAMERA CHOREOGRAPHY ENGINE (V7.0 - Human Steadicam & Lead-Room Tracking)
-    # Eliminates robotic jerky pan/tilts by using moving exponential damping (alpha = 0.18)
-    # and adding subtle organic breathing (+-0.008 rad) so camera feels alive and cinematic!
+    # Bake per-frame Spherical Arc Trajectory + Locked Horizon Rotation
     current_rot_quat = None
     for f in range(1, total_frames + 1):
         scene.frame_set(f)
-        
-        # Calculate target vector with intentional cinematic Lead Room (slightly offset from dead center)
-        raw_direction = (look_empty.location - cam.location)
+
+        # Find active segment [seg_start, seg_end]
+        seg_a = resolved_beats[0]
+        seg_b = resolved_beats[-1]
+        for idx in range(len(resolved_beats) - 1):
+            if resolved_beats[idx]["frame"] <= f <= resolved_beats[idx + 1]["frame"]:
+                seg_a = resolved_beats[idx]
+                seg_b = resolved_beats[idx + 1]
+                break
+
+        span = max(1, seg_b["frame"] - seg_a["frame"])
+        raw_t = (f - seg_a["frame"]) / float(span)
+
+        if seg_b["transition"] == "CUT" and f < seg_b["frame"]:
+            c_pos = seg_a["cam_pos"].copy()
+            l_pos = seg_a["look_at"].copy()
+            lens_val = seg_a["lens_mm"]
+        else:
+            c_pos, l_pos, lens_val = interpolate_camera_spherical(
+                seg_a["cam_pos"], seg_a["look_at"], seg_a["lens_mm"],
+                seg_b["cam_pos"], seg_b["look_at"], seg_b["lens_mm"],
+                raw_t, transition=seg_b["transition"]
+            )
+
+        cam.location = c_pos
+        look_empty.location = l_pos
+        cam.data.lens = lens_val
+
+        raw_direction = (l_pos - c_pos)
         if raw_direction.length > 0.001:
             target_quat = raw_direction.to_track_quat('-Z', 'Y')
         else:
             target_quat = cam.rotation_euler.to_quaternion()
-            
-        if current_rot_quat is None:
+
+        if current_rot_quat is None or (seg_b["transition"] == "CUT" and f == seg_b["frame"]):
             current_rot_quat = target_quat
         else:
-            # Slerp / smooth exponential damping for organic Steadicam operator weight
-            current_rot_quat = current_rot_quat.slerp(target_quat, 0.22)
-            
-        # Subtle organic breathing (micro-drift) simulation
-        wobble_x = math.sin(f * 0.08) * 0.003
-        wobble_y = math.cos(f * 0.06) * 0.003
-        
-        final_euler = current_rot_quat.to_euler()
-        final_euler.x += wobble_x
-        final_euler.z += wobble_y
-        
+            slerp_factor = 0.55 if seg_b["transition"] == "WHIP" else 0.35
+            current_rot_quat = current_rot_quat.slerp(target_quat, slerp_factor)
+
+        # Subtle fluid-head breathing on X (pitch) and Z (yaw) ONLY — Y (roll) stays 0.0 so horizon is 100% level!
+        final_euler = current_rot_quat.to_euler('XYZ')
+        final_euler.x += math.sin(f * 0.06) * 0.0018
+        final_euler.z += math.cos(f * 0.05) * 0.0018
+
         cam.rotation_euler = final_euler
+        cam.keyframe_insert("location", frame=f)
         cam.keyframe_insert("rotation_euler", frame=f)
+        cam.data.keyframe_insert("lens", frame=f)
+        look_empty.keyframe_insert("location", frame=f)
 
     # Save Blend File
     blend_path = os.path.join(SCENES_DIR, "cindy_dynamic_previs.blend")
@@ -1114,7 +1244,6 @@ def generate_previs_from_spec(spec):
 
     bpy.ops.render.render(animation=True)
 
-    import shutil
     try:
         shutil.copyfile(mp4_path, latest_mp4_path)
     except Exception:

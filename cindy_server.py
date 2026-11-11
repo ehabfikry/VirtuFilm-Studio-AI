@@ -2570,10 +2570,12 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             '    ]\n'
             "  }\n"
             "- Supported `framing` values in `camera_beats`:\n"
-            "  `BIRDS_EYE_OVERHEAD`, `HIGH_ANGLE_ON_ACTOR`, `LOW_ANGLE_HERO`, `FACE_CLOSE_UP`, `FACE_CLOSE_UP_ACTOR_2`, "
+            "  `EXTREME_WIDE_AERIAL` (space/sky high altitude), `WINDOW_EXTERIOR` (outside bedroom window looking in), "
+            "`BIRDS_EYE_OVERHEAD`, `HIGH_ANGLE_ON_ACTOR`, `LOW_ANGLE_HERO`, `FACE_CLOSE_UP`, `FACE_CLOSE_UP_ACTOR_2`, "
             "`EXTREME_CLOSE_UP_ACTOR_1`, `EXTREME_CLOSE_UP_ACTOR_2`, `DOOR_ENTRANCE`, `MEDIUM_TWO`, `TIGHT_MEDIUM_TWO`, "
             "`OTS_1_TO_2`, `OTS_2_TO_1`, `FULL_BODY_ACTOR_1`, `FULL_BODY_ACTOR_2`, `ORBIT_LEFT`, `ORBIT_RIGHT`, `WIDE_MASTER`, "
             "or `CUSTOM` (with `cam_pos: [x,y,z]` and `look_at: [x,y,z]`).\n"
+            "- Supported `environment.type`: `bedroom` (with open window frame & bed), `street`, `room`, `corridor`, `alley`.\n"
             "- `transition` in `camera_beats`: `SMOOTH` (continuous camera motion), `WHIP` (fast whip pan), or `CUT` (instant 1-frame editorial cut).\n\n"
             f"{scene_context_str}"
             f"TARGET AI VIDEO/IMAGE MODEL RULES ({current_model}, mode={current_mode}):\n{engine_rules}\n\n"

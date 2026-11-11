@@ -30,6 +30,7 @@ SCENE_PRESET_PATH = r"D:\Blender\scenes\compound_camera_shot.blend"
 COMPOUND_MOVE_ITEMS = [
     ('CRANE_PUSH_IN', "Crane Down + Push In", "Plunges from high-wide down into an intense close-up"),
     ('CRANE_PULL_OUT', "Crane Up + Pull Out", "Starts tight, pulls back into high omniscient wide reveal"),
+    ('SPACE_WINDOW_DIVE', "Cosmic Window Dive -> Extreme Close-Up", "Dives from high aerial exterior straight through window into tight face close-up"),
     ('WHIP_PAN_RIGHT', "Whip Pan Right (90 deg)", "Violent 90-degree rotational snap right with heavy blur"),
     ('WHIP_PAN_LEFT', "Whip Pan Left (90 deg)", "Violent 90-degree rotational snap left with heavy blur"),
     ('VERTIGO_DOLLY_ZOOM', "Vertigo / Dolly Zoom (Hitchcock)", "Dolly in while zooming wide: subject scale locked, background warps!"),
@@ -660,154 +661,153 @@ class CINDY_OT_ApplyCompoundMove(bpy.types.Operator):
 
         scene.frame_current = f_start
 
+        # Helper for exact per-frame spherical arc + exact target tracking
+        def bake_spherical_trajectory(pos_start, look_start, lens_start, pos_end, look_end, lens_end, roll_start_deg=0.0, roll_end_deg=0.0, ease_mode='SMOOTH'):
+            rel_a = pos_start - look_start
+            rel_b = pos_end - look_end
+            r_a = math.hypot(rel_a.x, rel_a.y)
+            r_b = math.hypot(rel_b.x, rel_b.y)
+            theta_a = math.atan2(rel_a.x, -rel_a.y)
+            theta_b = math.atan2(rel_b.x, -rel_b.y)
+            d_theta = (theta_b - theta_a + math.pi) % (2.0 * math.pi) - math.pi
+            if move_type == 'HERO_ORBIT_360':
+                d_theta = 2.0 * math.pi
+            elif move_type == 'HERO_ARC_180':
+                d_theta = math.pi
+
+            for f in range(f_start, f_end + 1):
+                raw_t = (f - f_start) / float(max(1, f_end - f_start))
+                if ease_mode == 'WHIP':
+                    u = raw_t * raw_t * (3.0 - 2.0 * raw_t) ** 2
+                else:
+                    # Quintic zero-jerk smoothstep
+                    u = raw_t * raw_t * raw_t * (raw_t * (raw_t * 6.0 - 15.0) + 10.0)
+
+                l_curr = look_start.lerp(look_end, u)
+                if r_a > 0.2 and r_b > 0.2 and (r_a / r_b > 2.5 or r_b / r_a > 2.5):
+                    r_curr = math.exp(math.log(r_a) + (math.log(r_b) - math.log(r_a)) * u)
+                else:
+                    r_curr = r_a + (r_b - r_a) * u
+
+                th_curr = theta_a + d_theta * u
+                z_curr = rel_a.z + (rel_b.z - rel_a.z) * u
+
+                c_pos = Vector((
+                    l_curr.x + r_curr * math.sin(th_curr),
+                    l_curr.y - r_curr * math.cos(th_curr),
+                    max(0.18, l_curr.z + z_curr)
+                ))
+                cam.location = c_pos
+                cam.data.lens = lens_start + (lens_end - lens_start) * u
+
+                direction = l_curr - c_pos
+                if direction.length > 0.001:
+                    eul = direction.to_track_quat('-Z', 'Y').to_euler('XYZ')
+                else:
+                    eul = cam.rotation_euler.copy()
+
+                roll_deg = roll_start_deg + (roll_end_deg - roll_start_deg) * u
+                eul.y += math.radians(roll_deg)
+                cam.rotation_euler = eul
+
+                cam.keyframe_insert("location", frame=f)
+                cam.keyframe_insert("rotation_euler", frame=f)
+                cam.data.keyframe_insert("lens", frame=f)
+
+        eye_tgt = tgt + Vector((0.0, 0.0, 0.35))
+        chest_tgt = tgt + Vector((0.0, 0.0, 0.15))
+
         # 1. CRANE DOWN + PUSH IN
         if move_type == 'CRANE_PUSH_IN':
-            cam.location = tgt + Vector((-1.6, -4.5, 2.2))
-            cam.rotation_euler = Euler((math.radians(72), math.radians(-5), math.radians(-18)), 'XYZ')
-            cam.data.lens = 32.0
-            cam.keyframe_insert("location", frame=f_start)
-            cam.keyframe_insert("rotation_euler", frame=f_start)
-            cam.data.keyframe_insert("lens", frame=f_start)
-
-            cam.location = tgt + Vector((-0.2, -1.3, 0.2))
-            cam.rotation_euler = Euler((math.radians(88), math.radians(0), math.radians(-8)), 'XYZ')
-            cam.data.lens = 55.0
-            cam.keyframe_insert("location", frame=f_end)
-            cam.keyframe_insert("rotation_euler", frame=f_end)
-            cam.data.keyframe_insert("lens", frame=f_end)
+            bake_spherical_trajectory(
+                eye_tgt + Vector((-1.6, -4.5, 2.2)), chest_tgt, 32.0,
+                eye_tgt + Vector((-0.15, -1.05, 0.02)), eye_tgt, 65.0
+            )
 
         # 2. CRANE UP + PULL OUT (REVEAL)
         elif move_type == 'CRANE_PULL_OUT':
-            cam.location = tgt + Vector((0.0, -1.4, 0.2))
-            cam.rotation_euler = Euler((math.radians(88), 0, 0), 'XYZ')
-            cam.data.lens = 55.0
-            cam.keyframe_insert("location", frame=f_start)
-            cam.keyframe_insert("rotation_euler", frame=f_start)
-            cam.data.keyframe_insert("lens", frame=f_start)
+            bake_spherical_trajectory(
+                eye_tgt + Vector((0.0, -1.05, 0.02)), eye_tgt, 65.0,
+                eye_tgt + Vector((0.0, -6.5, 3.6)), chest_tgt, 24.0
+            )
 
-            cam.location = tgt + Vector((0.0, -6.5, 3.8))
-            cam.rotation_euler = Euler((math.radians(65), 0, 0), 'XYZ')
-            cam.data.lens = 24.0
-            cam.keyframe_insert("location", frame=f_end)
-            cam.keyframe_insert("rotation_euler", frame=f_end)
-            cam.data.keyframe_insert("lens", frame=f_end)
+        # 3. COSMIC WINDOW DIVE -> EXTREME CLOSE-UP
+        elif move_type == 'SPACE_WINDOW_DIVE':
+            bake_spherical_trajectory(
+                eye_tgt + Vector((0.0, -12.0, 6.5)), eye_tgt, 18.0,
+                eye_tgt + Vector((0.0, -0.68, 0.01)), eye_tgt, 85.0
+            )
 
-        # 3. WHIP PAN RIGHT
+        # 4. WHIP PAN RIGHT
         elif move_type == 'WHIP_PAN_RIGHT':
             rot_curr = cam.rotation_euler.copy()
-            cam.keyframe_insert("rotation_euler", frame=f_start)
-            cam.keyframe_insert("location", frame=f_start)
+            for f in range(f_start, f_end + 1):
+                raw_t = (f - f_start) / float(max(1, f_end - f_start))
+                u = raw_t * raw_t * (3.0 - 2.0 * raw_t) ** 2
+                cam.rotation_euler = Euler((rot_curr.x, rot_curr.y, rot_curr.z - math.radians(85.0 * u)), 'XYZ')
+                cam.keyframe_insert("rotation_euler", frame=f)
+                cam.keyframe_insert("location", frame=f)
 
-            cam.rotation_euler = Euler((rot_curr.x, rot_curr.y, rot_curr.z - math.radians(85)), 'XYZ')
-            cam.keyframe_insert("rotation_euler", frame=f_end)
-            cam.keyframe_insert("location", frame=f_end)
-
-        # 4. WHIP PAN LEFT
+        # 5. WHIP PAN LEFT
         elif move_type == 'WHIP_PAN_LEFT':
             rot_curr = cam.rotation_euler.copy()
-            cam.keyframe_insert("rotation_euler", frame=f_start)
-            cam.keyframe_insert("location", frame=f_start)
+            for f in range(f_start, f_end + 1):
+                raw_t = (f - f_start) / float(max(1, f_end - f_start))
+                u = raw_t * raw_t * (3.0 - 2.0 * raw_t) ** 2
+                cam.rotation_euler = Euler((rot_curr.x, rot_curr.y, rot_curr.z + math.radians(85.0 * u)), 'XYZ')
+                cam.keyframe_insert("rotation_euler", frame=f)
+                cam.keyframe_insert("location", frame=f)
 
-            cam.rotation_euler = Euler((rot_curr.x, rot_curr.y, rot_curr.z + math.radians(85)), 'XYZ')
-            cam.keyframe_insert("rotation_euler", frame=f_end)
-            cam.keyframe_insert("location", frame=f_end)
-
-        # 5. VERTIGO / HITCHCOCK DOLLY ZOOM
+        # 6. VERTIGO / HITCHCOCK DOLLY ZOOM (Mathematically Locked Subject Framing: Distance / FocalLength = Constant)
         elif move_type == 'VERTIGO_DOLLY_ZOOM':
-            cam.location = tgt + Vector((0.0, -5.2, 0.3))
-            cam.rotation_euler = Euler((math.radians(90), 0, 0), 'XYZ')
-            cam.data.lens = 85.0
-            cam.keyframe_insert("location", frame=f_start)
-            cam.keyframe_insert("rotation_euler", frame=f_start)
-            cam.data.keyframe_insert("lens", frame=f_start)
-
-            cam.location = tgt + Vector((0.0, -1.7, 0.3))
-            cam.rotation_euler = Euler((math.radians(90), 0, 0), 'XYZ')
-            cam.data.lens = 28.0
-            cam.keyframe_insert("location", frame=f_end)
-            cam.keyframe_insert("rotation_euler", frame=f_end)
-            cam.data.keyframe_insert("lens", frame=f_end)
-
-        # 6. 180 DEGREE DRAMATIC ARC REVEAL
-        elif move_type == 'HERO_ARC_180':
-            f_mid = int((f_start + f_end) / 2)
-            r = 2.6
-            h = 0.3
-            cam.location = tgt + Vector((-r * 0.9, -r * 0.5, h))
-            cam.rotation_euler = Euler((math.radians(88), math.radians(2), math.radians(-60)), 'XYZ')
-            cam.data.lens = 45.0
-            cam.keyframe_insert("location", frame=f_start)
-            cam.keyframe_insert("rotation_euler", frame=f_start)
-
-            cam.location = tgt + Vector((0.0, -r, h + 0.1))
-            cam.rotation_euler = Euler((math.radians(90), 0, 0), 'XYZ')
-            cam.keyframe_insert("location", frame=f_mid)
-            cam.keyframe_insert("rotation_euler", frame=f_mid)
-
-            cam.location = tgt + Vector((r * 0.9, -r * 0.5, h))
-            cam.rotation_euler = Euler((math.radians(88), math.radians(-2), math.radians(60)), 'XYZ')
-            cam.keyframe_insert("location", frame=f_end)
-            cam.keyframe_insert("rotation_euler", frame=f_end)
-            cam.data.keyframe_insert("lens", frame=f_end)
-
-        # 7. 360 FULL HERO ORBIT
-        elif move_type == 'HERO_ORBIT_360':
-            r = 3.0
-            h = 0.35
-            f_step = int(frames_count / 4)
-            angles = [0, 90, 180, 270, 360]
-            for i, deg in enumerate(angles):
-                f = min(f_end, f_start + i * f_step)
-                rad = math.radians(deg)
-                x = r * math.sin(rad)
-                y = -r * math.cos(rad)
-                cam.location = tgt + Vector((x, y, h))
-                cam.rotation_euler = Euler((math.radians(90), 0, rad), 'XYZ')
+            d_start = 5.2
+            lens_start = 85.0
+            ratio_k = d_start / lens_start
+            d_end = 1.65
+            for f in range(f_start, f_end + 1):
+                raw_t = (f - f_start) / float(max(1, f_end - f_start))
+                u = raw_t * raw_t * raw_t * (raw_t * (raw_t * 6.0 - 15.0) + 10.0)
+                d_curr = d_start + (d_end - d_start) * u
+                lens_curr = d_curr / ratio_k
+                c_pos = eye_tgt + Vector((0.0, -d_curr, 0.04))
+                cam.location = c_pos
+                cam.data.lens = lens_curr
+                direction = eye_tgt - c_pos
+                cam.rotation_euler = direction.to_track_quat('-Z', 'Y').to_euler('XYZ')
                 cam.keyframe_insert("location", frame=f)
                 cam.keyframe_insert("rotation_euler", frame=f)
-            cam.data.lens = 40.0
-            cam.data.keyframe_insert("lens", frame=f_start)
-            cam.data.keyframe_insert("lens", frame=f_end)
+                cam.data.keyframe_insert("lens", frame=f)
 
-        # 8. LOW DUTCH CREEP (NOIR TENSION)
+        # 7. 180 DEGREE DRAMATIC ARC REVEAL
+        elif move_type == 'HERO_ARC_180':
+            r = 2.4
+            bake_spherical_trajectory(
+                eye_tgt + Vector((-r, 0.0, 0.12)), eye_tgt, 40.0,
+                eye_tgt + Vector((r, 0.0, 0.05)), eye_tgt, 50.0
+            )
+
+        # 8. 360 FULL HERO ORBIT
+        elif move_type == 'HERO_ORBIT_360':
+            r = 2.6
+            bake_spherical_trajectory(
+                eye_tgt + Vector((0.0, -r, 0.15)), eye_tgt, 40.0,
+                eye_tgt + Vector((0.0, -r, 0.15)), eye_tgt, 40.0
+            )
+
+        # 9. LOW DUTCH CREEP (NOIR TENSION)
         elif move_type == 'DUTCH_CREEP':
-            cam.location = tgt + Vector((-1.8, -6.0, -0.6))
-            cam.rotation_euler = Euler((math.radians(94), math.radians(-16), math.radians(-15)), 'XYZ')
-            cam.data.lens = 28.0
-            cam.keyframe_insert("location", frame=f_start)
-            cam.keyframe_insert("rotation_euler", frame=f_start)
-            cam.data.keyframe_insert("lens", frame=f_start)
+            bake_spherical_trajectory(
+                chest_tgt + Vector((-1.6, -4.8, -0.45)), eye_tgt, 28.0,
+                chest_tgt + Vector((-0.6, -1.8, -0.25)), eye_tgt, 38.0,
+                roll_start_deg=-15.0, roll_end_deg=-9.0
+            )
 
-            cam.location = tgt + Vector((-0.8, -2.5, -0.4))
-            cam.rotation_euler = Euler((math.radians(95), math.radians(-10), math.radians(-8)), 'XYZ')
-            cam.data.lens = 35.0
-            cam.keyframe_insert("location", frame=f_end)
-            cam.keyframe_insert("rotation_euler", frame=f_end)
-            cam.data.keyframe_insert("lens", frame=f_end)
-
-        # 9. PARALLAX REVEAL PAST PILLARS
+        # 10. PARALLAX REVEAL PAST PILLARS
         elif move_type == 'PARALLAX_PILLARS':
-            cam.location = tgt + Vector((2.8, -4.2, 0.4))
-            cam.rotation_euler = Euler((math.radians(88), 0, math.radians(35)), 'XYZ')
-            cam.data.lens = 45.0
-            cam.keyframe_insert("location", frame=f_start)
-            cam.keyframe_insert("rotation_euler", frame=f_start)
-            cam.data.keyframe_insert("lens", frame=f_start)
-
-            cam.location = tgt + Vector((-2.2, -3.8, 0.4))
-            cam.rotation_euler = Euler((math.radians(88), 0, math.radians(-28)), 'XYZ')
-            cam.data.lens = 50.0
-            cam.keyframe_insert("location", frame=f_end)
-            cam.keyframe_insert("rotation_euler", frame=f_end)
-            cam.data.keyframe_insert("lens", frame=f_end)
-
-        # Interpolation
-        if cam.animation_data and cam.animation_data.action:
-            for fc in cam.animation_data.action.fcurves:
-                for kp in fc.keyframe_points:
-                    if kp.co[0] >= f_start and kp.co[0] <= f_end:
-                        kp.interpolation = 'BEZIER'
-                        kp.easing = 'EASE_IN_OUT'
+            bake_spherical_trajectory(
+                eye_tgt + Vector((2.6, -3.8, 0.15)), eye_tgt, 45.0,
+                eye_tgt + Vector((-2.2, -3.4, 0.10)), eye_tgt, 50.0
+            )
 
         # Auto-play preview
         context.scene.frame_current = f_start
