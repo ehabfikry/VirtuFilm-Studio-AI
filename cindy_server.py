@@ -6967,6 +6967,7 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             return
 
         # Extract video parameters
+        allow_cloud = bool(payload.get('allow_cloud', False))
         ckpt = payload.get('checkpoint', 'Wan2.1/wan2.1_i2v_720p_14B_fp8_e4m3fn.safetensors')
         ckpt_lower = str(ckpt).lower()
         width = int(payload.get('width', 1024))
@@ -7153,10 +7154,19 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                         "message": f"تم ريندر مشهد الفيديو بنجاح بدقة عالية عبر محرك {label}!"
                     }
 
-                # If ComfyUI is not available, do cloud directly
+                # Strict Zero-Cost Balance Guard: Never bill cloud unless explicitly authorized!
                 if not comfy_is_alive:
-                    do_cloud()
-                    return
+                    if allow_cloud:
+                        do_cloud()
+                        return
+                    else:
+                        VIDEO_JOBS[job_id] = {
+                            "status": "failed",
+                            "requires_cloud_confirmation": True,
+                            "error": "comfyui_offline",
+                            "message": "سيرفر ComfyUI المحلي (127.0.0.1:8188) أو RunPod غير متصل حالياً! لحماية رصيدك من أي خصم مالي، تم إيقاف العملية تلقائياً. شغّل ComfyUI للريندر المجاني أو وافق صراحة على الريندر السحابي."
+                        }
+                        return
 
                 # Otherwise try ComfyUI workflow
                 try:
@@ -7190,8 +7200,14 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                         "message": f"تم ريندر مشهد الفيديو بنجاح عبر {engine_label}!"
                     }
                 except Exception as e_wf:
-                    # ComfyUI failed, fallback to cloud
-                    do_cloud()
+                    if allow_cloud:
+                        do_cloud()
+                    else:
+                        VIDEO_JOBS[job_id] = {
+                            "status": "failed",
+                            "error": str(e_wf),
+                            "message": f"تعذر تنفيذ الريندر عبر سيرفر ComfyUI: {str(e_wf)} (تم منع التحويل السحابي التلقائي حمايةً لرصيدك)."
+                        }
 
             except Exception as e_all:
                 VIDEO_JOBS[job_id] = {

@@ -4875,7 +4875,7 @@
 
 
 
-    async function executeComfyVideoRender() {
+    async function executeComfyVideoRender(allowCloud = false) {
       let interval = null;
       const btn = document.getElementById('comfy-render-btn');
       const btnText = document.getElementById('comfy-render-btn-text');
@@ -4927,6 +4927,7 @@
             motion_bucket_id: motion,
             fps: fps,
             auto_stop: autoStop,
+            allow_cloud: !!allowCloud,
             prompt: (document.getElementById('comfy-video-prompt')?.value || document.getElementById('comfy-prompt')?.value || '').trim() || 'Cinematic video sequence with smooth camera motion and realistic physical lighting'
           })
         });
@@ -4954,7 +4955,22 @@
                 data = sData;
                 break;
               } else if (sData.status === 'failed') {
-                throw new Error(sData.message || sData.error || 'فشلت معالجة الريندر السحابي');
+                if (sData.requires_cloud_confirmation) {
+                  clearInterval(interval);
+                  if (spinner) spinner.classList.add('hidden');
+                  if (placeholder) placeholder.classList.remove('hidden');
+                  if (btn) btn.disabled = false;
+                  if (btnText) btnText.innerText = '▶ ريندر مشهد الفيديو الآن (Comfy Video)';
+                  const doCloud = confirm('⚠️ تنبيه حماية الرصيد:\n' + sData.message + '\n\nهل ترغب بالتحويل للريندر السحابي المدفوع عبر Fal.ai (H100) أم تفضل تشغيل ComfyUI محلياً مجاناً؟\n\n[موافق = ريندر سحابي مدفوع] | [إلغاء = البقاء مجاناً وإلغاء العملية]');
+                  if (doCloud) {
+                    showToast('تمت الموافقة.. جاري توجيه المهمة للسيرفر السحابي بأمرك.', 'info');
+                    executeComfyVideoRender(true);
+                  } else {
+                    showToast('تم إلغاء العملية وحماية رصيدك بنجاح 🛡️. يرجى تشغيل ComfyUI على جهازك للريندر المجاني.', 'info');
+                  }
+                  return;
+                }
+                throw new Error(sData.message || sData.error || 'فشلت معالجة الريندر');
               }
             } catch (errPoll) {
               if (errPoll.message && !errPoll.message.includes('fetch') && !errPoll.message.includes('Failed to fetch')) {
