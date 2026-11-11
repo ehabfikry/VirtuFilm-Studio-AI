@@ -2482,6 +2482,11 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
         aspect_ratio = payload.get('aspect_ratio', '16:9')
         app_lang = (payload.get('lang') or payload.get('app_lang') or 'ar').strip().lower()
 
+        # Strict language detection: if the Director speaks or asks in Arabic, lock response to Egyptian Arabic
+        is_user_arabic = bool(re.search(r'[\u0600-\u06FF]', user_msg))
+        if is_user_arabic:
+            app_lang = 'ar'
+
         if not user_msg:
             self.send_error_response(400, "Message is required")
             return
@@ -2521,16 +2526,10 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             "and 3D Pre-vis Architect working directly with The Film Director (أستاذنا المخرج / أستاذ إيهاب).\n"
             "CRITICAL BEHAVIORAL RULES:\n"
             "1. NEVER be stuck on a previous or pre-made scene! Listen 100% to what the Director is saying right now.\n"
-            "2. ADAPTIVE CONVERSATIONAL LANGUAGE & INTELLIGENT OVERRIDE HIERARCHY:\n"
-            "   - DEFAULT BASELINE: Speak strictly in the UI language selected by the Director ('" + app_lang + "').\n"
-            "   - INTENTIONAL DIRECTOR OVERRIDE (توقع وتجاوب ذكي):\n"
-            "     * If the Director explicitly writes or asks in a different language than the UI (e.g. UI is in Arabic but the Director specifically addresses you in French or English, or asks 'Réponds-moi en français' / 'Can we speak English?'), adapt intelligently and reply in that requested language!\n"
-            "     * Otherwise, ALWAYS maintain the selected UI language as the golden standard for all replies and spoken audio.\n"
-            "   - Dialect styles per language:\n"
-            "     * Arabic: Authentic Egyptian film set dialect (لغة البلاتوه في مصر: الكادر، الضربة الدرامية، الشاريو، العدسة، البلوكينج).\n"
-            "     * English: Professional Hollywood 1st AD / DP film terminology.\n"
-            "     * French: Professional French cinema terminology (découpage, cadrage, travelling, focale).\n"
-            "     * Spanish: Professional Spanish cinema terminology (puesta en escena, encuadre, plano).\n"
+            "2. ADAPTIVE CONVERSATIONAL LANGUAGE & STRICT RULES:\n"
+            "   - If the Director writes in Arabic or app_lang is 'ar': YOU MUST REPLY STRICTLY IN EGYPTIAN ARABIC (العامية المصرية الحية للبلاتوه السينمائي: الكادر، الإضاءة، الشاريو، الزاوية، المشهد). NEVER REPLY IN ENGLISH WHEN THE DIRECTOR WRITES IN ARABIC!\n"
+            "   - Only the 'shot.prompt' field MUST be in English because AI video/image generators perform best in English.\n"
+            "   - If the Director writes in English/French/Spanish, respond naturally in that language.\n"
             "3. EXPERT TOOL & MODEL RECOMMENDATION (ترشيح الأداة والموديل الأنسب بذكاء فوري):\n"
             "   - If the Director asks you to recommend a tool or model (e.g. 'اقترحيلي أداة مناسبة', 'ايه أحسن موديل للقطة دي', 'أعمل دي بإيه؟'):\n"
             "     * Direct and sharp recommendation: name the exact tool on Fal.ai, explain why it fits the shot/edit artistically, state its estimated cost clearly in Egyptian pounds/dollars, and give him the optimal prompt.\n"
@@ -2578,10 +2577,10 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             "- `transition` in `camera_beats`: `SMOOTH` (continuous camera motion), `WHIP` (fast whip pan), or `CUT` (instant 1-frame editorial cut).\n\n"
             f"{scene_context_str}"
             f"TARGET AI VIDEO/IMAGE MODEL RULES ({current_model}, mode={current_mode}):\n{engine_rules}\n\n"
-            f"PRIMARY UI LANGUAGE: {app_lang.upper()} (Default unless the Director explicitly chose to write/request another language in their message)\n\n"
+            f"MANDATORY LANGUAGE RULE: The Director wrote in {('ARABIC' if is_user_arabic else app_lang.upper())}. Your 'reply' and 'voice_text' MUST BE 100% IN {('AUTHENTIC EGYPTIAN ARABIC (لهجة مصرية)' if is_user_arabic or app_lang == 'ar' else app_lang.upper())}.\n\n"
             "OUTPUT STRICT JSON ONLY:\n"
             "{\n"
-            '  "reply": "Your natural, intelligent 1st AD response (matching the primary UI language, or matching the Director explicit language override if they wrote in another language)",\n'
+            '  "reply": "Your natural 1st AD response (MUST BE IN ARABIC if the Director wrote in Arabic)",\n'
             '  "should_render_previs": true or false,\n'
             '  "previs_spec": { ... complete 3D scene spec if should_render_previs is true, else null ... },\n'
             '  "has_shot": true or false,\n'
