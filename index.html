@@ -8,6 +8,10 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="google" content="notranslate">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="copyright" content="Copyright (c) 2026 Ehab Fikry - VirtuFilm Studio AI (CAD-IP-2026-001) - Protected under WIPO Berne Convention & Egyptian Law 82/2002">
 
   <title>VirtuFilm Studio AI | المنظومة السينمائية المتكاملة مع سيندي</title>
 
@@ -329,47 +333,43 @@
     <!-- ROW 2: WORKSPACE TABS & ACTION MODULES -->
     <div class="w-full px-2 sm:px-4 py-1.5 flex flex-wrap lg:flex-nowrap items-center justify-between gap-2 bg-cinema-900/60">
 
-      <!-- 1. STUDIO NAVIGATION TABS (LEFT) -->
-      <div class="flex items-center bg-cinema-900/90 p-1 rounded-xl border border-cinema-700/80 shadow-inner gap-1 flex-shrink-0">
-        <!-- 1: CASTING -->
-        <button onclick="switchTab('lora')" id="nav-main-lora" class="px-2.5 sm:px-3 py-1 rounded-lg text-[11px] sm:text-xs font-bold transition flex items-center gap-1.5 text-purple-300 hover:bg-purple-950/40 border border-purple-500/30" title="غرفة الممثل والكادر">
-          <span class="w-4 h-4 rounded-full bg-purple-500/20 text-purple-300 flex items-center justify-center text-[9px] font-black border border-purple-500/40">1</span>
+      <!-- 1. STUDIO NAVIGATION TABS (LEFT - STREAMLINED 1 TO 6 WORKFLOW) -->
+      <div class="flex items-center bg-cinema-950/90 p-1 rounded-xl border border-cinema-700/80 shadow-inner gap-1 flex-shrink-0">
+        <!-- 1: DIRECTORIAL CHAT -->
+        <button onclick="switchTab('chat')" id="nav-main-chat" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition flex items-center gap-1.5 text-slate-300 hover:text-white" title="1. الإخراج والحوار مع سيندي">
+          <i class="fa-solid fa-comments text-amber-400 text-[10px]"></i>
+          <span>1. الإخراج</span>
+        </button>
+
+        <!-- 2: SCRIPT & STORYBOARD -->
+        <button onclick="switchTab('storyboard')" id="nav-main-storyboard" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition flex items-center gap-1.5 text-slate-300 hover:text-white" title="2. السيناريو والستوري بورد">
+          <i class="fa-solid fa-clapperboard text-cyan-400 text-[10px]"></i>
+          <span id="nav-storyboard-text">2. السيناريو</span>
+        </button>
+
+        <!-- 3: ACTOR LORA -->
+        <button onclick="switchTab('lora')" id="nav-main-lora" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition flex items-center gap-1.5 text-slate-300 hover:text-white" title="3. تدريب وتثبيت الممثل (LoRA)">
           <i class="fa-solid fa-dna text-purple-400 text-[10px]"></i>
-          <span>الممثل</span>
+          <span>3. الممثل</span>
         </button>
 
-        <!-- 2: MASTER STUDIO -->
-        <button onclick="switchTab('screening')" id="nav-main-screening" class="px-3 sm:px-3.5 py-1 rounded-lg text-[11px] sm:text-xs font-bold transition flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-yellow-500 text-cinema-950 font-black shadow" title="صالة العرض والكاميرا السينمائية">
-          <span class="w-4 h-4 rounded-full bg-cinema-950 text-amber-300 flex items-center justify-center text-[9px] font-black">2</span>
+        <!-- 4: MASTER SCREENING STUDIO -->
+        <button onclick="switchTab('screening')" id="nav-main-screening" class="px-3 sm:px-3.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-black transition flex items-center gap-1.5 bg-cinema-gold text-cinema-900 shadow" title="4. صالة العرض والريندر المباشر">
           <i class="fa-solid fa-film text-[10px]"></i>
-          <span>صالة العرض</span>
+          <span>4. صالة العرض</span>
         </button>
 
-        <!-- 3: ADVANCED LAB -->
-        <button onclick="switchTab('comfy')" id="nav-main-comfy" class="px-2.5 sm:px-3 py-1 rounded-lg text-[11px] sm:text-xs font-bold text-emerald-300 hover:text-white transition flex items-center gap-1.5 border border-emerald-500/40 bg-emerald-500/10" title="المعمل المتقدم">
-          <span class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-[9px] font-black border border-emerald-500/40">3</span>
+        <!-- 5: COMFYUI OPEN-SOURCE LAB -->
+        <button onclick="switchTab('comfy')" id="nav-main-comfy" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold text-emerald-300 hover:text-white transition flex items-center gap-1.5 border border-emerald-500/40 bg-emerald-500/10" title="5. المعمل المفتوح والمجاني (ComfyUI)">
           <i class="fa-solid fa-bolt text-emerald-400 text-[10px]"></i>
-          <span>المعمل</span>
+          <span>5. المعمل المجاني</span>
           <span id="comfy-status-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
         </button>
 
-        <!-- 4: SCRIPT & STORYBOARD -->
-        <button onclick="switchTab('storyboard')" id="nav-main-storyboard" class="px-2.5 sm:px-3 py-1 rounded-lg text-[11px] sm:text-xs font-bold transition flex items-center gap-1.5 text-cyan-300 hover:bg-cyan-950/40 border border-cyan-500/30" title="السيناريو والستوري بورد">
-          <span class="w-4 h-4 rounded-full bg-cyan-500/20 text-cyan-300 flex items-center justify-center text-[9px] font-black border border-cyan-500/40">4</span>
-          <i class="fa-solid fa-clapperboard text-cyan-400 text-[10px]"></i>
-          <span id="nav-storyboard-text">السيناريو</span>
-        </button>
-
-        <!-- CHAT -->
-        <button onclick="switchTab('chat')" id="nav-main-chat" class="px-2.5 py-1 rounded-lg text-[11px] sm:text-xs font-bold text-slate-400 hover:text-white transition flex items-center gap-1" title="مساعد الإخراج">
-          <i class="fa-solid fa-comments text-[10px]"></i>
-          <span>إخراج</span>
-        </button>
-
-        <!-- VAULT -->
-        <button onclick="switchTab('vault')" id="nav-main-vault" class="px-2.5 py-1 rounded-lg text-[11px] sm:text-xs font-bold text-slate-400 hover:text-amber-300 transition flex items-center gap-1" title="الخزنة">
-          <i class="fa-solid fa-lock text-amber-400 text-[10px]"></i>
-          <span>الخزنة</span>
+        <!-- 6: VAULT & IP PROTECTION SHIELD -->
+        <button onclick="switchTab('vault')" id="nav-main-vault" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold text-slate-300 hover:text-amber-300 transition flex items-center gap-1.5" title="6. الخزنة ودرع حماية الملكية الفكرية">
+          <i class="fa-solid fa-shield-halved text-amber-400 text-[10px]"></i>
+          <span>6. الخزنة والحماية</span>
         </button>
       </div>
 
@@ -393,7 +393,7 @@
         <!-- Wallet Mini Pill -->
         <div id="cindy-wallet-bar" class="flex items-center gap-1.5 bg-cinema-900/90 border border-cinema-700 rounded-lg px-2.5 py-1 text-xs">
           <span id="wallet-runpod-badge" class="text-emerald-400 font-bold font-mono" title="رصيد RunPod">$13.25</span>
-          <button type="button" onclick="terminateAllRunpods()" class="px-1.5 py-0.5 rounded bg-rose-600/30 hover:bg-rose-600 text-rose-300 text-[10px] font-bold" title="إيقاف RunPod">
+          <button type="button" onclick="emergencyStopAllRunpod(true)" class="px-1.5 py-0.5 rounded bg-rose-600/30 hover:bg-rose-600 text-rose-300 text-[10px] font-bold" title="إيقاف RunPod">
             <span id="topbar-emergency-stop-text">🛑</span>
           </button>
           <button type="button" onclick="openDailyPricingModal()" id="topbar-pricing-btn" class="text-amber-300 hover:text-amber-200 font-bold px-0.5" title="مؤشر الأسعار">
@@ -481,31 +481,23 @@
                 <option value="robbyant/lingbot-world-2">🌐 19. LingBot-World 2.0 — [عالم تفاعلي 3D لايف WASD]</option>
                 <option value="alibaba/abot-world-0">🌐 20. ABot-World-0 — [عالم تفاعلي تجاري مفتوح لايف]</option>
               </optgroup>
-              <optgroup label="🎬 باقي موديلات الفيديو الكلاسيكية">
-                <option value="Wan 2.2 Image-to-Video">💎 2. Alibaba Wan 2.2 I2V — [~$0.04 / 5s] (حركية وفيزياء عالية: $0.008/ث)</option>
-                <option value="MiniMax H3 Lite">⚡ 3. MiniMax Hailuo H3 Lite — [~$0.04 / 6s] (اقتصادي سريع: $0.007/ث)</option>
-                <option value="CogVideoX-5B (THUDM)">🎥 4. THUDM CogVideoX-5B — [~$0.06 / 6s] (مفتوح المصدر: $0.010/ث)</option>
-                <option value="CogVideoX-5B Image-to-Video">🎥 5. CogVideoX-5B I2V — [~$0.06 / 6s] (تحريك كادر مفتوح)</option>
-                <option value="Wan 2.1 Image-to-Video">💎 6. Alibaba Wan 2.1 I2V — [~$0.06 / 5s] (تحريك كادر سينمائي)</option>
-                <option value="Stability SVD-XT">🎞️ 7. Stability AI SVD-XT — [~$0.08 / 4s] (25 كادر كلاسيكي: $0.020/ث)</option>
-                <option value="Tencent HunyuanVideo">🎬 8. Tencent HunyuanVideo — [~$0.10 / 5s] (ثبات فيزيائي 13B: $0.020/ث)</option>
-                <option value="ByteDance Seedance 2.5">💃 9. ByteDance Seedance 2.5 — [~$0.18 / 5s] (حتى 30 ثانية ومراجع متعددة: $0.036/ث)</option>
-                <option value="Seedance Image-to-Video">💃 10. ByteDance Seedance I2V — [~$0.18 / 5s] (تحريك رقص وأكشن متعدد)</option>
-                <option value="MiniMax H3 Max Turbo">🎯 11. MiniMax H3 Max Turbo — [~$0.25 / 6s] (قفل ملامح الشخصية: $0.042/ث)</option>
-                <option value="Kling AI Standard">⚡ 12. Kling 1.6 Standard — [~$0.28 / 5s] (درافت سريع: $0.056/ث)</option>
-                <option value="Mischief-1 Image-to-Video">🔥 13. Mischief-1 I2V — [~$0.30 / 5s] (أكشن وديناميكا: $0.060/ث)</option>
-                <option value="Runway Gen-3 Alpha">🎥 14. Runway Gen-3 Alpha — [~$0.35 / 5s] (هوليوود وتيربو: $0.070/ث)</option>
-                <option value="Runway Gen-3 I2V">🎥 15. Runway Gen-3 I2V — [~$0.35 / 5s] (تحريك كادر هوليوودي)</option>
-                <option value="Google Veo 3.1 Fast">⚡ 16. Google Veo 3.1 Fast — [~$0.40 / 5s] (معالجة سريعة: $0.080/ث)</option>
-                <option value="Kling 1.6 Pro Image-to-Video">👑 17. Kling 1.6 Pro I2V — [~$0.49 / 5s]</option>
-                <option value="Luma Ray 2 &amp; Dream Machine">🌊 18. Luma Ray 2 — [~$0.50 / 5s]</option>
-                <option value="Luma Ray 2 Image-to-Video">🌊 19. Luma Ray 2 I2V — [~$0.50 / 5s]</option>
-                <option value="Kling 4 / 3.0 Pro">👑 20. Kling 3.0/4 Pro 1080p — [~$0.55 / 5s]</option>
-                <option value="Google Veo 3.1 Cinematic">🎬 21. Google Veo 3.1 Cinematic — [~$0.60 / 5s]</option>
-                <option value="Kling Motion Control (1080p)">👑 22. Kling Motion Control 1080p — [~$0.63 / 5s]</option>
-                <option value="Flux 3 Max Image-to-Video">🌟 23. Flux 3 Max I2V — [~$0.75 / 5s]</option>
-                <option value="Kling O1 Video-to-Video Edit">🎞️ 24. Kling O1 Edit — [~$0.90 / 5s]</option>
-                <option value="Luma Ray 2 Modify">🌊 25. Luma Ray 2 Modify — [~$1.75 / 5s]</option>
+              <optgroup label="🎬 موديلات الفيديو الإضافية والمتخصصة">
+                <option value="Wan 2.1 Image-to-Video">💎 21. Alibaba Wan 2.1 I2V — [~$0.06 / 5s] (تحريك كادر سينمائي)</option>
+                <option value="CogVideoX-5B (THUDM)">🎥 22. THUDM CogVideoX-5B — [~$0.06 / 6s] (مفتوح المصدر)</option>
+                <option value="CogVideoX-5B Image-to-Video">🎥 23. CogVideoX-5B I2V — [~$0.06 / 6s] (تحريك كادر مفتوح)</option>
+                <option value="Stability SVD-XT">🎞️ 24. Stability AI SVD-XT — [~$0.08 / 4s] (25 كادر كلاسيكي)</option>
+                <option value="Seedance Image-to-Video">💃 25. ByteDance Seedance I2V — [~$0.18 / 5s] (تحريك رقص وأكشن)</option>
+                <option value="MiniMax H3 Max Turbo">🎯 26. MiniMax H3 Max Turbo — [~$0.25 / 6s] (قفل ملامح الشخصية)</option>
+                <option value="Kling AI Standard">⚡ 27. Kling 1.6 Standard — [~$0.28 / 5s] (درافت سريع)</option>
+                <option value="Mischief-1 Image-to-Video">🔥 28. Mischief-1 I2V — [~$0.30 / 5s] (أكشن وديناميكا)</option>
+                <option value="Runway Gen-3 Alpha">🎥 29. Runway Gen-3 Alpha — [~$0.35 / 5s] (هوليوود وتيربو)</option>
+                <option value="Runway Gen-3 I2V">🎥 30. Runway Gen-3 I2V — [~$0.35 / 5s] (تحريك كادر هوليوودي)</option>
+                <option value="Google Veo 3.1 Fast">⚡ 31. Google Veo 3.1 Fast — [~$0.40 / 5s] (معالجة سريعة)</option>
+                <option value="Luma Ray 2 &amp; Dream Machine">🌊 32. Luma Ray 2 — [~$0.50 / 5s]</option>
+                <option value="Kling 4 / 3.0 Pro">👑 33. Kling 3.0/4 Pro 1080p — [~$0.55 / 5s]</option>
+                <option value="Google Veo 3.1 Cinematic">🎬 34. Google Veo 3.1 Cinematic — [~$0.60 / 5s]</option>
+                <option value="Kling O1 Video-to-Video Edit">🎞️ 35. Kling O1 Edit — [~$0.90 / 5s]</option>
+                <option value="Luma Ray 2 Modify">🌊 36. Luma Ray 2 Modify — [~$1.75 / 5s]</option>
               </optgroup>
             </select>
           </div>
@@ -1277,7 +1269,7 @@
 
         <div>
 
-          <div class="flex items-center gap-2 mb-2">
+          <div class="hidden items-center gap-2 mb-2">
             <span id="screening-wing1-badge" class="px-3 py-1 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 text-cinema-950 font-black text-xs shadow flex items-center gap-1.5">
               <i class="fa-solid fa-cloud"></i> <span>جناح 1: استوديو أدوات Fal.ai السحابية</span>
             </span>
@@ -1382,7 +1374,7 @@
 
 
 
-          <button type="button" onclick="syncFromFlowTab()" class="px-3 py-2 rounded-xl bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-500/40 text-xs font-bold flex items-center gap-1.5 transition shadow" title="سحب الصور أو الفيديوهات المعروضة حالياً داخل تبويب Google Flow المفتوح">
+          <button type="button" onclick="syncFromFlowTab()" class="hidden px-3 py-2 rounded-xl bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-500/40 text-xs font-bold flex items-center gap-1.5 transition shadow" title="سحب الصور أو الفيديوهات المعروضة حالياً داخل تبويب Google Flow المفتوح">
 
             <i class="fa-solid fa-arrows-rotate"></i>
 
@@ -1526,7 +1518,7 @@
             <div class="space-y-1.5 pt-1">
               <div class="flex items-center justify-between text-[11px]">
                 <span id="screen-prompt-header-label" class="text-amber-300 font-bold flex items-center gap-1"><i class="fa-solid fa-pen-to-square"></i> البرومبت السينمائي النشط (يمكنك تعديله هنا قبل الريندر):</span>
-                <button type="button" id="btn-render-mod-prompt" onclick="executeActiveScreeningPrompt()" class="px-3 py-1 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-cinema-950 font-black text-[11px] flex items-center gap-1.5 shadow cursor-pointer transition">
+                <button type="button" id="btn-render-mod-prompt" onclick="executeActiveScreeningPrompt()" class="hidden px-3 py-1 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-cinema-950 font-black text-[11px] flex items-center gap-1.5 shadow cursor-pointer transition">
                   <i class="fa-solid fa-play"></i> <span>ريندر بالبرومبت المعدّل (بموافقتك) 🚀</span>
                 </button>
               </div>
@@ -1645,6 +1637,92 @@
             <i class="fa-solid fa-arrows-rotate text-[11px]" id="vault-refresh-icon"></i>
             <span id="vault-refresh-btn-span">تحديث حالة الخزنة</span>
           </button>
+        </div>
+      </div>
+
+      <!-- 🛡️ ZERO-COST IP, IDEA, CODE & APPLICATION PROTECTION SHIELD ($0.00) -->
+      <div id="ip-protection-shield-card" class="bg-gradient-to-r from-cinema-950 via-cinema-900 to-amber-950/30 border-2 border-amber-500/60 rounded-2xl p-5 shadow-2xl space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-cinema-700/80 pb-3">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-xl bg-amber-500/20 border border-amber-500/50 flex items-center justify-center text-amber-400 text-xl shadow-lg">
+              <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <h3 class="text-sm sm:text-base font-black text-amber-300">درع حماية الفكرة والكود والتطبيق المجاني (Zero-Cost IP &amp; Code Protection Shield)</h3>
+                <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2.5 py-0.5 rounded-full font-extrabold">تكلفة الحماية: $0.00 مجاناً بالكامل</span>
+              </div>
+              <p class="text-xs text-slate-300 mt-0.5">
+                حماية قانونية وتقنية ورقمية شاملة باسم المخرج <strong class="text-white">إيهاب فكري (Ehab Fikry)</strong> وفق اتفاقية برن الدولية (181 دولة) والقانون المصري رقم 82 لسنة 2002، مع عزل محلي كامل للكود.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 flex-wrap">
+            <button type="button" onclick="verifyAndRefreshIpShield(true)" class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-cinema-950 font-black text-xs flex items-center gap-1.5 shadow-lg transition cursor-pointer">
+              <i class="fa-solid fa-fingerprint" id="ip-shield-refresh-icon"></i>
+              <span>توليد وتحديث البصمة الرقمية SHA-256 الآن</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 Pillars of Free IP & Code Protection -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+          <div class="bg-cinema-950/90 border border-emerald-500/40 rounded-xl p-3 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="font-black text-emerald-300 flex items-center gap-1.5"><i class="fa-solid fa-lock"></i> 1. عزل الكود والسيرفر</span>
+              <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-bold">نشط 100%</span>
+            </div>
+            <p class="text-[11px] text-slate-400 leading-relaxed">السيرفر مقيد محلياً على <code class="text-emerald-300">127.0.0.1</code> مع حجب التصفح الخارجي ومنع تحميل ملفات البايثون <code class="text-amber-300">*.py</code> أو الخزنة عبر المتصفح.</p>
+          </div>
+
+          <div class="bg-cinema-950/90 border border-amber-500/40 rounded-xl p-3 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="font-black text-amber-300 flex items-center gap-1.5"><i class="fa-solid fa-fingerprint"></i> 2. ختم الأسبقية SHA-256</span>
+              <span id="ip-tracked-files-badge" class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-mono font-bold">14 ملف محمي</span>
+            </div>
+            <p class="text-[11px] text-slate-400 leading-relaxed">بصمة تشفيرية غير قابلة للتزوير لكل سطر كود ومعمارية، مثبتة زمنياً في سجل Git وفي <code class="text-amber-300">IP_MANIFEST_SHA256.json</code>.</p>
+          </div>
+
+          <div class="bg-cinema-950/90 border border-cyan-500/40 rounded-xl p-3 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="font-black text-cyan-300 flex items-center gap-1.5"><i class="fa-solid fa-scale-balanced"></i> 3. اتفاقية برن الدولية</span>
+              <span class="text-[10px] bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded font-bold">181 دولة ($0)</span>
+            </div>
+            <p class="text-[11px] text-slate-400 leading-relaxed">حماية تلقائية فورية ومجانية لحقوق المؤلف والمعمارية البرمجية في 181 دولة بمجرد التوثيق الزمني دون رسوم تسجيل.</p>
+          </div>
+
+          <div class="bg-cinema-950/90 border border-purple-500/40 rounded-xl p-3 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="font-black text-purple-300 flex items-center gap-1.5"><i class="fa-solid fa-shield-virus"></i> 4. حارس الرصيد الصارم</span>
+              <span class="text-[10px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded font-bold">Zero-Cost Guard</span>
+            </div>
+            <p class="text-[11px] text-slate-400 leading-relaxed">منع قاطع لأي تحويل سحابي تلقائي أو استهلاك رصيد بدون إذنك الصريح، مع إغلاق تلقائي لأي كارت سحابي.</p>
+          </div>
+        </div>
+
+        <!-- Master Hash & Direct Legal Dossiers Bar -->
+        <div class="bg-cinema-950 border border-cinema-700 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-slate-400 font-bold">البصمة الماستر للكود (Master SHA-256):</span>
+            <code id="ip-master-sha256-code" class="bg-cinema-900 border border-amber-500/40 text-amber-300 px-2.5 py-1 rounded-lg font-mono text-[11px] select-all">جاري حساب البصمة التشفيرية...</code>
+            <span id="ip-last-verified-time" class="text-[10px] text-emerald-400 font-mono"></span>
+          </div>
+
+          <div class="flex items-center gap-2 flex-wrap">
+            <a href="/EGYPT_IP_FILING_DOSSIER.html" target="_blank" class="px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-bold text-[11px] flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-file-shield"></i>
+              <span>ملف الإيداع المصري (ITIDA)</span>
+            </a>
+            <a href="/PATENT_FILING_DOCKET.html" target="_blank" class="px-3 py-1.5 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 font-bold text-[11px] flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-scroll"></i>
+              <span>وثيقة براءة الاختراع (CAD-IP-2026-001)</span>
+            </a>
+            <a href="/IP_MANIFEST_SHA256.json" target="_blank" class="px-3 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 font-bold text-[11px] flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-code"></i>
+              <span>سجل البصمات الرقمي (JSON)</span>
+            </a>
+          </div>
         </div>
       </div>
 
@@ -1789,7 +1867,7 @@
 
                     </div>
 
-                    <p class="text-[11px] text-slate-300 mt-1">Dedicated RTX 4090 GPU executes for your account, trains your model, and <strong>terminates server immediately</strong> to safeguard every cent!</p>
+                    <p class="text-[11px] text-slate-300 mt-1">يتم حجز كارت RTX 4090 مخصص لتدريب ممثلك بدقة 100%، ثم <strong>يُحذف السيرفر تلقائياً فور انتهاء التدريب</strong> لحماية كل سنت في رصيدك!</p>
 
                   </div>
 
@@ -1815,7 +1893,7 @@
 
                     </div>
 
-                    <p class="text-[11px] text-slate-400 mt-0.5">Dedicated fast servers, billed directly against your stored Fal.ai vault API credit.</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5">خوادم سحابية فورية مخصصة، تُخصم تكلفتها مباشرة من رصيد مفتاح Fal.ai المحفوظ في الخزنة.</p>
 
                   </div>
 
@@ -1831,9 +1909,9 @@
 
                 <div class="flex items-center justify-between text-[11px]">
 
-                  <span class="text-slate-200 font-bold" id="lora-gpu-type-label">GPU Type (RunPod GPU):</span>
+                  <span class="text-slate-200 font-bold" id="lora-gpu-type-label">نوع كارت الشاشة السحابي (RunPod GPU):</span>
 
-                  <span class="text-purple-300 font-mono text-[10px]" id="lora-gpu-purge-badge">100% Instant Auto-Purge Protection</span>
+                  <span class="text-purple-300 font-mono text-[10px]" id="lora-gpu-purge-badge">حماية تلقائية 100% بحذف السيرفر فور الانتهاء</span>
 
                 </div>
 
@@ -1853,13 +1931,13 @@
 
                   <button type="button" onclick="terminateAllRunpodPods()" class="px-2.5 py-1 bg-rose-900/40 hover:bg-rose-900/60 border border-rose-500/40 text-rose-300 rounded text-[10px] font-bold">
 
-                    <i class="fa-solid fa-power-off"></i> <span id="lora-terminate-btn-text">Terminate all pending RunPod devices now</span>
+                    <i class="fa-solid fa-power-off"></i> <span id="lora-terminate-btn-text">إيقاف وحذف جميع أجهزة RunPod المعلقة فوراً</span>
 
                   </button>
 
                   <button type="button" onclick="switchTab('vault')" class="text-[10px] text-cinema-gold hover:underline">
 
-                    <i class="fa-solid fa-key"></i> <span id="lora-vault-link-text">Configure RunPod API key in Vault</span>
+                    <i class="fa-solid fa-key"></i> <span id="lora-vault-link-text">ضبط مفتاح RunPod في الخزنة</span>
 
                   </button>
 
@@ -1875,9 +1953,9 @@
 
             <div class="space-y-1">
 
-              <label class="text-xs font-bold text-slate-300" id="lora-model-name-label">Model / Character Name:</label>
+              <label class="text-xs font-bold text-slate-300" id="lora-model-name-label">اسم الممثل / الشخصية (Model Name):</label>
 
-              <input type="text" id="lora-train-name" dir="auto" autocomplete="off" autocorrect="off" placeholder="e.g., Protagonist Ahmed, Casual Suit" class="w-full bg-cinema-900 border border-cinema-700 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-purple-400">
+              <input type="text" id="lora-train-name" dir="auto" autocomplete="off" autocorrect="off" placeholder="مثال: البطل أحمد - بدلة رسمية" class="w-full bg-cinema-900 border border-cinema-700 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-purple-400">
 
             </div>
 
@@ -1889,9 +1967,9 @@
 
               <div class="flex items-center justify-between">
 
-                <label class="text-xs font-bold text-slate-300" id="lora-trigger-word-label">Trigger Word:</label>
+                <label class="text-xs font-bold text-slate-300" id="lora-trigger-word-label">كلمة الاستدعاء المميزة (Trigger Word):</label>
 
-                <span class="text-[10px] text-purple-300" id="lora-trigger-hint">Type in prompt to invoke model</span>
+                <span class="text-[10px] text-purple-300" id="lora-trigger-hint">تُكتب داخل البرومبت لاستدعاء ملامح الممثل</span>
 
               </div>
 
@@ -1999,7 +2077,7 @@
 
               </div>
 
-              <p class="text-xs font-bold text-slate-200">Drag & drop character/style images here, or click to upload from device</p>
+              <p class="text-xs font-bold text-slate-200">اسحب وأفلت صور الممثل أو الستايل هنا، أو اضغط لرفعها من جهازك</p>
 
               <p class="text-[11px] text-slate-400 mt-1">يُوصى بـ 4 إلى 15 صورة واضحة بزوايا وإضاءات متنوعة، أو ملف .zip مباشرة</p>
 
@@ -2511,8 +2589,8 @@
 
     <section id="tab-comfy" class="hidden flex flex-col space-y-4 pb-12">
 
-      <!-- Studio Wings Switcher Banner -->
-      <div class="flex items-center justify-between bg-cinema-900 border border-emerald-500/40 rounded-2xl p-3 shadow-lg">
+      <!-- Studio Wings Switcher Banner (Hidden for clean UI) -->
+      <div class="hidden items-center justify-between bg-cinema-900 border border-emerald-500/40 rounded-2xl p-3 shadow-lg">
         <div class="flex items-center gap-2">
           <span class="text-xs font-bold text-slate-400" id="comfy-env-chooser-label">Select Generation Environment:</span>
           <button type="button" onclick="switchTab('screening')" class="px-4 py-2 rounded-xl bg-cinema-800 hover:bg-amber-950/60 border border-amber-500/40 text-amber-300 font-extrabold text-xs flex items-center gap-2 transition shadow">
@@ -2816,7 +2894,7 @@
                   <span>كادر الصورة المراد تحريكها (Reference Frame):</span>
                 </label>
                 <div class="flex items-center gap-2">
-                  <input type="text" id="comfy-video-img-source" placeholder="مسار الصورة المرجعية أو رابطها..." value="/outputs/upload_1793791054915_Young_man_sitting_at_arcade_792c.jpg" class="flex-1 bg-cinema-950 border border-cinema-700 rounded-xl px-3 py-2 text-xs text-slate-200 font-mono">
+                  <input type="text" id="comfy-video-img-source" placeholder="ارفع كادر الصورة من الزر البرتقالي أو الصق رابطه هنا..." value="" class="flex-1 bg-cinema-950 border border-cinema-700 rounded-xl px-3 py-2 text-xs text-slate-200 font-mono">
                   <input type="file" id="comfy-video-file-input" accept="image/*" class="hidden" onchange="handleComfyVideoFileSelected(event)">
                   <button type="button" onclick="document.getElementById('comfy-video-file-input').click()" class="px-3 py-2 bg-gradient-to-r from-amber-600 to-yellow-600 hover:opacity-90 text-[11px] text-cinema-950 font-black rounded-xl whitespace-nowrap shadow flex items-center gap-1 cursor-pointer">
                     <i class="fa-solid fa-cloud-arrow-up"></i> رفع كادر
@@ -2826,8 +2904,8 @@
                   </button>
                 </div>
                 <!-- Mini Thumbnail Preview when frame is set -->
-                <div id="comfy-video-ref-preview-box" class="flex items-center gap-2 pt-1 border-t border-cinema-800">
-                  <img id="comfy-video-ref-preview-thumb" src="/outputs/upload_1793791054915_Young_man_sitting_at_arcade_792c.jpg" alt="Frame preview" class="w-12 h-12 object-cover rounded-lg border border-amber-500/40">
+                <div id="comfy-video-ref-preview-box" class="hidden flex items-center gap-2 pt-1 border-t border-cinema-800">
+                  <img id="comfy-video-ref-preview-thumb" src="" alt="Frame preview" class="w-12 h-12 object-cover rounded-lg border border-amber-500/40">
                   <div class="text-[11px] text-slate-300">
                     <span class="text-emerald-400 font-bold">✓ الكادر المرجعي جاهز للتحريك</span>
                     <button type="button" onclick="clearComfyVideoRef()" class="text-rose-400 hover:underline mr-2 text-[10px]">إزالة</button>
@@ -3102,12 +3180,19 @@
 
               <i class="fa-solid fa-circle-notch fa-spin text-4xl text-emerald-400"></i>
 
-              <p id="comfy-spinnerText" class="text-xs font-bold text-emerald-300">كارت الشاشة السحابي يريندر الكادر السينمائي الآن...</p>
+              <p id="comfy-spinnerText" class="text-xs font-bold text-emerald-300">جاري ريندر المشهد السينمائي الآن...</p>
 
-              <div class="w-48 mx-auto h-1.5 bg-cinema-800 rounded-full overflow-hidden">
+              <div class="w-56 mx-auto h-2 bg-cinema-800 rounded-full overflow-hidden">
 
                 <div id="comfy-progressbar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-300" style="width: 30%"></div>
 
+              </div>
+
+              <div class="pt-2">
+                <button type="button" onclick="cancelActiveComfyRender()" class="px-4 py-1.5 rounded-xl bg-rose-900/70 hover:bg-rose-700 text-rose-100 border border-rose-500/50 text-xs font-bold transition shadow inline-flex items-center gap-1.5 cursor-pointer">
+                  <i class="fa-solid fa-xmark"></i>
+                  <span>إلغاء الريندر الحالي فوراً</span>
+                </button>
               </div>
 
             </div>
@@ -3231,45 +3316,12 @@
       // Auto-refresh live wallet balance every 25 seconds
       setInterval(() => refreshWalletStatus(false), 25000);
 
-      // Pre-fill latest motion transfer project
+      // Initialize clean studio state & verify IP protection ledger
       try {
-        const klingActorInp = document.getElementById('comfy-kling-actor-img');
-        if (klingActorInp && !klingActorInp.value) {
-          klingActorInp.value = '/outputs/upload_1793745039209_02c844e33a5898c7af2f08144bbb3a0c.jpg';
-          const prev = document.getElementById('comfy-kling-actor-preview');
-          const icon = document.getElementById('comfy-kling-actor-placeholder');
-          const badge = document.getElementById('comfy-kling-actor-badge');
-          if (prev) { prev.src = klingActorInp.value; prev.classList.remove('hidden'); }
-          if (icon) icon.classList.add('hidden');
-          if (badge) { badge.innerText = '✓ صورة الشخصية جاهزة'; badge.classList.remove('hidden'); }
-        }
-        const klingVidInp = document.getElementById('comfy-kling-driving-vid');
-        if (klingVidInp && !klingVidInp.value) {
-          klingVidInp.value = '/outputs/upload_1793745073905_Handheld_camera_filming_footage_.mp4';
-          const prev = document.getElementById('comfy-kling-video-preview');
-          const icon = document.getElementById('comfy-kling-video-placeholder');
-          const badge = document.getElementById('comfy-kling-video-badge');
-          if (prev) { prev.src = klingVidInp.value; prev.classList.remove('hidden'); }
-          if (icon) icon.classList.add('hidden');
-          if (badge) { badge.innerText = '✓ فيديو الحركة جاهز'; badge.classList.remove('hidden'); }
-        }
-        const resBox = document.getElementById('comfy-result-container');
-        const resVid = document.getElementById('comfy-result-video');
-        const resImg = document.getElementById('comfy-result-img');
-        const placeholder = document.getElementById('comfy-placeholder');
-        const dlBtn = document.getElementById('comfy-download-btn');
-        if (resBox && resVid && placeholder) {
-          resVid.src = '/outputs/Kling_Motion_Render.mp4';
-          resVid.classList.remove('hidden');
-          if (resImg) resImg.classList.add('hidden');
-          resBox.classList.remove('hidden');
-          placeholder.classList.add('hidden');
-          if (dlBtn) dlBtn.href = '/outputs/Kling_Motion_Render.mp4';
-        // Auto-initialize on Screening Studio to avoid blank state
         switchTab('screening');
-        }
+        if (typeof verifyAndRefreshIpShield === 'function') verifyAndRefreshIpShield(false);
       } catch (e) {
-        console.warn('Prefill error:', e);
+        console.warn('Init error:', e);
       }
     });
 
@@ -3416,54 +3468,27 @@
 
       const globalBar = document.getElementById('global-directorial-control-bar');
       if (globalBar) {
-        // Show global directorial control bar on both Chat and Fal.ai Studio
-        if (tabId === 'chat' || tabId === 'screening') {
+        // Show global directorial control bar ONLY on Chat tab so Screening tab has a single clean top bar!
+        if (tabId === 'chat') {
           globalBar.classList.remove('hidden');
         } else {
-          // Hide bar in standalone full-screen workspaces (ComfyUI / LoRA / Flow / Vault)
           globalBar.classList.add('hidden');
         }
       }
       if (tabId === 'screening' || tabId === 'comfy') fetchLatestBlenderGuide(true);
       if (tabId === 'lora' && typeof refreshLoraLibrary === 'function') refreshLoraLibrary();
       if (tabId === 'storyboard' && typeof initStoryboardUI === 'function') initStoryboardUI();
-        if (tabId === 'vault' && typeof loadVaultStatus === 'function') loadVaultStatus();
+      if (tabId === 'vault') {
+        if (typeof loadVaultStatus === 'function') loadVaultStatus();
+        if (typeof verifyAndRefreshIpShield === 'function') verifyAndRefreshIpShield(false);
+      }
       if (tabId === 'comfy') {
         if (typeof checkComfyStatus === 'function') checkComfyStatus();
-        try {
-          const resBox = document.getElementById('comfy-result-container');
-          const resVid = document.getElementById('comfy-result-video');
-          const resImg = document.getElementById('comfy-result-img');
-          const ph = document.getElementById('comfy-placeholder');
-          const dl = document.getElementById('comfy-download-btn');
-          if (resVid && resBox && ph) {
-            resVid.src = '/outputs/Render_Tencent_HunyuanVideo_13B_1793795771.mp4';
-            resVid.classList.remove('hidden');
-            if (resImg) resImg.classList.add('hidden');
-            resBox.classList.remove('hidden');
-            ph.classList.add('hidden');
-            if (dl) {
-              dl.href = '/outputs/Render_Tencent_HunyuanVideo_13B_1793795771.mp4';
-              dl.download = 'HunyuanVideo_Arcade_Render.mp4';
-              dl.innerHTML = '<i class="fa-solid fa-cloud-arrow-down text-sm"></i> <span>تحميل فيديو مشهد الأركيد المكتمل (HunyuanVideo 13B MP4)</span>';
-            }
-          }
-          const refInp = document.getElementById('comfy-video-img-source');
-          if (refInp && (!refInp.value || refInp.value.endsWith('/'))) {
-            refInp.value = '/outputs/upload_1793783555303_Man_reading_Tube_map_6f8b4f7f.jpg';
-          }
-          const refThumbBox = document.getElementById('comfy-video-ref-preview-box');
-          const refThumb = document.getElementById('comfy-video-ref-preview-thumb');
-          if (refThumbBox && refThumb) {
-            refThumb.src = '/outputs/upload_1793783555303_Man_reading_Tube_map_6f8b4f7f.jpg';
-            refThumbBox.classList.remove('hidden');
-          }
-        } catch(e) { console.warn(e); }
         if (typeof refreshWalletStatus === 'function') refreshWalletStatus();
-        if (currentMode === 'video' && currentComfySubMode !== 'latentsync' && currentComfySubMode !== 'kling') {
+        if (!window.currentComfySubMode) {
           switchComfySubMode('video');
-        } else if (currentMode === 'image' && currentComfySubMode !== 'latentsync' && currentComfySubMode !== 'kling') {
-          switchComfySubMode('image');
+        } else {
+          onComfyVideoModelChange();
         }
       }
     }
@@ -4883,7 +4908,60 @@
 
 
 
+    window.activeComfyJobId = null;
+    window.comfyRenderCancelled = false;
+
+    async function cancelActiveComfyRender() {
+      window.comfyRenderCancelled = true;
+      const jid = window.activeComfyJobId;
+      if (jid) {
+        try {
+          await fetch(`${API_BASE}/api/comfyui/cancel_video`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ job_id: jid })
+          });
+        } catch (e) {}
+      }
+      const spinner = document.getElementById('comfy-spinner');
+      const placeholder = document.getElementById('comfy-placeholder');
+      const btn = document.getElementById('comfy-render-btn');
+      const timer = document.getElementById('comfy-render-timer');
+      if (spinner) spinner.classList.add('hidden');
+      if (placeholder) placeholder.classList.remove('hidden');
+      if (btn) btn.disabled = false;
+      if (timer) timer.innerText = 'تم إلغاء الريندر بأمرك';
+      onComfyVideoModelChange();
+      showToast('تم إلغاء الريندر الحالي فوراً يا أستاذنا.', 'info');
+    }
+
+    async function verifyAndRefreshIpShield(showToastMsg = false) {
+      const icon = document.getElementById('ip-shield-refresh-icon');
+      const hashEl = document.getElementById('ip-master-sha256-code');
+      const timeEl = document.getElementById('ip-last-verified-time');
+      const badgeEl = document.getElementById('ip-tracked-files-badge');
+      if (icon) icon.classList.add('fa-spin');
+      try {
+        const res = await fetch(`${API_BASE}/api/ip/status`);
+        const data = await res.json();
+        if (data.success && data.manifest) {
+          const m = data.manifest;
+          if (hashEl) hashEl.textContent = m.master_sha256;
+          if (timeEl) timeEl.textContent = `✓ موثق (${m.generated_at_utc})`;
+          if (badgeEl) badgeEl.textContent = `${m.tracked_files_count} ملف محمي ومختوم`;
+          if (showToastMsg) {
+            showToast(`🛡️ تم تحديث وتوثيق البصمة الرقمية SHA-256 لجميع ملفات الكود (${m.tracked_files_count} ملف) بنجاح!`, 'success');
+          }
+        }
+      } catch (e) {
+        console.warn('IP shield check error:', e);
+      } finally {
+        if (icon) icon.classList.remove('fa-spin');
+      }
+    }
+
     async function executeComfyVideoRender(allowCloud = false) {
+      window.comfyRenderCancelled = false;
       let interval = null;
       const btn = document.getElementById('comfy-render-btn');
       const btnText = document.getElementById('comfy-render-btn-text');
@@ -4947,9 +5025,18 @@
 
         let data = initData;
         if (initData.job_id) {
+          window.activeComfyJobId = initData.job_id;
           const pollStart = Date.now();
           while (Date.now() - pollStart < 650000) {
-            await new Promise(r => setTimeout(r, 3500));
+            if (window.comfyRenderCancelled) {
+              clearInterval(interval);
+              return;
+            }
+            await new Promise(r => setTimeout(r, 3000));
+            if (window.comfyRenderCancelled) {
+              clearInterval(interval);
+              return;
+            }
             try {
               const sRes = await fetch(`${API_BASE}/api/comfyui/video_status?job_id=${initData.job_id}`);
               const sData = await sRes.json();
@@ -10061,7 +10148,7 @@ let currentUploadContext = 'chat';
       ['~ $0.04 للموديل', '~ $0.04 to test'],
       ['يُشغل كارت RTX 4090 لحسابك الشخصي، يدرب الموديل، ويُغلق وينهي السيرفر فوراً بمجرد الانتهاء لتوفير كل سنت!', 'Dedicated RTX 4090 GPU executes for your account, trains your model, and terminates server immediately to safeguard every cent!'],
       ['Fal.ai Fast API (مدفوع)', 'Fal.ai Fast API (Dedicated)'],
-      ['سيرفرات جاهزة لكنها تستهلك من رصيد Fal.ai المسجل في خزنتك.', 'Dedicated fast servers, billed directly against your stored Fal.ai vault API credit.'],
+      ['سيرفرات جاهزة لكنها تستهلك من رصيد Fal.ai المسجل في خزنتك.', 'خوادم سحابية فورية مخصصة، تُخصم تكلفتها مباشرة من رصيد مفتاح Fal.ai المحفوظ في الخزنة.'],
       ['نوع كارت الشاشة (RunPod GPU):', 'GPU Type (RunPod GPU):'],
       ['إيقاف وحذف تلقائي فوري 100%', '100% Instant Auto-Purge Protection'],
       ['معلقة فوراً إيقاف وحذف أي أجهزة RunPod', 'Terminate all pending RunPod devices now'],

@@ -1,3 +1,15 @@
+# ==============================================================================
+# PROPRIETARY INTELLECTUAL PROPERTY & TRADE SECRET NOTICE
+# System: VirtuFilm Studio AI (Cindy AI Director Architecture v8.0)
+# Inventor & Owner: Ehab Fikry (المخرج / إيهاب فكري)
+# Patent Reference: CAD-IP-2026-001
+# Legal Protection:
+#   1. WIPO Berne Convention (Automatic International Copyright in 181 Countries)
+#   2. Egyptian Intellectual Property Law No. 82 of 2002 (ITIDA Software Deposit)
+#   3. Trade Secret & Cryptographic SHA-256 Prior-Art Ledger
+# Unauthorized copying, reverse engineering, or redistribution is strictly prohibited.
+# ==============================================================================
+
 import json, os, time, requests, re
 
 SCRIPTS_STORAGE_PATH = r'C:\Users\DELL\Desktop\Cindy-AI-Director\outputs\scripts_storyboard.json'

@@ -29,3 +29,5 @@ patch_*.py
 # OS temp
 Thumbs.db
 .DS_Store
+
+_dev_archive/

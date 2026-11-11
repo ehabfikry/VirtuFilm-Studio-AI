@@ -1,3 +1,15 @@
+# ==============================================================================
+# PROPRIETARY INTELLECTUAL PROPERTY & TRADE SECRET NOTICE
+# System: VirtuFilm Studio AI (Cindy AI Director Architecture v8.0)
+# Inventor & Owner: Ehab Fikry (المخرج / إيهاب فكري)
+# Patent Reference: CAD-IP-2026-001
+# Legal Protection:
+#   1. WIPO Berne Convention (Automatic International Copyright in 181 Countries)
+#   2. Egyptian Intellectual Property Law No. 82 of 2002 (ITIDA Software Deposit)
+#   3. Trade Secret & Cryptographic SHA-256 Prior-Art Ledger
+# Unauthorized copying, reverse engineering, or redistribution is strictly prohibited.
+# ==============================================================================
+
 import cindy_radar
 import cindy_storyboard
 VIDEO_JOBS = {}
@@ -97,6 +109,87 @@ LORAS_FILE = os.path.join(BASE_DIR, "cindy_loras.json")
 LORAS_DIR = os.path.join(OUTPUTS_DIR, "loras")
 
 os.makedirs(LORAS_DIR, exist_ok=True)
+
+import hashlib
+
+def generate_ip_manifest():
+    """Compute live cryptographic SHA-256 fingerprints of all core studio modules and write IP_MANIFEST_SHA256.json."""
+    tracked_files = [
+        "index.html",
+        "cindy_server.py",
+        "cindy_previs_engine.py",
+        "cindy_blender_bridge.py",
+        "comfyui_client.py",
+        "cindy_storyboard.py",
+        "cindy_pricing.py",
+        "cindy_radar.py",
+        "cindy_local_tts.py",
+        "runpod_trainer.py",
+        "LICENSE",
+        "IP_LEGAL_SPECIFICATION.md",
+        "EGYPT_IP_FILING_DOSSIER.html",
+        "PATENT_FILING_DOCKET.html"
+    ]
+    file_hashes = {}
+    master_hasher = hashlib.sha256()
+    total_bytes = 0
+    for rel in tracked_files:
+        p = os.path.join(BASE_DIR, rel)
+        if os.path.isfile(p):
+            with open(p, "rb") as fh:
+                raw = fh.read()
+            h = hashlib.sha256(raw).hexdigest()
+            file_hashes[rel] = {
+                "sha256": h,
+                "size_bytes": len(raw),
+                "modified_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(os.path.getmtime(p)))
+            }
+            master_hasher.update(f"{rel}:{h}\n".encode("utf-8"))
+            total_bytes += len(raw)
+    master_sha256 = master_hasher.hexdigest()
+    now_iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    manifest = {
+        "system": "VirtuFilm Studio AI (Cindy AI Director)",
+        "version": "8.0-Protected",
+        "inventor_and_owner": "Ehab Fikry (المخرج إيهاب فكري)",
+        "patent_reference": "CAD-IP-2026-001",
+        "legal_frameworks": [
+            "WIPO Berne Convention (181 Member States - $0 Automatic Protection)",
+            "Egyptian IP Law No. 82 of 2002 (ITIDA & Supreme Council of Culture)",
+            "Cryptographic SHA-256 Prior-Art & Git Timestamp Ledger"
+        ],
+        "generated_at_utc": now_iso,
+        "master_sha256": master_sha256,
+        "tracked_files_count": len(file_hashes),
+        "total_protected_bytes": total_bytes,
+        "security_controls": {
+            "localhost_isolation": "127.0.0.1 Only (Strict Host & Origin Guard)",
+            "zero_leak_vault": "Local cindy_secrets.json (Excluded from Git & Static HTTP)",
+            "zero_cost_balance_guard": "Active (Blocks all unconfirmed cloud billing)"
+        },
+        "files": file_hashes
+    }
+    try:
+        manifest_path = os.path.join(BASE_DIR, "IP_MANIFEST_SHA256.json")
+        with open(manifest_path, "w", encoding="utf-8") as mf:
+            json.dump(manifest, mf, ensure_ascii=False, indent=2)
+        ts_path = os.path.join(BASE_DIR, "IP_TIMESTAMP_RECORD.txt")
+        with open(ts_path, "w", encoding="utf-8") as tf:
+            tf.write("===================================================================\n")
+            tf.write("VIRTUFILM STUDIO AI - CRYPTOGRAPHIC PRIOR-ART & IP TIMESTAMP LEDGER\n")
+            tf.write("===================================================================\n")
+            tf.write(f"Inventor & Copyright Owner : Ehab Fikry (المخرج إيهاب فكري)\n")
+            tf.write(f"Patent Reference           : CAD-IP-2026-001\n")
+            tf.write(f"Timestamp (UTC)            : {now_iso}\n")
+            tf.write(f"Master Architecture SHA256 : {master_sha256}\n")
+            tf.write("-------------------------------------------------------------------\n")
+            for k, v in file_hashes.items():
+                tf.write(f"{v['sha256']}  {k} ({v['size_bytes']} bytes)\n")
+            tf.write("===================================================================\n")
+    except Exception as e:
+        print(f"[IP Manifest Write Warning] {e}")
+    return manifest
+
 
 LORA_TRAINING_JOBS = {}
 
@@ -958,6 +1051,7 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             self.send_header('Access-Control-Allow-Headers', 'Content-Type, X-Cindy-Client')
 
         self.send_header('X-Content-Type-Options', 'nosniff')
+        self.send_header('X-Proprietary-IP', 'VirtuFilm Studio AI - Copyright (c) 2026 Ehab Fikry (CAD-IP-2026-001)')
 
         self.send_header('X-Frame-Options', 'DENY')
 
@@ -1042,6 +1136,11 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             return
 
 
+
+        elif self.path.startswith('/api/ip/status'):
+            manifest = generate_ip_manifest()
+            self.send_json_response(200, {"success": True, "manifest": manifest})
+            return
 
         elif self.path == '/api/vault/status':
 
@@ -1268,6 +1367,19 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                     self.wfile.write(content)
                     return
 
+            if clean in ('/EGYPT_IP_FILING_DOSSIER.html', '/PATENT_FILING_DOCKET.html', '/IP_MANIFEST_SHA256.json', '/IP_TIMESTAMP_RECORD.txt'):
+                doc_path = os.path.join(BASE_DIR, clean.lstrip('/'))
+                if os.path.isfile(doc_path):
+                    with open(doc_path, 'rb') as f:
+                        content = f.read()
+                    ctype = 'application/json; charset=utf-8' if clean.endswith('.json') else ('text/plain; charset=utf-8' if clean.endswith('.txt') else 'text/html; charset=utf-8')
+                    self.send_response(200)
+                    self.send_header('Content-Type', ctype)
+                    self.send_header('Content-Length', str(len(content)))
+                    self.end_headers()
+                    self.wfile.write(content)
+                    return
+
             if clean in ('/', '/index.html'):
 
                 html_path = os.path.join(BASE_DIR, 'index.html')
@@ -1345,6 +1457,15 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             payload = {}
 
 
+
+        if self.path == '/api/comfyui/cancel_video':
+            jid = (payload.get('job_id') or '').strip()
+            if jid and jid in VIDEO_JOBS:
+                VIDEO_JOBS[jid]['status'] = 'failed'
+                VIDEO_JOBS[jid]['error'] = 'cancelled_by_director'
+                VIDEO_JOBS[jid]['message'] = 'تم إلغاء عملية الريندر فوراً بأمر المخرج.'
+            self.send_json_response(200, {'success': True, 'message': 'تم إلغاء الريندر فوراً.'})
+            return
 
         if self.path == '/api/previs/generate':
             self.handle_generate_previs(payload)
@@ -7056,10 +7177,15 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                 def do_cloud():
                     if not fal_key:
                         raise RuntimeError("مفتاح Fal.ai السحابي غير متوفر لإتمام الريندر.")
-                    cloud_img = upload_file_to_fal(local_img_path, fal_key) or local_img_path
+                    cloud_img = self._resolve_media_for_fal(local_img_path, fal_key)
+                    if not cloud_img or (not cloud_img.startswith('http') and not cloud_img.startswith('data:')):
+                        cloud_img = upload_file_to_fal(local_img_path, fal_key)
+                    if not cloud_img or (not cloud_img.startswith('http') and not cloud_img.startswith('data:')):
+                        raise RuntimeError("تعذر رفع الكادر المرجعي للسيرفر السحابي.")
+
                     if 'skyreels' in ckpt_lower:
-                        endpoint = "fal-ai/hunyuan-video-image-to-video"
-                        label = "SkyReels-V1 (Top 10 SOTA)"
+                        endpoint = "fal-ai/wan-i2v"
+                        label = "SkyReels-V1 / Wan 2.2 Cinema I2V"
                         fal_payload = {"prompt": prompt_text, "image_url": cloud_img}
                     elif 'ltx' in ckpt_lower:
                         endpoint = "fal-ai/ltx-video-13b-distilled/image-to-video"
@@ -7079,7 +7205,7 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                         fal_payload = {"prompt": prompt_text, "image_url": cloud_img}
                     else:
                         endpoint = "fal-ai/wan-i2v"
-                        label = "Alibaba Wan 2.1"
+                        label = "Alibaba Wan 2.2"
                         fal_payload = {"prompt": prompt_text, "image_url": cloud_img}
 
                     sub_r = requests.post(f"https://queue.fal.run/{endpoint}", headers={'Authorization': f'Key {fal_key}', 'Content-Type': 'application/json'}, json=fal_payload, timeout=25)
@@ -7091,23 +7217,44 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                     t0 = time.time()
                     in_progress_t0 = None
                     vid_url = None
-                    print(f"[COMFY_VIDEO] Launched job {job_id} -> Fal request: {q_info.get('request_id')} ({endpoint})", flush=True)
+                    switched_fast = False
+                    print(f"[COMFY_VIDEO] Launched job {job_id} -> Fal request: {q_info.get('request_id')} ({endpoint} / {label})", flush=True)
                     VIDEO_JOBS[job_id]["fal_request_id"] = q_info.get('request_id')
-                    while time.time() - t0 < 1200:
-                        time.sleep(3.5)
-                        c_st = requests.get(st_url, headers={'Authorization': f'Key {fal_key}'}, timeout=15).json()
+                    while time.time() - t0 < 600:
+                        if VIDEO_JOBS.get(job_id, {}).get("error") == "cancelled_by_director":
+                            return
+                        time.sleep(3.0)
+                        try:
+                            c_st = requests.get(st_url, headers={'Authorization': f'Key {fal_key}'}, timeout=15).json()
+                        except Exception:
+                            continue
                         st = c_st.get('status')
                         elapsed = int(time.time() - t0)
                         q_pos = c_st.get('queue_position', 0)
+
+                        # Fast-Queue Rescue: if Hunyuan sits in cold IN_QUEUE > 45s, switch to fast Wan I2V
+                        if st == 'IN_QUEUE' and elapsed > 45 and not switched_fast and endpoint != "fal-ai/wan-i2v":
+                            switched_fast = True
+                            endpoint = "fal-ai/wan-i2v"
+                            label = f"{label} (مسار Wan السريع)"
+                            VIDEO_JOBS[job_id]["message"] = f"طابور المحرك مزدحم.. تم التحويل الفوري للمسار السريع ({label}) لعدم الانتظار!"
+                            sub_r2 = requests.post(f"https://queue.fal.run/{endpoint}", headers={'Authorization': f'Key {fal_key}', 'Content-Type': 'application/json'}, json=fal_payload, timeout=25)
+                            if sub_r2.status_code in [200, 201, 202]:
+                                q_info = sub_r2.json()
+                                st_url = q_info.get('status_url')
+                                res_url = q_info.get('response_url')
+                                t0 = time.time()
+                                continue
+
                         if st == 'IN_QUEUE':
-                            VIDEO_JOBS[job_id]["progress"] = min(35, 10 + elapsed // 4)
-                            VIDEO_JOBS[job_id]["message"] = f"الطلب في طابور السيرفر السحابي لموديل {label} (موقع الطابور: {q_pos}) - جاري تخصيص كارت H100..."
+                            VIDEO_JOBS[job_id]["progress"] = min(35, 10 + elapsed // 3)
+                            VIDEO_JOBS[job_id]["message"] = f"في طابور السيرفر السحابي لموديل {label} (موقع الطابور: {q_pos} | {elapsed} ثانية)..."
                         elif st == 'IN_PROGRESS':
                             if in_progress_t0 is None:
                                 in_progress_t0 = time.time()
                             ip_elapsed = int(time.time() - in_progress_t0)
                             VIDEO_JOBS[job_id]["progress"] = min(96, 40 + ip_elapsed // 2)
-                            VIDEO_JOBS[job_id]["message"] = f"كارت H100 يريندر إطارات الفيديو الآن بدقة سينمائية لموديل {label} (زمن الريندر الفعلي: {ip_elapsed} ثانية)..."
+                            VIDEO_JOBS[job_id]["message"] = f"كارت H100 يريندر إطارات الفيديو الآن لموديل {label} ({ip_elapsed} ثانية)..."
                         else:
                             VIDEO_JOBS[job_id]["progress"] = min(90, 30 + elapsed // 3)
                             VIDEO_JOBS[job_id]["message"] = f"جاري معالجة مشهد {label} ({elapsed} ثانية)..."
@@ -7123,11 +7270,12 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                             break
                         elif st in ['FAILED', 'ERROR']:
                             raise RuntimeError(f"فشلت معالجة المشهد على خوادم {label}: {c_st}")
-                    
+
                     if not vid_url:
                         raise TimeoutError("استغرق ريندر المشهد أكثر من الحد المسموح.")
 
-                    v_name = f"Render_{label.replace(' ', '_').replace('(', '').replace(')', '')}_{int(time.time())}.mp4"
+                    safe_lbl = re.sub(r'[^A-Za-z0-9_-]+', '_', label).strip('_')
+                    v_name = f"Render_{safe_lbl}_{int(time.time())}.mp4"
                     v_path = os.path.join(OUTPUTS_DIR, v_name)
                     v_bytes = requests.get(vid_url, timeout=60).content
                     with open(v_path, 'wb') as vf:
@@ -7139,7 +7287,7 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                         cap = cv2.VideoCapture(v_path)
                         ret, frame = cap.read()
                         if ret:
-                            f0_path = os.path.join(OUTPUTS_DIR, f"Frame0_{label.replace(' ', '_').replace('(', '').replace(')', '')}_{int(time.time())}.jpg")
+                            f0_path = os.path.join(OUTPUTS_DIR, f"Frame0_{safe_lbl}_{int(time.time())}.jpg")
                             cv2.imwrite(f0_path, frame)
                         cap.release()
                     except Exception:
