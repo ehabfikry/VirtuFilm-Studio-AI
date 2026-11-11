@@ -7188,9 +7188,9 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                     if not cloud_img or (not cloud_img.startswith('http') and not cloud_img.startswith('data:')):
                         raise RuntimeError("تعذر رفع الكادر المرجعي للسيرفر السحابي.")
 
-                    if 'skyreels' in ckpt_lower:
-                        endpoint = "fal-ai/wan-i2v"
-                        label = "SkyReels-V1 / Wan 2.2 Cinema I2V"
+                    if 'skyreels' in ckpt_lower or 'hunyuan' in ckpt_lower:
+                        endpoint = "fal-ai/hunyuan-video/image-to-video"
+                        label = "SkyReels-V1 (Tencent Hunyuan 13B Architecture)"
                         fal_payload = {"prompt": prompt_text, "image_url": cloud_img}
                     elif 'ltx' in ckpt_lower:
                         endpoint = "fal-ai/ltx-video-13b-distilled/image-to-video"
