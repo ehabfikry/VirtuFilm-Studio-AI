@@ -1,3 +1,4 @@
+import cindy_radar
 import cindy_storyboard
 VIDEO_JOBS = {}
 # -*- coding: utf-8 -*-
@@ -1204,6 +1205,14 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
 
 
 
+        elif self.path == '/api/radar/trends' or self.path.startswith('/api/radar/trends'):
+            parsed = urllib.parse.urlparse(self.path)
+            qs = urllib.parse.parse_qs(parsed.query)
+            force = (qs.get('force', ['false'])[0].lower() == 'true')
+            secrets = load_secrets()
+            data = cindy_radar.get_latest_cinema_trends(force_refresh=force, secrets=secrets)
+            self.send_json_response(200, {"success": True, "radar": data})
+            return
         elif self.path == '/api/storyboard/list':
             data = cindy_storyboard.load_storyboards()
             self.send_json_response(200, {"success": True, "storyboards": data.get("projects", [])})
@@ -1349,8 +1358,54 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_error_response(400, "Text is required")
                 return
             try:
-                import cindy_local_tts
-                audio_bytes = cindy_local_tts.synthesize(text, voice_id=voice, speed=speed)
+                audio_bytes = None
+                
+                # Check if Google Gemini Native Flash TTS is requested:
+                if voice.startswith('gemini_') or voice in ('cindy_flash_aoede', 'cindy_flash_masri'):
+                    secrets = load_secrets()
+                    gemini_key = secrets.get('gemini_api_key', '').strip()
+                    if gemini_key:
+                        voice_name_map = {
+                            'gemini_aoede': 'Aoede',
+                            'gemini_puck': 'Puck',
+                            'gemini_charon': 'Charon',
+                            'gemini_kore': 'Kore',
+                            'gemini_fenrir': 'Fenrir',
+                            'cindy_flash_aoede': 'Aoede',
+                            'cindy_flash_masri': 'Aoede'
+                        }
+                        chosen_voice_name = voice_name_map.get(voice, 'Aoede')
+                        phonetic_prompt = f"Speak naturally with cinematic dramatic expression: {text}"
+                        if voice in ('cindy_flash_aoede', 'cindy_flash_masri') or any(c in text for c in 'ابتثجحخدذرزسشصضطظعغفقكلمنهوي'):
+                            phonetic_prompt = f"Speak in a warm, expressive natural Cairo Egyptian colloquial accent (Masri): {text}"
+                            
+                        for model_ep in ('gemini-2.5-flash-preview-tts', 'gemini-3.8-flash-lite-tts'):
+                            try:
+                                g_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_ep}:generateContent?key={gemini_key}"
+                                g_body = {
+                                    "contents": [{"parts": [{"text": phonetic_prompt}]}],
+                                    "generationConfig": {
+                                        "responseModalities": ["AUDIO"],
+                                        "speechConfig": {
+                                            "voiceConfig": {
+                                                "prebuiltVoiceConfig": {"voiceName": chosen_voice_name}
+                                            }
+                                        }
+                                    }
+                                }
+                                resp = requests.post(g_url, json=g_body, timeout=12)
+                                if resp.status_code == 200:
+                                    b64_raw = resp.json().get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("inlineData", {}).get("data", "")
+                                    if b64_raw:
+                                        raw_aud = base64.b64decode(b64_raw)
+                                        audio_bytes = self._ensure_wav_bytes(raw_aud, sample_rate=24000)
+                                        break
+                            except Exception as ex_gem:
+                                print(f"[Gemini Flash TTS error]: {ex_gem}")
+                                
+                if not audio_bytes:
+                    import cindy_local_tts
+                    audio_bytes = cindy_local_tts.synthesize(text, voice_id=voice, speed=speed)
                 if not audio_bytes or len(audio_bytes) < 500:
                     self.send_error_response(500, "Failed to generate audio")
                     return
