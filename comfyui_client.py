@@ -617,6 +617,110 @@ def build_wan22_workflow(
     return workflow, seed
 
 
+def build_ltx_video_workflow(
+    image_filename,
+    prompt="cinematic camera movement, high resolution, smooth motion",
+    checkpoint="LTX-Video/ltx_video_13b_distilled.safetensors",
+    width=1024,
+    height=576,
+    video_frames=97,
+    steps=12,
+    cfg=3.5,
+    fps=24,
+    seed=None
+):
+    """
+    Build a Lightricks LTX-Video (13B Distilled Open Source) ComfyUI workflow JSON.
+    Ultra-fast open-source generation on local GPUs (<10GB VRAM).
+    """
+    if seed is None:
+        seed = random.randint(100000000000, 999999999999)
+
+    workflow = {
+        "1": {
+            "class_type": "CheckpointLoaderSimple",
+            "inputs": {
+                "ckpt_name": checkpoint
+            }
+        },
+        "2": {
+            "class_type": "LoadImage",
+            "inputs": {
+                "image": image_filename
+            }
+        },
+        "3": {
+            "class_type": "CLIPTextEncode",
+            "inputs": {
+                "text": prompt,
+                "clip": ["1", 1]
+            }
+        },
+        "4": {
+            "class_type": "CLIPTextEncode",
+            "inputs": {
+                "text": "blurry, low quality, distortion, artifacts, jitter",
+                "clip": ["1", 1]
+            }
+        },
+        "5": {
+            "class_type": "LTXVConditioning",
+            "inputs": {
+                "positive": ["3", 0],
+                "negative": ["4", 0],
+                "frame_rate": float(fps)
+            }
+        },
+        "6": {
+            "class_type": "LTXVImgToVideo",
+            "inputs": {
+                "positive": ["5", 0],
+                "negative": ["5", 1],
+                "vae": ["1", 2],
+                "image": ["2", 0],
+                "width": int(width),
+                "height": int(height),
+                "length": int(video_frames),
+                "batch_size": 1
+            }
+        },
+        "7": {
+            "class_type": "KSampler",
+            "inputs": {
+                "seed": seed,
+                "steps": int(steps),
+                "cfg": float(cfg),
+                "sampler_name": "euler",
+                "scheduler": "normal",
+                "denoise": 1.0,
+                "model": ["1", 0],
+                "positive": ["6", 0],
+                "negative": ["6", 1],
+                "latent_image": ["6", 2]
+            }
+        },
+        "8": {
+            "class_type": "VAEDecode",
+            "inputs": {
+                "samples": ["7", 0],
+                "vae": ["1", 2]
+            }
+        },
+        "9": {
+            "class_type": "SaveAnimatedWEBP",
+            "inputs": {
+                "images": ["8", 0],
+                "filename_prefix": "Cindy_LTX_Video",
+                "fps": float(fps),
+                "lossless": False,
+                "quality": 90,
+                "method": "default"
+            }
+        }
+    }
+    return workflow, seed
+
+
 def build_hunyuan_workflow(
     image_filename,
     prompt="cinematic camera movement, high resolution, photorealistic 8k",

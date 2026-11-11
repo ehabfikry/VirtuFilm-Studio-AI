@@ -7177,6 +7177,12 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                     elif 'wan' in ckpt_lower:
                         workflow, seed = comfyui_client.build_wan_workflow(uploaded_name, prompt_text, ckpt, width, height, video_frames, steps, fps)
                         engine_label = "Alibaba Wan 2.1"
+                    elif 'skyreels' in ckpt_lower:
+                        workflow, seed = comfyui_client.build_hunyuan_workflow(uploaded_name, prompt_text, ckpt, width, height, 73, steps, fps)
+                        engine_label = "SkyReels-V1 (SOTA #9)"
+                    elif 'ltx' in ckpt_lower:
+                        workflow, seed = comfyui_client.build_ltx_video_workflow(uploaded_name, prompt_text, ckpt, width, height, 97, 12, 3.5, fps)
+                        engine_label = "Lightricks LTX-Video (13B)"
                     elif 'hunyuan' in ckpt_lower:
                         workflow, seed = comfyui_client.build_hunyuan_workflow(uploaded_name, prompt_text, ckpt, width, height, 73, steps, fps)
                         engine_label = "Tencent HunyuanVideo"
@@ -7281,32 +7287,40 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
 
         
 
-        img_source = payload.get('image_url') or payload.get('image') or None
-        workflow, seed = comfyui_client.build_cinematic_image_workflow(
-
-            prompt=prompt,
-
-            negative_prompt=negative,
-
-            checkpoint=ckpt,
-
-            lora_name=lora_name,
-
-            lora_strength=lora_strength,
-
-            width=width,
-
-            height=height,
-
-            steps=steps,
-
-            cfg=cfg,
-
-            sampler=sampler,
-
-            scheduler=scheduler
-
-        )
+        img_source = (payload.get('image_url') or payload.get('image') or '').strip()
+        if 'qwen' in str(ckpt).lower() and img_source:
+            clean_img = img_source.split('?')[0].strip().rstrip('/\\').strip()
+            base_name = os.path.basename(clean_img)
+            cand_path = clean_img if (os.path.isabs(clean_img) and os.path.isfile(clean_img)) else os.path.join(OUTPUTS_DIR, base_name)
+            uploaded_img = base_name
+            if os.path.isfile(cand_path):
+                try:
+                    uploaded_img = comfyui_client.upload_image_to_comfyui(url, cand_path)
+                except Exception:
+                    uploaded_img = base_name
+            workflow, seed = comfyui_client.build_qwen_image_edit_workflow(
+                image_filename=uploaded_img,
+                prompt=prompt,
+                checkpoint=ckpt,
+                width=width,
+                height=height,
+                steps=steps,
+                cfg=cfg
+            )
+        else:
+            workflow, seed = comfyui_client.build_cinematic_image_workflow(
+                prompt=prompt,
+                negative_prompt=negative,
+                checkpoint=ckpt,
+                lora_name=lora_name,
+                lora_strength=lora_strength,
+                width=width,
+                height=height,
+                steps=steps,
+                cfg=cfg,
+                sampler=sampler,
+                scheduler=scheduler
+            )
 
         
 
@@ -7350,7 +7364,7 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
 
         finally:
 
-            if auto_stop:
+            if auto_stop and url and 'runpod.net' in url:
 
                 try:
 

@@ -2539,7 +2539,7 @@
             <div>
               <div class="flex items-center gap-2">
                 <span class="text-xs font-black text-emerald-300">توجيه بلندر ثلاثي الأبعاد (Blender 3D Pre-vis Guide)</span>
-                <span id="blender-guide-status-badge" class="blender-guide-status text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-mono">في انتظار التصدير من بلندر...</span>
+                <span id="blender-guide-status-badge-comfy" class="blender-guide-status text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-mono">في انتظار التصدير من بلندر...</span>
               </div>
               <p class="text-[11px] text-slate-400">تخطيط الكاميرا، والعدسات، وخرائط العمق (Depth Maps) المستخرجة محلياً من بلندر (D:\Blender).</p>
             </div>
@@ -2594,11 +2594,11 @@
 
               <h2 class="text-sm font-bold text-slate-100">استوديو ComfyUI السينمائي (تحكم كامل بدون أسلاك)</h2>
 
-              <span id="comfy-status-badge" class="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30 flex items-center gap-1">
+              <span id="comfy-status-badge" class="text-[11px] px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30 flex items-center gap-1">
 
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span id="comfy-banner-dot" class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
 
-                <span id="comfy-status-text">متصل (NVIDIA RTX PRO 4000 Blackwell)</span>
+                <span id="comfy-status-text">جاري فحص اتصال ComfyUI...</span>
 
               </span>
 
@@ -4605,6 +4605,14 @@
       if (!audioSrc) {
 
         showToast('يرجى رفع ملف الصوت أو الحوار (Audio Track) للمزامنة.', 'warn');
+
+        return;
+
+      }
+
+      if (!confirm('🛡️ تنبيه حماية الرصيد:\nمحرك مزامنة الشفاه الفوري (LatentSync Serverless) يعمل عبر السحابة بتكلفة (~$0.04).\nهل توافق على تنفيذ العملية الآن؟')) {
+
+        showToast('تم إلغاء العملية وحماية رصيدك 🛡️', 'info');
 
         return;
 
@@ -7991,22 +7999,35 @@ let currentUploadContext = 'chat';
     }
 
     // --- 7. ComfyUI Pod Operations ---
-    async function checkComfyStatus() {
+    async function checkComfyStatus(showNotice = false) {
       const dot = document.getElementById('comfy-status-dot');
+      const bannerDot = document.getElementById('comfy-banner-dot');
       const txt = document.getElementById('comfy-status-text');
+      const badge = document.getElementById('comfy-status-badge');
+      const sub = document.getElementById('comfy-status-sub');
       try {
         const res = await fetch(`${API_BASE}/api/comfyui/status`);
         if (res.ok) {
           const data = await res.json();
+          const lang = window.currentAppLang || 'ar';
           if (data.online) {
             if (dot) dot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
-            if (txt) txt.innerText = 'متصل (RunPod / Local ComfyUI)';
+            if (bannerDot) bannerDot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse';
+            if (badge) badge.className = 'text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30 flex items-center gap-1';
+            if (txt) txt.innerText = (lang === 'en') ? 'Connected (Local / RunPod ComfyUI)' : 'متصل وجاهز للريندر المجاني (ComfyUI Online)';
+            if (sub) sub.innerText = data.message || 'ComfyUI Active | Zero API Cost';
+            if (showNotice) showToast('سيرفر ComfyUI متصل وجاهز للريندر المجاني! ⚡', 'success');
           } else {
             if (dot) dot.className = 'w-2 h-2 rounded-full bg-amber-400';
+            if (bannerDot) bannerDot.className = 'w-1.5 h-1.5 rounded-full bg-amber-400';
+            if (badge) badge.className = 'text-[11px] px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30 flex items-center gap-1';
             if (txt) {
-              const lang = window.currentAppLang || 'ar';
-              txt.innerText = (lang === 'en') ? 'ComfyUI Server Idle (Ready on demand)' : 'سيرفر ComfyUI مغلق (جاهز للتشغيل عند الطلب)';
+              txt.innerText = (lang === 'en') ? 'ComfyUI Offline (Start Local or RunPod)' : 'سيرفر ComfyUI غير متصل (شغّله محلياً للريندر المجاني)';
             }
+            if (sub) {
+              sub.innerText = (lang === 'en') ? 'Protected Balance Mode: Zero cloud spend without explicit permission' : '🛡️ وضع حماية الرصيد مفعل: لن يتم خصم أي رصيد سحابي تلقائياً عند إغلاق ComfyUI';
+            }
+            if (showNotice) showToast('سيرفر ComfyUI مغلق حالياً. رصيدك محمي ولن يتم التحويل للسحابة بدون إذنك.', 'info');
           }
         }
       } catch (e) {}
@@ -8921,6 +8942,26 @@ let currentUploadContext = 'chat';
 
   <script>
 
+  
+  function terminateAllRunpods() {
+    return emergencyStopAllRunpod(true);
+  }
+
+  function previewImage(url) {
+    if (!url) return;
+    switchTab('screening');
+    const img = document.getElementById('screen-img-display');
+    const vid = document.getElementById('screen-video-display');
+    const ph = document.getElementById('screen-placeholder');
+    if (ph) ph.classList.add('hidden');
+    if (vid) vid.classList.add('hidden');
+    if (img) {
+      img.src = url;
+      img.classList.remove('hidden');
+    }
+    showToast('تم فتح الكادر في شاشة العرض السينمائية 🎬', 'info');
+  }
+
   function selectDirectComfyModel(engine) {
     const allBtns = ['btn-engine-wan22', 'btn-engine-wan21', 'btn-engine-skyreels', 'btn-engine-ltx', 'btn-engine-hunyuan', 'btn-engine-cogvideo', 'btn-engine-svd', 'btn-engine-qwen', 'btn-engine-flux', 'btn-engine-sd35', 'btn-engine-sdxl', 'btn-engine-ls', 'btn-engine-kling'];
     allBtns.forEach(id => {
@@ -8942,7 +8983,7 @@ let currentUploadContext = 'chat';
       switchComfySubMode('video');
       const ckptSel = document.getElementById('comfy-video-checkpoint');
       const btnText = document.getElementById('comfy-render-btn-text');
-      const hint = document.getElementById('comfy-engine-hint');
+      const hint = document.getElementById('comfy-video-model-hint');
 
       if (engine === 'wan22') {
         if (ckptSel) ckptSel.value = 'Wan2.2/wan2.2_i2v_720p_14B_fp8_e4m3fn.safetensors';
