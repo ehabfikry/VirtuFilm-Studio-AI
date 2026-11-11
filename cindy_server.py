@@ -7198,48 +7198,33 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                         # 2. Upload image to ComfyUI on RunPod
                         uploaded_name = comfyui_client.upload_image_to_comfyui(pod_url, local_img_path)
                         
-                        # 3. Build workflow
+                        # 3. Build verified workflow
                         if 'wan' in ckpt_lower and ('2.2' in ckpt_lower or 'wan2.2' in ckpt_lower):
                             workflow, seed = comfyui_client.build_wan22_workflow(uploaded_name, prompt_text, ckpt, width, height, video_frames, steps, fps)
                             engine_label = "Alibaba Wan 2.2"
                         elif 'wan' in ckpt_lower:
-                            workflow, seed = comfyui_client.build_wan21_workflow(uploaded_name, prompt_text, ckpt, width, height, video_frames, steps, fps)
+                            workflow, seed = comfyui_client.build_wan_workflow(uploaded_name, prompt_text, ckpt, width, height, video_frames, steps, fps)
                             engine_label = "Alibaba Wan 2.1"
-                        elif 'skyreels' in ckpt_lower:
-                            workflow, seed = comfyui_client.build_hunyuan_workflow(uploaded_name, prompt_text, width=width, height=height, video_frames=min(video_frames, 73), steps=steps, fps=fps)
-                            engine_label = "SkyReels-V1"
-                        elif 'hunyuan' in ckpt_lower:
-                            workflow, seed = comfyui_client.build_hunyuan_workflow(uploaded_name, prompt_text, width, height, video_frames, steps, fps)
-                            engine_label = "Tencent HunyuanVideo"
+                        elif 'skyreels' in ckpt_lower or 'hunyuan' in ckpt_lower:
+                            workflow, seed = comfyui_client.build_hunyuan_workflow(uploaded_name, prompt_text, ckpt, width, height, min(video_frames, 73), steps, fps)
+                            engine_label = "HunyuanVideo / SkyReels"
+                        elif 'ltx' in ckpt_lower:
+                            workflow, seed = comfyui_client.build_ltx_video_workflow(uploaded_name, prompt_text, ckpt, width, height, 97, 12, 3.5, fps)
+                            engine_label = "Lightricks LTX-Video"
                         else:
-                            workflow, seed = comfyui_client.build_wan21_workflow(uploaded_name, prompt_text, ckpt, width, height, video_frames, steps, fps)
+                            workflow, seed = comfyui_client.build_wan_workflow(uploaded_name, prompt_text, ckpt, width, height, video_frames, steps, fps)
                             engine_label = "Alibaba Wan"
-                            
+
                         VIDEO_JOBS[job_id]["message"] = f"كارت {gpu_name} يريندر إطارات الفيديو لموديل {engine_label} الآن..."
                         VIDEO_JOBS[job_id]["progress"] = 60
-                        
-                        prompt_id = comfyui_client.queue_prompt(pod_url, workflow)
-                        out_info = comfyui_client.track_progress(pod_url, prompt_id, timeout_seconds=360)
-                        
-                        raw_output = out_info.get('output_path')
-                        if not raw_output:
-                            raise RuntimeError("لم يقم ComfyUI بإنتاج ملف الفيديو الناتج.")
-                            
-                        v_name = f"Render_RunPod_{int(time.time())}.mp4"
-                        v_path = os.path.join(OUTPUTS_DIR, v_name)
-                        
-                        # Download result from pod or local
-                        if raw_output.startswith('http'):
-                            v_bytes = requests.get(raw_output, timeout=60).content
-                        elif os.path.isfile(raw_output):
-                            with open(raw_output, 'rb') as rf:
-                                v_bytes = rf.read()
-                        else:
-                            v_bytes = requests.get(f"{pod_url.rstrip('/')}/view?filename={os.path.basename(raw_output)}&type=output", timeout=60).content
-                            
-                        with open(v_path, 'wb') as vf:
-                            vf.write(v_bytes)
-                            
+
+                        def on_prog(msg, pct):
+                            VIDEO_JOBS[job_id]["message"] = f"كارت {gpu_name}: {msg}"
+                            VIDEO_JOBS[job_id]["progress"] = max(VIDEO_JOBS[job_id]["progress"], pct)
+
+                        out_path, v_url = comfyui_client.execute_comfyui_workflow(pod_url, workflow, OUTPUTS_DIR, progress_callback=on_prog, timeout_seconds=360)
+                        v_name = os.path.basename(out_path)
+
                         VIDEO_JOBS[job_id] = {
                             "success": True,
                             "status": "completed",
