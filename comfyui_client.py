@@ -1275,3 +1275,52 @@ def terminate_runpod_pod(api_key, pod_id=None):
         return "data" in r.json()
     except Exception:
         return False
+
+
+def build_skyreels_workflow(
+    image_filename,
+    prompt="cinematic camera movement, high resolution, photorealistic 8k, dynamic physical coherence",
+    checkpoint="SkyReels-V1/skyreels_v1_i2v_720p.safetensors",
+    width=1280,
+    height=720,
+    video_frames=73,
+    steps=30,
+    fps=16,
+    seed=None
+):
+    """Alias for SkyReels-V1 based on HunyuanVideo architecture."""
+    return build_hunyuan_workflow(
+        image_filename=image_filename,
+        prompt=prompt,
+        checkpoint=checkpoint,
+        width=width,
+        height=height,
+        video_frames=video_frames,
+        steps=steps,
+        fps=fps,
+        seed=seed
+    )
+
+def build_wan21_workflow(
+    image_filename,
+    prompt="cinematic camera movement, high resolution, photorealistic 8k",
+    checkpoint="Wan2.1/wan2.1_i2v_720p_14B_fp8_e4m3fn.safetensors",
+    width=1280,
+    height=720,
+    video_frames=81,
+    steps=25,
+    fps=16,
+    seed=None
+):
+    """Alias for Wan 2.1."""
+    return build_wan_workflow(
+        image_filename=image_filename,
+        prompt=prompt,
+        checkpoint=checkpoint,
+        width=width,
+        height=height,
+        video_frames=video_frames,
+        steps=steps,
+        fps=fps,
+        seed=seed
+    )
