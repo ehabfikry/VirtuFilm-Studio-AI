@@ -3613,6 +3613,10 @@
           const lang = window.currentAppLang || 'ar';
           if (lang === 'en') {
             status.innerText = data.has_video ? 'Ready (3D Pre-vis Video + Depth)' : `Ready from Blender (Frame ${data.meta.frame || 1})`;
+          } else if (lang === 'fr') {
+            status.innerText = data.has_video ? 'Prêt (Vidéo Pre-vis 3D + Profondeur)' : `Prêt depuis Blender (Image ${data.meta.frame || 1})`;
+          } else if (lang === 'es') {
+            status.innerText = data.has_video ? 'Listo (Video Pre-vis 3D + Profundidad)' : `Listo desde Blender (Fotograma ${data.meta.frame || 1})`;
           } else {
             status.innerText = data.has_video ? 'جاهز (فيديو Pre-vis + كادرات 3D)' : `جاهز من بلندر (كادر ${data.meta.frame || 1})`;
           }
