@@ -367,9 +367,10 @@
           </button>
         </div>
 
-        <!-- Voice Studio -->
-        <button type="button" onclick="openVoiceStudioModal()" id="topbar-voicestudio-btn" class="p-1 sm:px-1.5 sm:py-1 rounded-md bg-cinema-800 hover:bg-emerald-950/60 text-emerald-300 border border-emerald-500/40 font-bold text-[9px] sm:text-[10px] transition shadow" title="استوديو الصوت المحلي">
-          <i class="fa-solid fa-microphone-lines text-[10px] text-emerald-400"></i>
+        <!-- Voice Studio (Prominent & Clear) -->
+        <button type="button" onclick="openVoiceStudioModal()" id="topbar-voicestudio-btn" class="px-2 py-1 rounded-md bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/50 font-bold text-[10px] sm:text-[11px] flex items-center gap-1.5 transition shadow" title="استوديو التمثيل الصوتي والدوبلاج">
+          <i class="fa-solid fa-microphone-lines text-emerald-400 text-xs"></i>
+          <span id="topbar-voicestudio-text">استوديو الصوت</span>
         </button>
 
         <!-- Language Selector -->
@@ -9939,6 +9940,10 @@ let currentUploadContext = 'chat';
 
       const navSb = document.getElementById('nav-storyboard-text');
       if (navSb) navSb.textContent = d.step4 || ((lang === 'en') ? 'Script & Board' : 'السيناريو');
+      const topVoiceSpan = document.getElementById('topbar-voicestudio-text');
+      if (topVoiceSpan) topVoiceSpan.textContent = (lang === 'en') ? 'Voice Studio' : (lang === 'fr') ? 'Studio Vocal' : (lang === 'es') ? 'Estudio de Voz' : 'استوديو الصوت';
+      const topRadarSpan = document.getElementById('topbar-radar-span');
+      if (topRadarSpan) topRadarSpan.textContent = (lang === 'en') ? 'AI Radar' : (lang === 'fr') ? 'Radar IA' : (lang === 'es') ? 'Radar IA' : 'رادار الصناعة';
       const navVault = document.querySelector('#nav-main-vault span');
       if (navVault) navVault.textContent = d.vault;
 
