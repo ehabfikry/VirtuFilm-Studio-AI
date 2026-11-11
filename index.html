@@ -9692,6 +9692,7 @@ let currentUploadContext = 'chat';
         step3: 'Étape 3: Laboratoire',
         chat: 'Assistant Réalisation',
         vault: 'Coffre-fort',
+        step4: 'Étape 4: Scénario & Planches',
         pricing: 'Indice des Prix',
         voiceStudio: 'Studio Vocal Local',
         runpodStop: '🛑 Arrêter RunPod',
@@ -9741,6 +9742,7 @@ let currentUploadContext = 'chat';
         step3: 'Paso 3: Laboratorio',
         chat: 'Asistente Dirección',
         vault: 'Bóveda',
+        step4: 'Paso 4: Guion y Tableros',
         pricing: 'Índice de Precios',
         voiceStudio: 'Estudio de Voz Local',
         runpodStop: '🛑 Detener RunPod',
@@ -10417,20 +10419,20 @@ let currentUploadContext = 'chat';
 
       // Direct ID Wing & Blender Localization
       const scrWing1 = document.querySelector('#screening-wing1-badge span');
-      if (scrWing1) scrWing1.textContent = (lang === 'en') ? 'Wing 1: Fal.ai Cloud Studio' : 'جناح 1: استوديو أدوات Fal.ai السحابية';
+      if (scrWing1) scrWing1.textContent = d.wing1Badge;
       const scrWing2 = document.getElementById('screening-wing2-btn-span');
-      if (scrWing2) scrWing2.textContent = (lang === 'en') ? 'Switch to Wing 2: ComfyUI Studio' : 'الانتقال إلى جناح 2: استوديو ComfyUI';
+      if (scrWing2) scrWing2.textContent = d.wing2Btn;
 
       const bTitle = document.getElementById('blender-guide-title-text');
-      if (bTitle) bTitle.textContent = (lang === 'en') ? 'Blender 3D Pre-vis Guide (Cinematic Camera)' : 'توجيه بلندر ثلاثي الأبعاد (Blender 3D Pre-vis Guide)';
+      if (bTitle) bTitle.textContent = d.blenderBarTitle;
       const bDesc = document.getElementById('blender-guide-desc-text');
-      if (bDesc) bDesc.textContent = (lang === 'en') ? 'Camera choreography, focal lenses, and Z-Depth maps extracted locally from Blender (D:\\Blender).' : 'تخطيط الكاميرا، والعدسات، وخرائط العمق (Depth Maps) المستخرجة محلياً من بلندر (D:\\Blender).';
+      if (bDesc) bDesc.textContent = d.blenderBarDesc;
 
       const bStatus = document.getElementById('blender-guide-status-badge');
-      if (bStatus && (bStatus.textContent.includes('انتظار') || bStatus.textContent.includes('Awaiting'))) {
-        bStatus.textContent = (lang === 'en') ? 'Awaiting export from Blender...' : 'في انتظار التصدير من بلندر...';
-      } else if (bStatus && (bStatus.textContent.includes('جاهز') || bStatus.textContent.includes('Ready'))) {
-        bStatus.textContent = (lang === 'en') ? 'Ready (3D Pre-vis Video + Depth)' : 'جاهز (فيديو Pre-vis + كادرات 3D)';
+      if (bStatus && (bStatus.textContent.includes('انتظار') || bStatus.textContent.includes('Awaiting') || bStatus.textContent.includes('attente') || bStatus.textContent.includes('Esperando'))) {
+        bStatus.textContent = d.blenderStatusWait;
+      } else if (bStatus && (bStatus.textContent.includes('جاهز') || bStatus.textContent.includes('Ready') || bStatus.textContent.includes('Prêt') || bStatus.textContent.includes('listo'))) {
+        bStatus.textContent = d.blenderMetaReady;
       }
 
       const bRefresh = document.querySelector('button[onclick*="fetchLatestBlenderGuide"] span');
@@ -11155,11 +11157,7 @@ let currentUploadContext = 'chat';
 
     // Initialize on document ready - Force Arabic by default if previously stuck on en
     document.addEventListener('DOMContentLoaded', () => {
-      let savedLang = localStorage.getItem('cindy_app_lang');
-      if (!savedLang || savedLang === 'en') {
-        savedLang = 'ar';
-        localStorage.setItem('cindy_app_lang', 'ar');
-      }
+      let savedLang = localStorage.getItem('cindy_app_lang') || 'ar';
       const sel = document.getElementById('app-language-select');
       if (sel) sel.value = savedLang;
       setAppLanguage(savedLang);

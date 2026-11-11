@@ -22,8 +22,10 @@
     window.postMessage({ type: 'CINDY_BRIDGE_STATUS', active: true, version: BRIDGE_VERSION }, '*');
     const badge = document.getElementById('google-flow-bridge-badge');
     if (badge) {
-      badge.innerHTML = '<i class="fa-solid fa-link text-emerald-400"></i> جسر جوجل فلو: متصل ونشط 🟢';
-      badge.className = 'cursor-pointer px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-full text-[11px] font-bold flex items-center gap-1.5 shadow-lg shadow-emerald-500/10';
+      const isEn = (window.currentAppLang && window.currentAppLang !== 'ar');
+      const flowText = isEn ? 'Flow Active 🟢' : 'جسر فلو متصل 🟢';
+      badge.innerHTML = `<i class="fa-solid fa-link text-emerald-400 text-[10px]"></i> <span class="text-emerald-300 font-bold">${flowText}</span>`;
+      badge.className = 'cursor-pointer px-2 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-md text-[10px] font-bold flex items-center gap-1 shadow transition';
     }
   }
 
