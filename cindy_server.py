@@ -3240,8 +3240,8 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             # Video Upscalers & Camera Control
             "fal-ai/topaz/upscale-video": "fal-ai/topaz/upscale-video",
             "Topaz Video Upscale": "fal-ai/topaz/upscale-video",
-            "fal-ai/minimax/h3-max/camera-controls": "fal-ai/minimax/h3-max/camera-controls",
-            "MiniMax Camera Controls": "fal-ai/minimax/h3-max/camera-controls",
+            "fal-ai/minimax/video-01/camera-controls": "fal-ai/minimax/video-01/camera-controls",
+            "MiniMax Camera Controls": "fal-ai/minimax/video-01/camera-controls",
             "fal-ai/pixverse/v6": "fal-ai/pixverse/v6",
             "PixVerse V6 Cinematic": "fal-ai/pixverse/v6",
 

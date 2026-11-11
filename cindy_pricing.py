@@ -30,7 +30,7 @@ FAL_PRICING_ENDPOINTS = [
     'fal-ai/ltx-2.3-22b/distilled/image-to-video/lora',
     'minimax/h3/image-to-video/lora',
     'fal-ai/minimax/video-01',
-    'fal-ai/minimax/h3-max/camera-controls',
+    'fal-ai/minimax/video-01/camera-controls',
     'fal-ai/bytedance/seedance/v1/pro/text-to-video',
     'fal-ai/pixverse/v6',
     'fal-ai/topaz/upscale-video',
@@ -105,7 +105,7 @@ MODEL_METADATA = {
         'shot_label': 'شوت 5 ثوانٍ',
         'recommendation': 'ثبات ملامح الوجه وتعبيرات الممثل الدرامية مع تحريك كادر البداية'
     },
-    'fal-ai/minimax/h3-max/camera-controls': {
+    'fal-ai/minimax/video-01/camera-controls': {
         'name': 'MiniMax Camera Controls',
         'category': 'video_camera',
         'badge': 'تحكم مداري ثلاثي الأبعاد',
