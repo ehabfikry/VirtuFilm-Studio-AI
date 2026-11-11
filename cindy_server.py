@@ -3113,6 +3113,11 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             "Flux 3 Max Image-to-Video": "blackforestlabs/flux-3-max/image-to-video",
 
             "blackforestlabs/flux-3-max/image-to-video": "blackforestlabs/flux-3-max/image-to-video",
+            "FLUX 3 Max Image-to-Video": "blackforestlabs/flux-3-max/image-to-video",
+            "fal-ai/blackforestlabs/flux-3-max/image-to-video": "blackforestlabs/flux-3-max/image-to-video",
+            "lightricks/ltx-2.5/reframe": "lightricks/ltx-2.5/reframe",
+            "Lightricks LTX-2.5 Reframe": "lightricks/ltx-2.5/reframe",
+            "fal-ai/lightricks/ltx-2.5/reframe": "lightricks/ltx-2.5/reframe",
 
             "mischief-1-i2v": "tbc/mischief-1/image-to-video",
 
@@ -3574,8 +3579,8 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                 if prompt:
                     req_body['prompt'] = prompt
 
-            # 2. Handle Video-to-Video Edit (Original Video + Text Prompt)
-            elif any(k in ep for k in ['video-to-video', 'modify']):
+            # 2. Handle Video-to-Video Edit & Reframe (Original Video + Text Prompt)
+            elif any(k in ep for k in ['video-to-video', 'modify', 'reframe']):
                 vid_input = (custom_params.get('video_url') or custom_params.get('source_video') or '').strip()
                 if not vid_input:
                     recent_vids = sorted([f for f in os.listdir(OUTPUTS_DIR) if f.lower().endswith(('.mp4', '.mov', '.webm'))],
@@ -3583,11 +3588,14 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                     if recent_vids:
                         vid_input = f"/outputs/{recent_vids[0]}"
                 if not vid_input:
-                    self.send_error_response(400, "يتطلب هذا النموذج رفع فيديو أصلي لتعديله (Video-to-Video).")
+                    self.send_error_response(400, "يتطلب هذا النموذج (Reframe / Video Edit) رفع فيديو أصلي لمعالجته.")
                     return
                 if not vid_input.startswith('http'):
                     vid_input = upload_file_to_fal(vid_input, fal_key) or vid_input
                 req_body['video_url'] = vid_input
+                if 'reframe' in ep:
+                    target_ar = custom_params.get('aspect_ratio') or ar or '9:16'
+                    req_body['aspect_ratio'] = target_ar
 
             # 3. Handle Video LoRA models (LTX 2.3 LoRA / MiniMax H3 LoRA)
             elif 'lora' in ep and model_type == 'video':
@@ -3728,6 +3736,13 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                             u = m_img
                         resolved.append(u)
                     req_body['image_urls'] = resolved
+
+            elif 'flux-3-max' in ep or 'flux-3' in ep:
+                applied = min(max(dur, 5), 20)
+                req_body.update({
+                    'duration': applied,
+                    'generate_audio': custom_params.get('generate_audio', True)
+                })
 
             elif 'hailuo' in ep:
 

@@ -36,6 +36,8 @@ FAL_PRICING_ENDPOINTS = [
     'fal-ai/topaz/upscale-video',
     'fal-ai/sync-lipsync/v2',
     'fal-ai/musetalk',
+    'blackforestlabs/flux-3-max/image-to-video',
+    'lightricks/ltx-2.5/reframe',
     # Image & Edit Models
     'fal-ai/flux-pro/v1.1-ultra',
     'fal-ai/flux/dev',
@@ -239,6 +241,24 @@ MODEL_METADATA = {
         'calc_shot': lambda p: 0.03,
         'shot_label': 'شوت 5 ثوانٍ ($0.40/د)',
         'recommendation': 'دوبلاج صوتي اقتصادي وفوري لمقاطع الفيديو التمثيلية'
+    },
+    'blackforestlabs/flux-3-max/image-to-video': {
+        'name': 'FLUX 3 Max Image-to-Video',
+        'category': 'video_i2v',
+        'badge': '👑 أعلى دقة + صوت مدمج',
+        'type': 'Image-to-Video',
+        'calc_shot': lambda p: 0.25,
+        'shot_label': 'شوت 5 ثوانٍ + صوت',
+        'recommendation': 'تحريك فوتوغرافي واقعي فائق مع توليد صوت ومؤثرات بيئية متزامنة وكوادر بداية ونهاية'
+    },
+    'lightricks/ltx-2.5/reframe': {
+        'name': 'Lightricks LTX-2.5 Reframe',
+        'category': 'video_edit',
+        'badge': '📐 تمديد الكادر وإعادة التأطير',
+        'type': 'Video Reframe Outpainting',
+        'calc_shot': lambda p: 0.15,
+        'shot_label': 'إعادة تأطير الشوت',
+        'recommendation': 'تحويل الفيديو العريض 16:9 إلى طولي 9:16 أو مربع 1:1 بالتوليد التخيلي للبيئة دون اقتصاص'
     },
 
     # 2. Image & Keyframe Models
