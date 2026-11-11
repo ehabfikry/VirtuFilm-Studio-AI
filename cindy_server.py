@@ -3482,11 +3482,11 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             if camera_motion and camera_motion != 'none':
                 enhanced_prompt = f"{enhanced_prompt}, {camera_motion}"
 
+            req_body = {'prompt': enhanced_prompt}
+
             if quality_mode == 'master':
                 # Inject professional stability and limb safety guards
                 req_body['negative_prompt'] = custom_params.get('negative_prompt', 'distorted hands, missing fingers, extra fingers, deformed limbs, floating camera, uncontrolled drift, blurry, plastic skin, lowres')
-
-            req_body = {'prompt': enhanced_prompt}
 
             applied = dur
 
