@@ -1188,14 +1188,23 @@ def launch_runpod_comfyui_pod(api_key, gpu_type=None, template_id="cw3nka7d08", 
         except Exception:
             pass
 
-    return {
-        "success": True,
-        "pod_id": pod_id,
-        "pod_name": pod_name,
-        "comfyui_url": comfy_url,
-        "booting": True,
-        "message": f"تم إطلاق الكارت الأوفر {gpu_label} {gpu_price_str}، جاري استكمال إقلاع السيرفر في الخلفية..."
-    }
+    # If still not ready after initial poll, wait up to 180 seconds for ComfyUI container to fully boot
+    while time.time() - start_time < 180:
+        time.sleep(5)
+        try:
+            chk = requests.get(f"{comfy_url}/system_stats", headers={"User-Agent": "Mozilla/5.0"}, timeout=5)
+            if chk.status_code == 200:
+                return {
+                    "success": True,
+                    "pod_id": pod_id,
+                    "pod_name": pod_name,
+                    "comfyui_url": comfy_url,
+                    "message": f"تم تشغيل استوديو ComfyUI بنجاح على أرخص كارت متاح: {gpu_label} {gpu_price_str}!"
+                }
+        except Exception:
+            pass
+
+    raise RuntimeError(f"استغرق إقلاع ComfyUI على كارت {gpu_label} وقتاً أطول من المعتاد. تم إلغاء العملية وحماية الرصيد.")
 
 
 def stop_runpod_pod(api_key, pod_id=None):

@@ -7206,7 +7206,7 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                             workflow, seed = comfyui_client.build_wan21_workflow(uploaded_name, prompt_text, ckpt, width, height, video_frames, steps, fps)
                             engine_label = "Alibaba Wan 2.1"
                         elif 'skyreels' in ckpt_lower:
-                            workflow, seed = comfyui_client.build_skyreels_workflow(uploaded_name, prompt_text, width, height, video_frames, steps, fps)
+                            workflow, seed = comfyui_client.build_hunyuan_workflow(uploaded_name, prompt_text, width=width, height=height, video_frames=min(video_frames, 73), steps=steps, fps=fps)
                             engine_label = "SkyReels-V1"
                         elif 'hunyuan' in ckpt_lower:
                             workflow, seed = comfyui_client.build_hunyuan_workflow(uploaded_name, prompt_text, width, height, video_frames, steps, fps)
