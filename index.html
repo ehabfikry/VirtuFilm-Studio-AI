@@ -9171,11 +9171,11 @@ let currentUploadContext = 'chat';
 
       <div class="space-y-3 text-xs">
         <div>
-          <div class="flex items-center justify-between mb-1">
+          <div class="flex items-center justify-between mb-1.5 flex-wrap gap-2">
             <label id="vs-dialogue-label" class="block text-slate-300 font-bold">نص الحوار أو المونولوج السينمائي:</label>
-            <div class="flex items-center gap-1.5">
+            <div class="flex items-center gap-2">
               <span id="vs-emotion-prompt-label" class="text-[10px] text-amber-300 font-bold flex items-center gap-1">
-                <i class="fa-solid fa-masks-theater text-amber-400"></i> إدراج إحساس درامي:
+                <i class="fa-solid fa-masks-theater text-amber-400"></i> إدراج إحساس:
               </span>
               <select id="vs-emotion-select" onchange="insertVoiceEmotion(this.value); this.value='';" class="bg-cinema-950 border border-amber-500/40 rounded-lg px-2 py-0.5 text-amber-300 font-bold text-[10px] focus:outline-none cursor-pointer shadow">
                 <option value="">+ اختر إحساساً لإدراجه...</option>
@@ -9191,6 +9191,31 @@ let currentUploadContext = 'chat';
               </select>
             </div>
           </div>
+
+          <!-- DUAL MIC CONTROLS BAR -->
+          <div class="flex items-center gap-2 mb-2 p-1.5 rounded-xl bg-cinema-950/80 border border-cinema-700/60 text-xs">
+            <!-- Feature 2: Speech to Text (Dictation) -->
+            <button type="button" id="vs-dictate-btn" onclick="toggleVsDictation()" class="flex-1 py-1 px-2.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/40 font-bold flex items-center justify-center gap-1.5 transition shadow" title="تحدث بالميكروفون ليتم تفريغ كلامك تلقائياً في خانة النص">
+              <i class="fa-solid fa-microphone text-emerald-400 text-[11px]" id="vs-dictate-icon"></i>
+              <span id="vs-dictate-text">إملاء بالميكروفون (Speech-to-Text)</span>
+            </button>
+
+            <!-- Feature 1: Record Human Performance & Resynthesize to Selected Actor -->
+            <button type="button" id="vs-audio-act-btn" onclick="toggleVsAudioPerformance()" class="flex-1 py-1 px-2.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40 font-bold flex items-center justify-center gap-1.5 transition shadow" title="سجّل جملتك بصوتك بإحساسك البشري ثم حوّلها تلقائياً لصوت الممثل المحدد">
+              <i class="fa-solid fa-wave-square text-amber-400 text-[11px]" id="vs-act-icon"></i>
+              <span id="vs-act-text">تسجيل أدائي وتمثيله بصوت الممثل</span>
+            </button>
+          </div>
+
+          <!-- Live Recording Status Indicator -->
+          <div id="vs-recording-banner" class="hidden items-center justify-between p-2 mb-2 rounded-xl bg-rose-500/20 border border-rose-500/50 text-rose-300 text-xs font-bold animate-pulse">
+            <span class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>
+              <span id="vs-recording-banner-text">🔴 جارٍ الاستماع عبر الميكروفون... تحدث الآن</span>
+            </span>
+            <span id="vs-recording-timer" class="font-mono text-white">00:00</span>
+          </div>
+
           <textarea id="vs-dialogue-text" rows="3" class="w-full bg-cinema-950 border border-cinema-700 rounded-xl p-3 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition leading-relaxed font-sans" placeholder="اكتب الحوار هنا... يمكنك إدراج المشاعر بين قوسين مثل: '(تنهيدة عميقة) أنا مكنتش متوقع إنك هتيجي في الوقت ده...'"></textarea>
         </div>
 
@@ -9298,6 +9323,218 @@ let currentUploadContext = 'chat';
       txt.focus();
       txt.selectionStart = txt.selectionEnd = start + tagToInsert.length + 1;
       showToast(isEn ? `Inserted emotion: ${tagToInsert}` : `تم إدراج الإحساس: ${tagToInsert}`, 'info');
+    }
+
+    
+    // ==========================================
+    // VOICE STUDIO DUAL MICROPHONE CAPABILITIES
+    // ==========================================
+    let vsDictationRec = null;
+    let vsIsDictating = false;
+    let vsMediaRecorder = null;
+    let vsAudioChunks = [];
+    let vsRecordTimerInterval = null;
+    let vsRecordSeconds = 0;
+
+    function toggleVsDictation() {
+      const isEn = (window.currentAppLang === 'en');
+      const btn = document.getElementById('vs-dictate-btn');
+      const icon = document.getElementById('vs-dictate-icon');
+      const txtSpan = document.getElementById('vs-dictate-text');
+      const banner = document.getElementById('vs-recording-banner');
+      const bannerTxt = document.getElementById('vs-recording-banner-text');
+
+      if (vsIsDictating) {
+        // Stop dictation
+        if (vsDictationRec) {
+          try { vsDictationRec.stop(); } catch(e){}
+        }
+        vsIsDictating = false;
+        btn.classList.remove('bg-rose-500/30', 'text-rose-300', 'border-rose-500');
+        btn.classList.add('bg-emerald-500/15', 'text-emerald-300', 'border-emerald-500/40');
+        icon.className = 'fa-solid fa-microphone text-emerald-400 text-[11px]';
+        txtSpan.textContent = isEn ? 'Dictate via Mic' : 'إملاء بالميكروفون (Speech-to-Text)';
+        banner.classList.add('hidden');
+        banner.classList.remove('flex');
+        return;
+      }
+
+      // Check browser speech recognition support
+      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRec) {
+        showToast(isEn ? 'Browser Speech Recognition not supported in this browser. Please use Chrome/Edge.' : 'ميزة التعرف الصوتي غير مدعومة في هذا المتصفح. يرجى استخدام Chrome أو Edge.', 'error');
+        return;
+      }
+
+      vsDictationRec = new SpeechRec();
+      vsDictationRec.continuous = true;
+      vsDictationRec.interimResults = true;
+      const langMap = { ar: 'ar-EG', en: 'en-US', fr: 'fr-FR', es: 'es-ES' };
+      vsDictationRec.lang = langMap[window.currentAppLang] || 'ar-EG';
+
+      let initialVal = document.getElementById('vs-dialogue-text').value;
+
+      vsDictationRec.onresult = (e) => {
+        let interim = '';
+        let finalStr = '';
+        for (let i = e.resultIndex; i < e.results.length; ++i) {
+          if (e.results[i].isFinal) {
+            finalStr += e.results[i][0].transcript + ' ';
+          } else {
+            interim += e.results[i][0].transcript;
+          }
+        }
+        const ta = document.getElementById('vs-dialogue-text');
+        if (finalStr) {
+          initialVal = (initialVal ? initialVal.trim() + ' ' : '') + finalStr.trim();
+        }
+        ta.value = (initialVal + (interim ? ' ' + interim : '')).trimStart();
+      };
+
+      vsDictationRec.onerror = (e) => {
+        console.warn('[VS Dictation Error]', e.error);
+        if (e.error === 'not-allowed') {
+          showToast(isEn ? 'Microphone permission denied' : 'تم رفض الإذن بالوصول للميكروفون', 'error');
+        }
+      };
+
+      vsDictationRec.onend = () => {
+        if (vsIsDictating) {
+          try { vsDictationRec.start(); } catch(err){}
+        }
+      };
+
+      try {
+        vsDictationRec.start();
+        vsIsDictating = true;
+        btn.classList.remove('bg-emerald-500/15', 'text-emerald-300', 'border-emerald-500/40');
+        btn.classList.add('bg-rose-500/30', 'text-rose-300', 'border-rose-500');
+        icon.className = 'fa-solid fa-stop text-rose-400 text-[11px] animate-pulse';
+        txtSpan.textContent = isEn ? 'Stop Dictating 🛑' : 'إيقاف الإملاء 🛑';
+        bannerTxt.textContent = isEn ? '🎙️ Listening... Speak naturally into your microphone' : '🎙️ جارٍ الاستماع... تحدث بالميكروفون وسيتم تفريغ كلامك تلقائياً';
+        banner.classList.remove('hidden');
+        banner.classList.add('flex');
+        showToast(isEn ? 'Dictation active - speak now' : 'الإملاء نشط - تحدث الآن', 'info');
+      } catch (e) {
+        showToast(isEn ? 'Could not access microphone' : 'تعذر تشغيل الميكروفون', 'error');
+      }
+    }
+
+    // Feature 1: Record Human Performance, transcribe & resynthesize with selected actor
+    async function toggleVsAudioPerformance() {
+      const isEn = (window.currentAppLang === 'en');
+      const btn = document.getElementById('vs-audio-act-btn');
+      const icon = document.getElementById('vs-act-icon');
+      const txtSpan = document.getElementById('vs-act-text');
+      const banner = document.getElementById('vs-recording-banner');
+      const bannerTxt = document.getElementById('vs-recording-banner-text');
+      const timerSpan = document.getElementById('vs-recording-timer');
+
+      if (vsMediaRecorder && vsMediaRecorder.state === 'recording') {
+        // Stop recording
+        vsMediaRecorder.stop();
+        clearInterval(vsRecordTimerInterval);
+        btn.classList.remove('bg-rose-500/30', 'text-rose-300', 'border-rose-500');
+        btn.classList.add('bg-amber-500/15', 'text-amber-300', 'border-amber-500/40');
+        icon.className = 'fa-solid fa-wave-square text-amber-400 text-[11px]';
+        txtSpan.textContent = isEn ? 'Record Acting Performance' : 'تسجيل أدائي وتمثيله بصوت الممثل';
+        banner.classList.add('hidden');
+        banner.classList.remove('flex');
+        return;
+      }
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        vsAudioChunks = [];
+        vsMediaRecorder = new MediaRecorder(stream);
+        
+        vsMediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) vsAudioChunks.push(e.data);
+        };
+
+        vsMediaRecorder.onstop = async () => {
+          stream.getTracks().forEach(track => track.stop());
+          const audioBlob = new Blob(vsAudioChunks, { type: 'audio/webm' });
+          if (audioBlob.size < 1000) {
+            showToast(isEn ? 'Recording too short' : 'التسجيل قصير جداً', 'warning');
+            return;
+          }
+
+          showToast(isEn ? 'Processing performance and converting voice...' : 'جارٍ معالجة أدائك البشري وتحويله لصوت الممثل...', 'info');
+
+          // Convert blob to base64
+          const reader = new FileReader();
+          reader.readAsDataURL(audioBlob);
+          reader.onloadend = async () => {
+            const base64Audio = reader.result.split(',')[1];
+            const voice = document.getElementById('vs-voice-actor').value;
+            const speed = parseFloat(document.getElementById('vs-speed-slider').value) || 1.0;
+            const genBtn = document.getElementById('vs-generate-btn');
+            
+            genBtn.disabled = true;
+            genBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>جارٍ تحويل أدائك البشري إلى الممثل الصوتي...</span>';
+
+            try {
+              const resp = await fetch(`${API_BASE}/api/tts/voice-convert`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  audio_base64: base64Audio,
+                  audio_mime: 'audio/webm',
+                  voice: voice,
+                  speed: speed,
+                  lang: window.currentAppLang || 'ar'
+                })
+              });
+              const data = await resp.json();
+              if (data.success && data.url) {
+                if (data.transcription) {
+                  document.getElementById('vs-dialogue-text').value = data.transcription;
+                }
+                const card = document.getElementById('vs-player-card');
+                const audio = document.getElementById('vs-audio-element');
+                const dl = document.getElementById('vs-download-link');
+                audio.src = data.url;
+                dl.href = data.url;
+                dl.download = data.filename || 'voice_converted.wav';
+                card.classList.remove('hidden');
+                audio.play();
+                showToast(isEn ? 'Voice successfully converted with your natural human timing!' : 'تم تحويل الصوت بنجاح مع الحفاظ على إحساسك وتوقيتك الطبيعي!', 'success');
+              } else {
+                showToast(data.error || 'فشل تحويل الصوت', 'error');
+              }
+            } catch (err) {
+              showToast(isEn ? 'Server connection error during voice conversion' : 'خطأ في الاتصال بالخادم أثناء تحويل الصوت', 'error');
+            } finally {
+              genBtn.disabled = false;
+              genBtn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles text-sm"></i> <span>توليد الأداء الصوتي محلياً (Generate Track)</span>';
+            }
+          };
+        };
+
+        vsMediaRecorder.start();
+        vsRecordSeconds = 0;
+        timerSpan.textContent = '00:00';
+        vsRecordTimerInterval = setInterval(() => {
+          vsRecordSeconds++;
+          const mins = String(Math.floor(vsRecordSeconds / 60)).padStart(2, '0');
+          const secs = String(vsRecordSeconds % 60).padStart(2, '0');
+          timerSpan.textContent = `${mins}:${secs}`;
+        }, 1000);
+
+        btn.classList.remove('bg-amber-500/15', 'text-amber-300', 'border-amber-500/40');
+        btn.classList.add('bg-rose-500/30', 'text-rose-300', 'border-rose-500');
+        icon.className = 'fa-solid fa-stop text-rose-400 text-[11px] animate-pulse';
+        txtSpan.textContent = isEn ? 'Stop Recording & Convert 🛑' : 'إيقاف التسجيل والتحويل للممثل 🛑';
+        bannerTxt.textContent = isEn ? '🎭 Recording your natural performance... Act out your line now!' : '🎭 جارٍ تسجيل أدائك الطبيعي... مثّل جملتك بالأسلوب والإحساس المطلوب الآن!';
+        banner.classList.remove('hidden');
+        banner.classList.add('flex');
+        showToast(isEn ? 'Recording acting performance... Click stop when done' : 'جارٍ تسجيل أدائك التمثيلي... انقر إيقاف عند الانتهاء', 'info');
+
+      } catch (e) {
+        console.error('[VS Audio Act Error]', e);
+        showToast(isEn ? 'Could not access microphone' : 'تعذر فتح الميكروفون', 'error');
+      }
     }
 
     async function generateLocalVoiceActing() {
@@ -10006,6 +10243,15 @@ let currentUploadContext = 'chat';
       // Voice Studio Modal Localization
       const vsLabel = document.getElementById('vs-dialogue-label');
       if (vsLabel) vsLabel.textContent = (lang === 'en') ? 'Dialogue or Screenplay Monologue:' : 'نص الحوار أو المونولوج السينمائي:';
+      
+      const vsDictateTxt = document.getElementById('vs-dictate-text');
+      if (vsDictateTxt && !vsIsDictating) {
+        vsDictateTxt.textContent = (lang === 'en') ? 'Dictate via Mic (Speech-to-Text)' : 'إملاء بالميكروفون (Speech-to-Text)';
+      }
+      const vsActTxt = document.getElementById('vs-act-text');
+      if (vsActTxt && (!vsMediaRecorder || vsMediaRecorder.state !== 'recording')) {
+        vsActTxt.textContent = (lang === 'en') ? 'Record Acting Performance & Resynthesize' : 'تسجيل أدائي وتمثيله بصوت الممثل';
+      }
       
       const vsEmoPrompt = document.getElementById('vs-emotion-prompt-label');
       if (vsEmoPrompt) vsEmoPrompt.innerHTML = `<i class="fa-solid fa-masks-theater text-amber-400"></i> ` + ((lang === 'en') ? 'Insert Acting Emotion:' : 'إدراج إحساس درامي:');

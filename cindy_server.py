@@ -1350,6 +1350,130 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_generate_previs(payload)
             return
 
+        elif self.path == '/api/tts/voice-convert':
+            audio_b64 = payload.get('audio_base64', '').strip()
+            audio_mime = payload.get('audio_mime', 'audio/webm')
+            voice = payload.get('voice', 'cindy_flash_aoede').strip()
+            speed = float(payload.get('speed', 1.0))
+            lang = payload.get('lang', 'ar')
+
+            if not audio_b64:
+                self.send_error_response(400, "Audio data is required")
+                return
+
+            try:
+                raw_input_audio = base64.b64decode(audio_b64)
+                transcription = ""
+                secrets = load_secrets()
+                gemini_key = secrets.get('gemini_api_key', '').strip()
+
+                # 1. Transcribe the Director's human vocal performance using Gemini
+                if gemini_key:
+                    for model_cand in ('gemini-2.5-flash-preview-tts', 'gemini-3.8-flash-lite-tts'):
+                        try:
+                            t_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_cand}:generateContent?key={gemini_key}"
+                            t_body = {
+                                "contents": [{
+                                    "parts": [
+                                        {"text": (
+                                            "You are an expert film audio supervisor and dialect coach. "
+                                            "Carefully transcribe all spoken words in this audio verbatim. "
+                                            "Preserve and denote any audible emotional acting cues, sighs, laughs, choked cries, or whispered expressions in parentheses like: (تنهيدة عميقة), (ضحكة ساخرة), (sigh), (gasp). "
+                                            "Return ONLY the plain transcription text with parenthetical cues, no extra conversational preamble."
+                                        )},
+                                        {"inlineData": {"mimeType": audio_mime, "data": audio_b64}}
+                                    ]
+                                }]
+                            }
+                            resp = requests.post(t_url, json=t_body, timeout=15)
+                            if resp.status_code == 200:
+                                t_text = resp.json().get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+                                if t_text and t_text.strip():
+                                    transcription = t_text.strip()
+                                    break
+                        except Exception as e_tr:
+                            print(f"[Transcribe Warning {model_cand}]:", e_tr)
+
+                if not transcription:
+                    transcription = "أداء تمثيلي بشري مباشر من المخرج" if lang == 'ar' else "Direct human vocal performance from the director"
+
+                # 2. Resynthesize with the chosen actor voice
+                audio_bytes = None
+                if voice.startswith('gemini_') or voice in ('cindy_flash_aoede', 'cindy_flash_masri'):
+                    if gemini_key:
+                        voice_name_map = {
+                            'gemini_aoede': 'Aoede',
+                            'gemini_puck': 'Puck',
+                            'gemini_charon': 'Charon',
+                            'gemini_kore': 'Kore',
+                            'gemini_fenrir': 'Fenrir',
+                            'cindy_flash_aoede': 'Aoede',
+                            'cindy_flash_masri': 'Aoede'
+                        }
+                        chosen_voice_name = voice_name_map.get(voice, 'Aoede')
+                        phonetic_prompt = (
+                            "You are a professional film voice actor replicating this performance: "
+                            "ACT OUT and vocally perform all emotional stage directions in parentheses with lifelike cinematic depth: "
+                            f"{transcription}"
+                        )
+                        if voice in ('cindy_flash_aoede', 'cindy_flash_masri') or any(c in transcription for c in 'ابتثجحخدذرزسشصضطظعغفقكلمنهوي'):
+                            phonetic_prompt = (
+                                "You are a master Egyptian cinema voice actor. "
+                                "Speak in an authentic, natural Cairo Egyptian colloquial accent (Masri). "
+                                "Perform with the exact raw human feeling and dramatic emotion: "
+                                f"{transcription}"
+                            )
+
+                        for model_ep in ('gemini-2.5-flash-preview-tts', 'gemini-3.8-flash-lite-tts'):
+                            try:
+                                g_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_ep}:generateContent?key={gemini_key}"
+                                g_body = {
+                                    "contents": [{"parts": [{"text": phonetic_prompt}]}],
+                                    "generationConfig": {
+                                        "responseModalities": ["AUDIO"],
+                                        "speechConfig": {
+                                            "voiceConfig": {
+                                                "prebuiltVoiceConfig": {"voiceName": chosen_voice_name}
+                                            }
+                                        }
+                                    }
+                                }
+                                resp = requests.post(g_url, json=g_body, timeout=12)
+                                if resp.status_code == 200:
+                                    b64_raw = resp.json().get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("inlineData", {}).get("data", "")
+                                    if b64_raw:
+                                        raw_aud = base64.b64decode(b64_raw)
+                                        audio_bytes = self._ensure_wav_bytes(raw_aud, sample_rate=24000)
+                                        break
+                            except Exception as ex_gem:
+                                print(f"[Gemini Flash TTS error]: {ex_gem}")
+
+                if not audio_bytes:
+                    import cindy_local_tts
+                    audio_bytes = cindy_local_tts.synthesize(transcription, voice_id=voice, speed=speed)
+
+                if not audio_bytes or len(audio_bytes) < 500:
+                    self.send_error_response(500, "Failed to resynthesize audio with selected actor")
+                    return
+
+                ts = int(time.time())
+                fname = f"voice_converted_{ts}.wav"
+                fpath = os.path.join(OUTPUTS_DIR, fname)
+                with open(fpath, 'wb') as fh:
+                    fh.write(audio_bytes)
+
+                self.send_json_response(200, {
+                    "success": True,
+                    "filename": fname,
+                    "url": f"/outputs/{fname}",
+                    "voice": voice,
+                    "transcription": transcription,
+                    "message": "تم تحويل أدائك البشري إلى الممثل الصوتي بنجاح!"
+                })
+            except Exception as e:
+                self.send_error_response(500, f"Error converting voice performance: {str(e)}")
+            return
+
         elif self.path == '/api/tts/generate':
             text = payload.get('text', '').strip()
             voice = payload.get('voice', 'auto').strip()
