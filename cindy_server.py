@@ -7175,134 +7175,90 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
 
                 # Helper for Cloud Render
                 def do_cloud():
-                    if not fal_key:
-                        raise RuntimeError("مفتاح Fal.ai السحابي غير متوفر لإتمام الريندر.")
-                    cloud_img = self._resolve_media_for_fal(local_img_path, fal_key)
-                    if not cloud_img or (not cloud_img.startswith('http') and not cloud_img.startswith('data:')):
-                        cloud_img = upload_file_to_fal(local_img_path, fal_key)
-                    if not cloud_img or (not cloud_img.startswith('http') and not cloud_img.startswith('data:')):
-                        raise RuntimeError("تعذر رفع الكادر المرجعي للسيرفر السحابي.")
-
-                    if 'skyreels' in ckpt_lower:
-                        endpoint = "fal-ai/wan-i2v"
-                        label = "SkyReels-V1 / Wan 2.2 Cinema I2V"
-                        fal_payload = {"prompt": prompt_text, "image_url": cloud_img}
-                    elif 'ltx' in ckpt_lower:
-                        endpoint = "fal-ai/ltx-video-13b-distilled/image-to-video"
-                        label = "Lightricks LTX-Video (13B Distilled)"
-                        fal_payload = {"prompt": prompt_text, "image_url": cloud_img}
-                    elif 'wan' in ckpt_lower:
-                        endpoint = "fal-ai/wan-i2v"
-                        label = "Alibaba Wan 2.2" if ('2.2' in ckpt_lower or 'wan2.2' in ckpt_lower) else "Alibaba Wan 2.1"
-                        fal_payload = {"prompt": prompt_text, "image_url": cloud_img}
-                    elif 'hunyuan' in ckpt_lower:
-                        endpoint = "fal-ai/hunyuan-video-image-to-video"
-                        label = "Tencent HunyuanVideo (13B)"
-                        fal_payload = {"prompt": prompt_text, "image_url": cloud_img}
-                    elif 'cogvideo' in ckpt_lower:
-                        endpoint = "fal-ai/cogvideox-5b/image-to-video"
-                        label = "THUDM CogVideoX-5B"
-                        fal_payload = {"prompt": prompt_text, "image_url": cloud_img}
-                    else:
-                        endpoint = "fal-ai/wan-i2v"
-                        label = "Alibaba Wan 2.2"
-                        fal_payload = {"prompt": prompt_text, "image_url": cloud_img}
-
-                    sub_r = requests.post(f"https://queue.fal.run/{endpoint}", headers={'Authorization': f'Key {fal_key}', 'Content-Type': 'application/json'}, json=fal_payload, timeout=25)
-                    if sub_r.status_code not in [200, 201, 202]:
-                        raise RuntimeError(f"خطأ إرسال لمحرك {label}: {sub_r.text[:200]}")
-                    q_info = sub_r.json()
-                    st_url = q_info.get('status_url')
-                    res_url = q_info.get('response_url')
-                    t0 = time.time()
-                    in_progress_t0 = None
-                    vid_url = None
-                    switched_fast = False
-                    print(f"[COMFY_VIDEO] Launched job {job_id} -> Fal request: {q_info.get('request_id')} ({endpoint} / {label})", flush=True)
-                    VIDEO_JOBS[job_id]["fal_request_id"] = q_info.get('request_id')
-                    while time.time() - t0 < 600:
-                        if VIDEO_JOBS.get(job_id, {}).get("error") == "cancelled_by_director":
-                            return
-                        time.sleep(3.0)
-                        try:
-                            c_st = requests.get(st_url, headers={'Authorization': f'Key {fal_key}'}, timeout=15).json()
-                        except Exception:
-                            continue
-                        st = c_st.get('status')
-                        elapsed = int(time.time() - t0)
-                        q_pos = c_st.get('queue_position', 0)
-
-                        # Fast-Queue Rescue: if Hunyuan sits in cold IN_QUEUE > 45s, switch to fast Wan I2V
-                        if st == 'IN_QUEUE' and elapsed > 45 and not switched_fast and endpoint != "fal-ai/wan-i2v":
-                            switched_fast = True
-                            endpoint = "fal-ai/wan-i2v"
-                            label = f"{label} (مسار Wan السريع)"
-                            VIDEO_JOBS[job_id]["message"] = f"طابور المحرك مزدحم.. تم التحويل الفوري للمسار السريع ({label}) لعدم الانتظار!"
-                            sub_r2 = requests.post(f"https://queue.fal.run/{endpoint}", headers={'Authorization': f'Key {fal_key}', 'Content-Type': 'application/json'}, json=fal_payload, timeout=25)
-                            if sub_r2.status_code in [200, 201, 202]:
-                                q_info = sub_r2.json()
-                                st_url = q_info.get('status_url')
-                                res_url = q_info.get('response_url')
-                                t0 = time.time()
-                                continue
-
-                        if st == 'IN_QUEUE':
-                            VIDEO_JOBS[job_id]["progress"] = min(35, 10 + elapsed // 3)
-                            VIDEO_JOBS[job_id]["message"] = f"في طابور السيرفر السحابي لموديل {label} (موقع الطابور: {q_pos} | {elapsed} ثانية)..."
-                        elif st == 'IN_PROGRESS':
-                            if in_progress_t0 is None:
-                                in_progress_t0 = time.time()
-                            ip_elapsed = int(time.time() - in_progress_t0)
-                            VIDEO_JOBS[job_id]["progress"] = min(96, 40 + ip_elapsed // 2)
-                            VIDEO_JOBS[job_id]["message"] = f"كارت H100 يريندر إطارات الفيديو الآن لموديل {label} ({ip_elapsed} ثانية)..."
-                        else:
-                            VIDEO_JOBS[job_id]["progress"] = min(90, 30 + elapsed // 3)
-                            VIDEO_JOBS[job_id]["message"] = f"جاري معالجة مشهد {label} ({elapsed} ثانية)..."
-
-                        if st == 'COMPLETED':
-                            f_res = requests.get(res_url, headers={'Authorization': f'Key {fal_key}'}, timeout=20).json()
-                            if 'detail' in f_res:
-                                raise RuntimeError(f"خطأ من خادم {label}: {f_res.get('detail')}")
-                            v_obj = f_res.get('video')
-                            vid_url = v_obj.get('url') if isinstance(v_obj, dict) else (f_res.get('video_url') or f_res.get('url') or f_res.get('output'))
-                            if not vid_url:
-                                raise RuntimeError(f"لم يتم العثور على رابط الفيديو في استجابة خادم {label}: {f_res}")
-                            break
-                        elif st in ['FAILED', 'ERROR']:
-                            raise RuntimeError(f"فشلت معالجة المشهد على خوادم {label}: {c_st}")
-
-                    if not vid_url:
-                        raise TimeoutError("استغرق ريندر المشهد أكثر من الحد المسموح.")
-
-                    safe_lbl = re.sub(r'[^A-Za-z0-9_-]+', '_', label).strip('_')
-                    v_name = f"Render_{safe_lbl}_{int(time.time())}.mp4"
-                    v_path = os.path.join(OUTPUTS_DIR, v_name)
-                    v_bytes = requests.get(vid_url, timeout=60).content
-                    with open(v_path, 'wb') as vf:
-                        vf.write(v_bytes)
-
-                    # Extract frame 0
+                    runpod_key = secrets.get('runpod_api_key', '').strip() or secrets.get('RUNPOD_API_KEY', '').strip()
+                    if not runpod_key:
+                        raise RuntimeError("مفتاح RunPod API غير متوفر في الخزنة لتشغيل الكارت السحابي الاقتصادي.")
+                    
+                    VIDEO_JOBS[job_id]["message"] = "جاري حجز وتشغيل أرخص كارت متاح على RunPod (يبدأ من ~$0.16/ساعة)..."
+                    VIDEO_JOBS[job_id]["progress"] = 20
+                    
+                    # 1. Launch/reuse cheapest GPU on RunPod (RTX A5000 / 3090 / 4090 cascade)
+                    pod_info = comfyui_client.launch_runpod_comfyui_pod(runpod_key, gpu_type=None)
+                    pod_url = pod_info.get('comfyui_url')
+                    pod_id = pod_info.get('pod_id')
+                    gpu_name = pod_info.get('gpu_name', 'RunPod GPU')
+                    
+                    if not pod_url:
+                        raise RuntimeError("فشل الاتصال بسيرفر ComfyUI على كارت RunPod.")
+                        
+                    VIDEO_JOBS[job_id]["message"] = f"كارت {gpu_name} متصل وجاهز! جاري رفع الكادر وبدء الريندر..."
+                    VIDEO_JOBS[job_id]["progress"] = 40
+                    
                     try:
-                        import cv2
-                        cap = cv2.VideoCapture(v_path)
-                        ret, frame = cap.read()
-                        if ret:
-                            f0_path = os.path.join(OUTPUTS_DIR, f"Frame0_{safe_lbl}_{int(time.time())}.jpg")
-                            cv2.imwrite(f0_path, frame)
-                        cap.release()
-                    except Exception:
-                        pass
-
-                    VIDEO_JOBS[job_id] = {
-                        "success": True,
-                        "status": "completed",
-                        "progress": 100,
-                        "url": f"/outputs/{v_name}",
-                        "filename": v_name,
-                        "media_type": "video",
-                        "seed": int(time.time()),
-                        "message": f"تم ريندر مشهد الفيديو بنجاح بدقة عالية عبر محرك {label}!"
-                    }
+                        # 2. Upload image to ComfyUI on RunPod
+                        uploaded_name = comfyui_client.upload_image_to_comfyui(pod_url, local_img_path)
+                        
+                        # 3. Build workflow
+                        if 'wan' in ckpt_lower and ('2.2' in ckpt_lower or 'wan2.2' in ckpt_lower):
+                            workflow, seed = comfyui_client.build_wan22_workflow(uploaded_name, prompt_text, ckpt, width, height, video_frames, steps, fps)
+                            engine_label = "Alibaba Wan 2.2"
+                        elif 'wan' in ckpt_lower:
+                            workflow, seed = comfyui_client.build_wan21_workflow(uploaded_name, prompt_text, ckpt, width, height, video_frames, steps, fps)
+                            engine_label = "Alibaba Wan 2.1"
+                        elif 'skyreels' in ckpt_lower:
+                            workflow, seed = comfyui_client.build_skyreels_workflow(uploaded_name, prompt_text, width, height, video_frames, steps, fps)
+                            engine_label = "SkyReels-V1"
+                        elif 'hunyuan' in ckpt_lower:
+                            workflow, seed = comfyui_client.build_hunyuan_workflow(uploaded_name, prompt_text, width, height, video_frames, steps, fps)
+                            engine_label = "Tencent HunyuanVideo"
+                        else:
+                            workflow, seed = comfyui_client.build_wan21_workflow(uploaded_name, prompt_text, ckpt, width, height, video_frames, steps, fps)
+                            engine_label = "Alibaba Wan"
+                            
+                        VIDEO_JOBS[job_id]["message"] = f"كارت {gpu_name} يريندر إطارات الفيديو لموديل {engine_label} الآن..."
+                        VIDEO_JOBS[job_id]["progress"] = 60
+                        
+                        prompt_id = comfyui_client.queue_prompt(pod_url, workflow)
+                        out_info = comfyui_client.track_progress(pod_url, prompt_id, timeout_seconds=360)
+                        
+                        raw_output = out_info.get('output_path')
+                        if not raw_output:
+                            raise RuntimeError("لم يقم ComfyUI بإنتاج ملف الفيديو الناتج.")
+                            
+                        v_name = f"Render_RunPod_{int(time.time())}.mp4"
+                        v_path = os.path.join(OUTPUTS_DIR, v_name)
+                        
+                        # Download result from pod or local
+                        if raw_output.startswith('http'):
+                            v_bytes = requests.get(raw_output, timeout=60).content
+                        elif os.path.isfile(raw_output):
+                            with open(raw_output, 'rb') as rf:
+                                v_bytes = rf.read()
+                        else:
+                            v_bytes = requests.get(f"{pod_url.rstrip('/')}/view?filename={os.path.basename(raw_output)}&type=output", timeout=60).content
+                            
+                        with open(v_path, 'wb') as vf:
+                            vf.write(v_bytes)
+                            
+                        VIDEO_JOBS[job_id] = {
+                            "success": True,
+                            "status": "completed",
+                            "progress": 100,
+                            "url": f"/outputs/{v_name}",
+                            "filename": v_name,
+                            "media_type": "video",
+                            "seed": seed,
+                            "message": f"تم ريندر المشهد بنجاح على كارت {gpu_name} عبر RunPod!"
+                        }
+                    finally:
+                        # 4. Strict Balance Guard: Auto-terminate pod immediately after finish
+                        if auto_stop and pod_id:
+                            try:
+                                comfyui_client.terminate_runpod_pod(runpod_key, pod_id)
+                                print(f"[COMFY_RUNPOD] Terminated pod {pod_id} to protect balance.", flush=True)
+                            except Exception as term_err:
+                                print(f"[COMFY_RUNPOD] Auto-terminate warning: {term_err}", flush=True)
+                    return
 
                 # Strict Zero-Cost Balance Guard: Never bill cloud unless explicitly authorized!
                 if not comfy_is_alive:
