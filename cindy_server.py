@@ -7054,7 +7054,15 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                     if not fal_key:
                         raise RuntimeError("مفتاح Fal.ai السحابي غير متوفر لإتمام الريندر.")
                     cloud_img = upload_file_to_fal(local_img_path, fal_key) or local_img_path
-                    if 'wan' in ckpt_lower:
+                    if 'skyreels' in ckpt_lower:
+                        endpoint = "fal-ai/hunyuan-video-image-to-video"
+                        label = "SkyReels-V1 (Top 10 SOTA)"
+                        fal_payload = {"prompt": prompt_text, "image_url": cloud_img}
+                    elif 'ltx' in ckpt_lower:
+                        endpoint = "fal-ai/ltx-video-13b-distilled/image-to-video"
+                        label = "Lightricks LTX-Video (13B Distilled)"
+                        fal_payload = {"prompt": prompt_text, "image_url": cloud_img}
+                    elif 'wan' in ckpt_lower:
                         endpoint = "fal-ai/wan-i2v"
                         label = "Alibaba Wan 2.2" if ('2.2' in ckpt_lower or 'wan2.2' in ckpt_lower) else "Alibaba Wan 2.1"
                         fal_payload = {"prompt": prompt_text, "image_url": cloud_img}

@@ -2696,163 +2696,32 @@
           <div class="space-y-3.5">
 
             <div class="flex items-center justify-between border-b border-cinema-700 pb-2">
-
-              <!-- Open-Source Direct Model Selection Hub (حرية كاملة لاختيار كل نموذج مفتوح المصدر بشكل مستقل) -->
-              <div class="space-y-3 p-3.5 bg-black/50 border border-cinema-800 rounded-xl mb-3 shadow-inner">
-                <div class="flex items-center justify-between border-b border-cinema-800/80 pb-2">
-                  <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-cubes text-amber-400 text-sm"></i>
-                    <span class="text-xs font-bold text-white">اختر المحرك والنموذج مفتوح المصدر المستقل مباشرة:</span>
-                  </div>
-                  <span class="text-[10px] text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 font-bold">كل نموذج مستقل بإعداداته</span>
-                </div>
-
-                <!-- 1. محركات الفيديو مفتوحة المصدر -->
-                <div class="space-y-1.5">
-                  <div class="text-[10px] text-amber-300 font-bold flex items-center gap-1.5">
-                    <i class="fa-solid fa-film text-amber-400"></i>
-                    <span>🎬 محركات الفيديو السينمائي مفتوحة المصدر (Video Diffusion Engines):</span>
-                  </div>
-                  <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
-                    <!-- Wan 2.2 -->
-                    <button type="button" onclick="selectDirectComfyModel('wan22')" id="btn-engine-wan22" class="p-2 rounded-lg bg-amber-500/20 border-2 border-amber-400 text-right transition flex flex-col justify-between shadow">
-                      <div class="flex items-center justify-between w-full mb-1">
-                        <span class="text-xs font-bold text-amber-200">Alibaba Wan 2.2</span>
-                        <span class="text-[9px] px-1 py-0.2 bg-amber-500/30 text-amber-200 rounded font-mono font-bold">14B</span>
-                      </div>
-                      <div class="text-[10px] text-slate-300 font-sans">فائق الحركية والفيزياء 720p</div>
-                    </button>
-
-                    <!-- Wan 2.1 -->
-                    <button type="button" onclick="selectDirectComfyModel('wan21')" id="btn-engine-wan21" class="p-2 rounded-lg bg-cinema-900 border border-cinema-700 hover:border-amber-400 text-right transition flex flex-col justify-between">
-                      <div class="flex items-center justify-between w-full mb-1">
-                        <span class="text-xs font-bold text-white hover:text-amber-300">Alibaba Wan 2.1</span>
-                        <span class="text-[9px] px-1 py-0.2 bg-blue-500/20 text-blue-300 rounded font-mono">14B</span>
-                      </div>
-                      <div class="text-[10px] text-slate-400 font-sans">ثبات سينمائي عالي 720p</div>
-                    </button>
-
-                    <!-- SkyReels-V1 -->
-                    <button type="button" onclick="selectDirectComfyModel('skyreels')" id="btn-engine-skyreels" class="p-2 rounded-lg bg-cinema-900 border border-cinema-700 hover:border-rose-400 text-right transition flex flex-col justify-between">
-                      <div class="flex items-center justify-between w-full mb-1">
-                        <span class="text-xs font-bold text-white hover:text-rose-300">SkyReels-V1</span>
-                        <span class="text-[9px] px-1 py-0.2 bg-rose-500/20 text-rose-300 rounded font-mono">SOTA #9</span>
-                      </div>
-                      <div class="text-[10px] text-slate-400 font-sans">ثبات ملامح الوجه والأيدي</div>
-                    </button>
-
-                    <!-- LTX-Video Distilled -->
-                    <button type="button" onclick="selectDirectComfyModel('ltx_video')" id="btn-engine-ltx" class="p-2 rounded-lg bg-cinema-900 border border-cinema-700 hover:border-cyan-400 text-right transition flex flex-col justify-between">
-                      <div class="flex items-center justify-between w-full mb-1">
-                        <span class="text-xs font-bold text-white hover:text-cyan-300">LTX-Video</span>
-                        <span class="text-[9px] px-1 py-0.2 bg-cyan-500/20 text-cyan-300 rounded font-mono">⚡ 13B</span>
-                      </div>
-                      <div class="text-[10px] text-slate-400 font-sans">أسرع توليد مسودات وفيديو</div>
-                    </button>
-
-                    <!-- HunyuanVideo -->
-                    <button type="button" onclick="selectDirectComfyModel('hunyuan')" id="btn-engine-hunyuan" class="p-2 rounded-lg bg-cinema-900 border border-cinema-700 hover:border-purple-400 text-right transition flex flex-col justify-between">
-                      <div class="flex items-center justify-between w-full mb-1">
-                        <span class="text-xs font-bold text-white hover:text-purple-300">Tencent Hunyuan</span>
-                        <span class="text-[9px] px-1 py-0.2 bg-purple-500/20 text-purple-300 rounded font-mono">13B</span>
-                      </div>
-                      <div class="text-[10px] text-slate-400 font-sans">عملاق هوليوودي 24fps</div>
-                    </button>
-
-                    <!-- CogVideoX -->
-                    <button type="button" onclick="selectDirectComfyModel('cogvideox')" id="btn-engine-cogvideo" class="p-2 rounded-lg bg-cinema-900 border border-cinema-700 hover:border-emerald-400 text-right transition flex flex-col justify-between">
-                      <div class="flex items-center justify-between w-full mb-1">
-                        <span class="text-xs font-bold text-white hover:text-emerald-300">THUDM CogVideoX</span>
-                        <span class="text-[9px] px-1 py-0.2 bg-emerald-500/20 text-emerald-300 rounded font-mono">5B</span>
-                      </div>
-                      <div class="text-[10px] text-slate-400 font-sans">ثبات ودقة سينمائية</div>
-                    </button>
-
-                    <!-- SVD-XT -->
-                    <button type="button" onclick="selectDirectComfyModel('svd')" id="btn-engine-svd" class="p-2 rounded-lg bg-cinema-900 border border-cinema-700 hover:border-sky-400 text-right transition flex flex-col justify-between">
-                      <div class="flex items-center justify-between w-full mb-1">
-                        <span class="text-xs font-bold text-white hover:text-sky-300">Stability SVD-XT</span>
-                        <span class="text-[9px] px-1 py-0.2 bg-sky-500/20 text-sky-300 rounded font-mono">خفيف</span>
-                      </div>
-                      <div class="text-[10px] text-slate-400 font-sans">حركة سريعة مدمجة 576p</div>
-                    </button>
-                  </div>
-                </div>
-
-                <!-- 2. محركات التصوير الفوتوغرافي مفتوحة المصدر -->
-                <div class="space-y-1.5 pt-1">
-                  <div class="text-[10px] text-emerald-300 font-bold flex items-center gap-1.5">
-                    <i class="fa-solid fa-camera-retro text-emerald-400"></i>
-                    <span>📸 محركات التصوير الفوتوغرافي المستقلة (Image Generation Engines):</span>
-                  </div>
-                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    <!-- Qwen-Image-Edit -->
-                    <button type="button" onclick="selectDirectComfyModel('qwen_edit')" id="btn-engine-qwen" class="p-2 rounded-lg bg-cinema-900 border border-cinema-700 hover:border-emerald-400 text-right transition flex flex-col justify-between">
-                      <div class="flex items-center justify-between w-full mb-1">
-                        <span class="text-xs font-bold text-white hover:text-emerald-300">Qwen Image Edit</span>
-                        <span class="text-[9px] px-1 py-0.2 bg-emerald-500/20 text-emerald-300 rounded font-mono">20B</span>
-                      </div>
-                      <div class="text-[10px] text-slate-400 font-sans">تعديل الكادر وتثبيت الشخصية</div>
-                    </button>
-
-                    <!-- FLUX.1 Dev -->
-                    <button type="button" onclick="selectDirectComfyModel('flux_dev')" id="btn-engine-flux" class="p-2 rounded-lg bg-cinema-900 border border-cinema-700 hover:border-emerald-400 text-right transition flex flex-col justify-between">
-                      <div class="flex items-center justify-between w-full mb-1">
-                        <span class="text-xs font-bold text-white hover:text-emerald-300">FLUX.1 Dev</span>
-                        <span class="text-[9px] px-1 py-0.2 bg-emerald-500/20 text-emerald-300 rounded font-mono">SOTA</span>
-                      </div>
-                      <div class="text-[10px] text-slate-400 font-sans">أعلى تفاصيل فوتوغرافية RAW</div>
-                    </button>
-
-                    <!-- SD 3.5 Large -->
-                    <button type="button" onclick="selectDirectComfyModel('sd35')" id="btn-engine-sd35" class="p-2 rounded-lg bg-cinema-900 border border-cinema-700 hover:border-indigo-400 text-right transition flex flex-col justify-between">
-                      <div class="flex items-center justify-between w-full mb-1">
-                        <span class="text-xs font-bold text-white hover:text-indigo-300">Stability SD 3.5</span>
-                        <span class="text-[9px] px-1 py-0.2 bg-indigo-500/20 text-indigo-300 rounded font-mono">Large</span>
-                      </div>
-                      <div class="text-[10px] text-slate-400 font-sans">معمارية DiT متطورة</div>
-                    </button>
-
-                    <!-- SDXL Base -->
-                    <button type="button" onclick="selectDirectComfyModel('sdxl')" id="btn-engine-sdxl" class="p-2 rounded-lg bg-cinema-900 border border-cinema-700 hover:border-amber-400 text-right transition flex flex-col justify-between">
-                      <div class="flex items-center justify-between w-full mb-1">
-                        <span class="text-xs font-bold text-white hover:text-amber-300">Stability SDXL Base</span>
-                        <span class="text-[9px] px-1 py-0.2 bg-amber-500/20 text-amber-300 rounded font-mono">LoRA OK</span>
-                      </div>
-                      <div class="text-[10px] text-slate-400 font-sans">دعم كامل للورات الممثلين</div>
-                    </button>
-                  </div>
-                </div>
-
-                <!-- 3. أدوات الأداء والمزامنة -->
-                <div class="space-y-1.5 pt-1">
-                  <div class="text-[10px] text-cyan-300 font-bold flex items-center gap-1.5">
-                    <i class="fa-solid fa-wand-magic-sparkles text-cyan-400"></i>
-                    <span>🎭 محركات الأداء والمزامنة الصوتية (Performance & Voice Dubbing):</span>
-                  </div>
-                  <div class="grid grid-cols-2 gap-2">
-                    <!-- LatentSync -->
-                    <button type="button" onclick="selectDirectComfyModel('latentsync')" id="btn-engine-ls" class="p-2 rounded-lg bg-cinema-900 border border-cinema-700 hover:border-cyan-400 text-right transition flex flex-col justify-between">
-                      <div class="flex items-center justify-between w-full mb-1">
-                        <span class="text-xs font-bold text-white hover:text-cyan-300">LatentSync (Open Source)</span>
-                        <span class="text-[9px] px-1 py-0.2 bg-cyan-500/20 text-cyan-300 rounded font-mono">مزامنة فم</span>
-                      </div>
-                      <div class="text-[10px] text-slate-400 font-sans">دبلجة ومزامنة الشفاه مع الصوت</div>
-                    </button>
-
-                    <!-- Kling Motion Control -->
-                    <button type="button" onclick="selectDirectComfyModel('kling')" id="btn-engine-kling" class="p-2 rounded-lg bg-cinema-900 border border-cinema-700 hover:border-yellow-400 text-right transition flex flex-col justify-between">
-                      <div class="flex items-center justify-between w-full mb-1">
-                        <span class="text-xs font-bold text-white hover:text-yellow-300">Kling Motion Control</span>
-                        <span class="text-[9px] px-1 py-0.2 bg-yellow-500/20 text-yellow-300 rounded font-mono">1080p</span>
-                      </div>
-                      <div class="text-[10px] text-slate-400 font-sans">توجيه حركة الوجه والجسم بدقة</div>
-                    </button>
-                  </div>
+            <!-- Clean Streamlined Mode Switcher (Video vs Image) -->
+            <div class="flex items-center justify-between border-b border-cinema-700/80 pb-3">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-black text-white flex items-center gap-1.5">
+                  <i class="fa-solid fa-layer-group text-amber-400"></i>
+                  <span>نوع الريندر المفتوح:</span>
+                </span>
+                <div class="flex items-center bg-cinema-950 p-1 rounded-xl border border-cinema-700 gap-1">
+                  <button type="button" onclick="switchComfySubMode('video')" id="comfy-mode-vid-btn" class="px-3 py-1.5 rounded-lg text-xs font-black bg-gradient-to-r from-amber-500 to-yellow-500 text-cinema-950 shadow transition flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-video text-[11px]"></i>
+                    <span>فيديو سينمائي (Video)</span>
+                  </button>
+                  <button type="button" onclick="switchComfySubMode('image')" id="comfy-mode-img-btn" class="px-3 py-1.5 rounded-lg text-xs font-black text-slate-400 hover:text-white transition flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-camera-retro text-[11px]"></i>
+                    <span>صور وكوادر (Image)</span>
+                  </button>
+                  <button type="button" onclick="switchComfySubMode('latentsync')" id="comfy-mode-ls-btn" class="px-3 py-1.5 rounded-lg text-xs font-black text-slate-400 hover:text-white transition flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-microphone-lines text-[11px]"></i>
+                    <span>دوبلاج الشفاه</span>
+                  </button>
                 </div>
               </div>
-              <span class="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">المصادر المفتوحة جاهزة</span>
-
+              <span class="text-[11px] text-emerald-400 font-mono font-bold bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/30">
+                <i class="fa-solid fa-check mr-1"></i> مفتوح المصدر (مجاني)
+              </span>
+            </div>
             </div>
 
 
@@ -3969,48 +3838,28 @@
       const ckpt = (document.getElementById('comfy-video-checkpoint')?.value || '').toLowerCase();
       const btnText = document.getElementById('comfy-render-btn-text');
       const hint = document.getElementById('comfy-video-model-hint');
-      
-      const allVideoBtns = ['btn-engine-wan22', 'btn-engine-wan21', 'btn-engine-skyreels', 'btn-engine-ltx', 'btn-engine-hunyuan', 'btn-engine-cogvideo', 'btn-engine-svd'];
-      allVideoBtns.forEach(id => {
-        const b = document.getElementById(id);
-        if (b) b.className = 'p-2 rounded-lg bg-cinema-900 border border-cinema-700 hover:border-amber-400 text-right transition flex flex-col justify-between';
-      });
 
       if (ckpt.includes('skyreels')) {
         if (btnText && currentComfySubMode === 'video') btnText.innerText = '▶ ريندر المشهد الآن عبر SkyReels-V1 (المركز التاسع عالمياً في ثبات الشخصيات)';
         if (hint) hint.innerText = '👑 نموذج SkyReels-V1: مدرب فوق HunyuanVideo لتثبيت حركة العيون، والرموش، والأصابع دون تشوه في اللقطات المقربة.';
-        const skBtn = document.getElementById('btn-engine-skyreels');
-        if (skBtn) skBtn.className = 'p-2 rounded-lg bg-rose-500/25 border-2 border-rose-400 text-right transition flex flex-col justify-between shadow-lg ring-1 ring-rose-400/50';
       } else if (ckpt.includes('ltx')) {
         if (btnText && currentComfySubMode === 'video') btnText.innerText = '▶ ريندر المشهد الآن عبر Lightricks LTX-Video (سريع جداً للمسودات)';
         if (hint) hint.innerText = '⚡ محرك LTX-Video (13B Distilled): أسرع نموذج مفتوح، يولد 5 ثوانٍ في خطوات قليلة جداً وبأقل من 10GB VRAM.';
-        const ltxBtn = document.getElementById('btn-engine-ltx');
-        if (ltxBtn) ltxBtn.className = 'p-2 rounded-lg bg-cyan-500/25 border-2 border-cyan-400 text-right transition flex flex-col justify-between shadow-lg ring-1 ring-cyan-400/50';
       } else if (ckpt.includes('hunyuan')) {
         if (btnText && currentComfySubMode === 'video') btnText.innerText = '▶ ريندر المشهد الآن عبر Tencent HunyuanVideo (13B سينمائي 720p)';
         if (hint) hint.innerText = '⚡ محرك Tencent HunyuanVideo (13B): محاكاة فيزيائية واقعية للضوء والظلال وحركة الشخصيات 24fps.';
-        const hBtn = document.getElementById('btn-engine-hunyuan');
-        if (hBtn) hBtn.className = 'p-2 rounded-lg bg-purple-500/25 border-2 border-purple-400 text-right transition flex flex-col justify-between shadow-lg ring-1 ring-purple-400/50';
       } else if (ckpt.includes('wan') && (ckpt.includes('2.2') || ckpt.includes('wan2.2'))) {
         if (btnText && currentComfySubMode === 'video') btnText.innerText = '▶ ريندر المشهد الآن عبر Alibaba Wan 2.2 (720p فائق الحركية)';
         if (hint) hint.innerText = '⚡ محرك Alibaba Wan 2.2 (14B): أعلى ثبات فيزيائي وكاميرا سينمائية ثلاثية الأبعاد مع حركية ديناميكية متقدمة.';
-        const w22Btn = document.getElementById('btn-engine-wan22');
-        if (w22Btn) w22Btn.className = 'p-2 rounded-lg bg-amber-500/25 border-2 border-amber-400 text-right transition flex flex-col justify-between shadow-lg ring-1 ring-amber-400/50';
       } else if (ckpt.includes('wan')) {
         if (btnText && currentComfySubMode === 'video') btnText.innerText = '▶ ريندر المشهد الآن عبر Alibaba Wan 2.1 (720p سينمائي)';
         if (hint) hint.innerText = '⚡ محرك Alibaba Wan 2.1: دقة 720p مع أعلى ثبات فيزيائي وحركة كاميرا سينمائية ثلاثية الأبعاد بدون تشوه.';
-        const w21Btn = document.getElementById('btn-engine-wan21');
-        if (w21Btn) w21Btn.className = 'p-2 rounded-lg bg-blue-500/25 border-2 border-blue-400 text-right transition flex flex-col justify-between shadow-lg ring-1 ring-blue-400/50';
       } else if (ckpt.includes('cogvideo')) {
         if (btnText && currentComfySubMode === 'video') btnText.innerText = '▶ ريندر المشهد الآن عبر THUDM CogVideoX-5B (مفتوح المصدر)';
         if (hint) hint.innerText = '⚡ محرك THUDM CogVideoX-5B: استقرار عالي للكاميرا وتفاصيل دقيقة في المشاهد الثابتة.';
-        const cBtn = document.getElementById('btn-engine-cogvideo');
-        if (cBtn) cBtn.className = 'p-2 rounded-lg bg-emerald-500/25 border-2 border-emerald-400 text-right transition flex flex-col justify-between shadow-lg ring-1 ring-emerald-400/50';
       } else {
         if (btnText && currentComfySubMode === 'video') btnText.innerText = '▶ ريندر المشهد الآن عبر Stability SVD-XT (كلاسيكي)';
         if (hint) hint.innerText = '⚡ محرك Stability AI SVD-XT: تحريك 25 كادر متتالي، سريع وخفيف ومستقر.';
-        const sBtn = document.getElementById('btn-engine-svd');
-        if (sBtn) sBtn.className = 'p-2 rounded-lg bg-amber-500/25 border-2 border-amber-400 text-right transition flex flex-col justify-between shadow-lg ring-1 ring-amber-400/50';
       }
     }
 
@@ -5052,7 +4901,7 @@
         if (placeholder) placeholder.classList.add('hidden');
         if (resultBox) resultBox.classList.add('hidden');
         if (spinner) spinner.classList.remove('hidden');
-        if (spinnerText) spinnerText.innerText = 'كارت الـ Blackwell يريندر حركة الفيديو الآن...';
+        if (spinnerText) spinnerText.innerText = 'جاري ريندر حركة الفيديو السينمائي الآن...';
         if (pBar) pBar.style.width = '30%';
 
         const startTs = Date.now();
