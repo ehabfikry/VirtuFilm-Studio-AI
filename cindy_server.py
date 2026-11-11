@@ -7314,7 +7314,7 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                             "status": "failed",
                             "requires_cloud_confirmation": True,
                             "error": "comfyui_offline",
-                            "message": "سيرفر ComfyUI المحلي (127.0.0.1:8188) أو RunPod غير متصل حالياً! لحماية رصيدك من أي خصم مالي، تم إيقاف العملية تلقائياً. شغّل ComfyUI للريندر المجاني أو وافق صراحة على الريندر السحابي."
+                            "message": "سيرفر ComfyUI المحلي غير متصل (كارتك 4GB لا يكفي). هل ترغب بتشغيل أرخص كارت متاح على RunPod تلقائياً (~0.16$/ساعة فقط) مع حذفه فور انتهاء الريندر؟"
                         }
                         return
 

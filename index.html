@@ -5041,7 +5041,7 @@
                   if (placeholder) placeholder.classList.remove('hidden');
                   if (btn) btn.disabled = false;
                   if (btnText) btnText.innerText = '▶ ريندر مشهد الفيديو الآن (Comfy Video)';
-                  const doCloud = confirm('⚠️ تنبيه حماية الرصيد:\n' + sData.message + '\n\nهل ترغب بالتحويل للريندر السحابي المدفوع عبر Fal.ai (H100) أم تفضل تشغيل ComfyUI محلياً مجاناً؟\n\n[موافق = ريندر سحابي مدفوع] | [إلغاء = البقاء مجاناً وإلغاء العملية]');
+                  const doCloud = confirm('⚡ نظام الريندر السحابي الاقتصادي (RunPod Cascade):\n' + sData.message + '\n\nسيتم البحث تلقائياً عن أرخص كارت سحابي متاح (يبدأ من 0.16$/ساعة مثل RTX A5000 / 3090 / 4090) ثم إيقافه وحذفه فور اكتمال المشهد.\n\n[موافق = تشغيل أرخص كارت على RunPod] | [إلغاء = إلغاء وحماية الرصيد]');
                   if (doCloud) {
                     showToast('تمت الموافقة.. جاري توجيه المهمة للسيرفر السحابي بأمرك.', 'info');
                     executeComfyVideoRender(true);
