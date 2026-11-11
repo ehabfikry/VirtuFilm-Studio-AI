@@ -10246,7 +10246,28 @@ let currentUploadContext = 'chat';
       ['مفاتيح الربط والـ APIs مخزنة محلياً ومشفرة في جهازك (127.0.0.1) ولا تخرج لأي خادم وسيط.', 'API keys are stored locally and encrypted on your machine (127.0.0.1) and never leave to any third party.'],
       ['تحديث حالة الخزنة', 'Refresh Vault Status'],
       ['تشفير محلي 100%', '100% Local Encryption'],
-      ['الحفظ يطبق فوراً في ملف', 'Saved instantly to file']
+      ['الحفظ يطبق فوراً في ملف', 'Saved instantly to file'],
+
+      // Industry Radar Modal
+      ['رادار سيندي لصناعة وتحديثات السينما والـ AI', 'Cindy AI Cinema & AI Industry Radar'],
+      ['رصد التطورات التقنية وتأثيرها المباشر على ميزانية وإخراج مشاهدك', 'Tracking tech breakthroughs & their direct impact on your film budget & vision'],
+      ['آخر رصد:', 'Last tracked:'],
+      ['اليوم', 'Today'],
+      ['تحديث الرادار', 'Refresh Radar'],
+      ['أهميته للمخرج:', 'Director Impact:'],
+      ['تجربة فورية', 'Try This Now'],
+      ['الرادار', 'Radar'],
+      ['الصوت', 'Voice'],
+      ['استوديو الصوت', 'Voice Studio'],
+      ['رادار الصناعة', 'Industry Radar'],
+
+      // Open-Source ComfyUI Engines
+      ['ثبات ملامح الوجه والأيدي', 'Character Face & Hands Consistency'],
+      ['أسرع توليد مسودات وفيديو', 'Fastest Video & Drafts Generation'],
+      ['تعديل الكادر وتثبيت الشخصية', 'Frame Editing & Character Anchor'],
+      ['👑 SkyReels-V1 (تثبيت الممثلين والملامح والأيدي 720p - المركز التاسع عالمياً)', '👑 SkyReels-V1 (Character & Limb Anchor 720p - Global #9)'],
+      ['⚡ Lightricks LTX-Video (13B أسرع محرك مفتوح للمسودات والفيديو)', '⚡ Lightricks LTX-Video (13B Fastest Open Draft & Video Engine)'],
+      ['🪄 Qwen-Image-Edit-2511 (تعديل الكادر وتثبيت الشخصية والزوايا - Alibaba 20B)', '🪄 Qwen-Image-Edit-2511 (Frame Editing & Character Anchor - Alibaba 20B)']
     ];
 
     // Build lookup maps for both directions
@@ -11224,6 +11245,16 @@ let currentUploadContext = 'chat';
       if (comfyRenderBtnSpan) {
         comfyRenderBtnSpan.textContent = (lang === 'en') ? '▶ Render Video Scene Now (Comfy Video)' : (lang === 'fr') ? '▶ Rendre la Scène Vidéo Maintenant' : (lang === 'es') ? '▶ Renderizar Escena de Video Ahora' : '▶ ريندر مشهد الفيديو الآن (Comfy Video)';
       }
+
+      // Radar Modal Elements Localization
+      const radarTitle = document.getElementById('radar-modal-title');
+      if (radarTitle) radarTitle.textContent = (lang === 'en') ? 'Cindy AI Cinema & AI Industry Radar' : (lang === 'fr') ? 'Radar de l\'Industrie Cinéma & IA' : (lang === 'es') ? 'Radar de la Industria del Cine e IA' : 'رادار سيندي لصناعة وتحديثات السينما والـ AI';
+      
+      const radarSubtitle = document.getElementById('radar-modal-subtitle');
+      if (radarSubtitle) radarSubtitle.textContent = (lang === 'en') ? 'Tracking tech breakthroughs & their direct impact on your film budget & vision' : (lang === 'fr') ? 'Suivi des percées technologiques et impact sur votre budget' : (lang === 'es') ? 'Seguimiento de avances técnicos e impacto en presupuesto' : 'رصد التطورات التقنية وتأثيرها المباشر على ميزانية وإخراج مشاهدك';
+
+      const radarRefreshSpan = document.getElementById('radar-refresh-span');
+      if (radarRefreshSpan) radarRefreshSpan.textContent = (lang === 'en') ? 'Refresh Radar' : (lang === 'fr') ? 'Actualiser le Radar' : (lang === 'es') ? 'Actualizar Radar' : 'تحديث الرادار';
 
 
       if (typeof renderPricingGrids === 'function' && window.DAILY_PRICING) {
