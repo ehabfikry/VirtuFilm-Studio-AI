@@ -9166,8 +9166,26 @@ let currentUploadContext = 'chat';
 
       <div class="space-y-3 text-xs">
         <div>
-          <label class="block text-slate-300 font-bold mb-1">نص الحوار أو المونولوج السينمائي:</label>
-          <textarea id="vs-dialogue-text" rows="3" class="w-full bg-cinema-950 border border-cinema-700 rounded-xl p-3 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition" placeholder="اكتب الحوار هنا باللغة العربية أو الإنجليزية... مثال: 'In a city shadowed by rain and neon, one detective will break the silence.'"></textarea>
+          <div class="flex items-center justify-between mb-1">
+            <label id="vs-dialogue-label" class="block text-slate-300 font-bold">نص الحوار أو المونولوج السينمائي:</label>
+            <div class="flex items-center gap-1.5">
+              <span id="vs-emotion-prompt-label" class="text-[10px] text-amber-300 font-bold flex items-center gap-1">
+                <i class="fa-solid fa-masks-theater text-amber-400"></i> إدراج إحساس درامي:
+              </span>
+              <select id="vs-emotion-select" onchange="insertVoiceEmotion(this.value); this.value='';" class="bg-cinema-950 border border-amber-500/40 rounded-lg px-2 py-0.5 text-amber-300 font-bold text-[10px] focus:outline-none cursor-pointer shadow">
+                <option value="">+ اختر إحساساً لإدراجه...</option>
+                <option value="(تنهيدة عميقة)">😮‍💨 (تنهيدة عميقة / Deep Sigh)</option>
+                <option value="(صوت ضاحك بسخرية)">😏 (ضحكة ساخرة / Sarcastic Chuckle)</option>
+                <option value="(شحتفة وبكاء مكتوم)">😢 (شحتفة وبكاء / Choked Sobbing)</option>
+                <option value="(ألم وتأوه خافت)">😣 (ألم وتأوه / Pained Groan)</option>
+                <option value="(اهتزاز خوف ورعب)">😨 (رعشة خوف / Trembling Fear)</option>
+                <option value="(همس درامي غامض)">🤫 (همس درامي / Dramatic Whisper)</option>
+                <option value="(غضب مكتوم وانفعال)">😡 (غضب مكتوم / Suppressed Rage)</option>
+                <option value="(لهثة وتعب شديد)">😮 (لهثة تعب / Breathless Exhaustion)</option>
+              </select>
+            </div>
+          </div>
+          <textarea id="vs-dialogue-text" rows="3" class="w-full bg-cinema-950 border border-cinema-700 rounded-xl p-3 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition leading-relaxed font-sans" placeholder="اكتب الحوار هنا... يمكنك إدراج المشاعر بين قوسين مثل: '(تنهيدة عميقة) أنا مكنتش متوقع إنك هتيجي في الوقت ده...'"></textarea>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
@@ -9235,6 +9253,35 @@ let currentUploadContext = 'chat';
     function closeVoiceStudioModal() {
       const modal = document.getElementById('voice-studio-modal');
       if (modal) modal.classList.add('hidden');
+    }
+
+    function insertVoiceEmotion(emotionTag) {
+      if (!emotionTag) return;
+      const txt = document.getElementById('vs-dialogue-text');
+      if (!txt) return;
+      const isEn = (window.currentAppLang === 'en');
+      
+      // Auto-translate emotion tag if current UI is English
+      const emoMapEn = {
+        '(تنهيدة عميقة)': '(deep sigh)',
+        '(صوت ضاحك بسخرية)': '(sarcastic chuckle)',
+        '(شحتفة وبكاء مكتوم)': '(choked sobbing)',
+        '(ألم وتأوه خافت)': '(pained groan)',
+        '(اهتزاز خوف ورعب)': '(trembling with fear)',
+        '(همس درامي غامض)': '(dramatic whisper)',
+        '(غضب مكتوم وانفعال)': '(suppressed rage)',
+        '(لهثة وتعب شديد)': '(breathless exhaustion)'
+      };
+      
+      const tagToInsert = (isEn && emoMapEn[emotionTag]) ? emoMapEn[emotionTag] : emotionTag;
+      
+      const start = txt.selectionStart || 0;
+      const end = txt.selectionEnd || 0;
+      const val = txt.value;
+      txt.value = val.substring(0, start) + tagToInsert + ' ' + val.substring(end);
+      txt.focus();
+      txt.selectionStart = txt.selectionEnd = start + tagToInsert.length + 1;
+      showToast(isEn ? `Inserted emotion: ${tagToInsert}` : `تم إدراج الإحساس: ${tagToInsert}`, 'info');
     }
 
     async function generateLocalVoiceActing() {
@@ -9940,6 +9987,47 @@ let currentUploadContext = 'chat';
 
       const navSb = document.getElementById('nav-storyboard-text');
       if (navSb) navSb.textContent = d.step4 || ((lang === 'en') ? 'Script & Board' : 'السيناريو');
+      // Voice Studio Modal Localization
+      const vsLabel = document.getElementById('vs-dialogue-label');
+      if (vsLabel) vsLabel.textContent = (lang === 'en') ? 'Dialogue or Screenplay Monologue:' : 'نص الحوار أو المونولوج السينمائي:';
+      
+      const vsEmoPrompt = document.getElementById('vs-emotion-prompt-label');
+      if (vsEmoPrompt) vsEmoPrompt.innerHTML = `<i class="fa-solid fa-masks-theater text-amber-400"></i> ` + ((lang === 'en') ? 'Insert Acting Emotion:' : 'إدراج إحساس درامي:');
+
+      const vsEmoSel = document.getElementById('vs-emotion-select');
+      if (vsEmoSel) {
+        if (lang === 'en') {
+          vsEmoSel.innerHTML = `
+            <option value="">+ Insert Acting Emotion...</option>
+            <option value="(deep sigh)">😮‍💨 (Deep Sigh)</option>
+            <option value="(sarcastic chuckle)">😏 (Sarcastic Chuckle)</option>
+            <option value="(choked sobbing)">😢 (Choked Sobbing)</option>
+            <option value="(pained groan)">😣 (Pained Groan)</option>
+            <option value="(trembling with fear)">😨 (Trembling Fear)</option>
+            <option value="(dramatic whisper)">🤫 (Dramatic Whisper)</option>
+            <option value="(suppressed rage)">😡 (Suppressed Rage)</option>
+            <option value="(breathless exhaustion)">😮 (Breathless Exhaustion)</option>
+          `;
+        } else {
+          vsEmoSel.innerHTML = `
+            <option value="">+ اختر إحساساً لإدراجه...</option>
+            <option value="(تنهيدة عميقة)">😮‍💨 (تنهيدة عميقة / Deep Sigh)</option>
+            <option value="(صوت ضاحك بسخرية)">😏 (ضحكة ساخرة / Sarcastic Chuckle)</option>
+            <option value="(شحتفة وبكاء مكتوم)">😢 (شحتفة وبكاء / Choked Sobbing)</option>
+            <option value="(ألم وتأوه خافت)">😣 (ألم وتأوه / Pained Groan)</option>
+            <option value="(اهتزاز خوف ورعب)">😨 (رعشة خوف / Trembling Fear)</option>
+            <option value="(همس درامي غامض)">🤫 (همس درامي / Dramatic Whisper)</option>
+            <option value="(غضب مكتوم وانفعال)">😡 (غضب مكتوم / Suppressed Rage)</option>
+            <option value="(لهثة وتعب شديد)">😮 (لهثة تعب / Breathless Exhaustion)</option>
+          `;
+        }
+      }
+
+      const vsTxt = document.getElementById('vs-dialogue-text');
+      if (vsTxt) {
+        vsTxt.placeholder = (lang === 'en') ? "Enter dialogue... You can insert acting emotions in brackets like: '(deep sigh) I honestly never thought you\'d make it back...'" : "اكتب الحوار هنا... يمكنك إدراج المشاعر بين قوسين مثل: '(تنهيدة عميقة) أنا مكنتش متوقع إنك هتيجي في الوقت ده...'";
+      }
+
       const topVoiceSpan = document.getElementById('topbar-voicestudio-text');
       if (topVoiceSpan) topVoiceSpan.textContent = (lang === 'en') ? 'Voice' : (lang === 'fr') ? 'Studio Vocal' : (lang === 'es') ? 'Estudio de Voz' : 'استوديو الصوت';
       const topRadarSpan = document.getElementById('topbar-radar-span');

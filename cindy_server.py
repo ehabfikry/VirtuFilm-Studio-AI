@@ -1375,9 +1375,21 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                             'cindy_flash_masri': 'Aoede'
                         }
                         chosen_voice_name = voice_name_map.get(voice, 'Aoede')
-                        phonetic_prompt = f"Speak naturally with cinematic dramatic expression: {text}"
+                        # Enhanced Cinematic Acting Director Instruction:
+                        # Instructs Gemini Flash TTS to genuinely act out parenthetical cues (e.g. sighs, laughter, choked sobbing)
+                        phonetic_prompt = (
+                            "You are a professional film voice actor. "
+                            "ACT OUT and vocally perform any emotion cues written in parentheses (such as sighs, sarcastic chuckles, choked crying, breathless gasps, trembling fear, groans) "
+                            f"with genuine human cinematic realism: {text}"
+                        )
                         if voice in ('cindy_flash_aoede', 'cindy_flash_masri') or any(c in text for c in 'ابتثجحخدذرزسشصضطظعغفقكلمنهوي'):
-                            phonetic_prompt = f"Speak in a warm, expressive natural Cairo Egyptian colloquial accent (Masri): {text}"
+                            phonetic_prompt = (
+                                "You are a master Egyptian cinema voice actor. "
+                                "Speak in an authentic, natural Cairo Egyptian colloquial accent (Masri). "
+                                "Directly act out and vocally perform all emotional stage directions in parentheses "
+                                "(مثل: التنهيدة، الضحكة الساخرة، الشحتفة والبكاء، الرعشة، التأوه، الغضب) "
+                                f"with raw, lifelike human emotion and theatrical pacing: {text}"
+                            )
                             
                         for model_ep in ('gemini-2.5-flash-preview-tts', 'gemini-3.8-flash-lite-tts'):
                             try:
