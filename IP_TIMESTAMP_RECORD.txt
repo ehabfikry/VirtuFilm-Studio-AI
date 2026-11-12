@@ -3,10 +3,10 @@ VIRTUFILM STUDIO AI - CRYPTOGRAPHIC PRIOR-ART & IP TIMESTAMP LEDGER
 ===================================================================
 Inventor & Copyright Owner : Ehab Fikry (المخرج إيهاب فكري)
 Patent Reference           : CAD-IP-2026-001
-Timestamp (UTC)            : 2026-11-12T18:07:26Z
-Master Architecture SHA256 : 64fca78a71a0964b96e515794b1fd63c49e284007911be44cd15e0e7a5d644c5
+Timestamp (UTC)            : 2026-11-12T18:11:09Z
+Master Architecture SHA256 : d2ef9871307c36c70fdfb81cba8af863bd2d45f4768a249c47eb38de53426ba8
 -------------------------------------------------------------------
-0f1776a02b7be366b658cae4fa42d1125c320924602703dd402409cd5d098c0b  index.html (1312496 bytes)
+de50225b4d829d31ed9581cd32f3e6e06beeea1463164dca1615d35446487456  index.html (1312577 bytes)
 68c83d06126fb55810964aa16b5cbe41c7e400de472ff6fa35f85b9cc0283b19  cindy_server.py (285636 bytes)
 bfbeb7e8bcb4448ea4fe874dd0151eba29e518d4fc0ae5d03600f791ba37139d  cindy_previs_engine.py (55959 bytes)
 d3b6066212824c399dfe8a61597ded21e4a1a6ae6c80bc498459e3138ad77a05  cindy_blender_bridge.py (55826 bytes)
