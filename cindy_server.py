@@ -1504,7 +1504,7 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                     "target_ratio": ratio,
                     "message": "تم تحويل الفيديو وإعادة التأطير بنجاح وبأعلى جودة"
                 }
-                self.send_json_response(res)
+                self.send_json_response(200, res)
                 return
             except Exception as e:
                 import traceback
