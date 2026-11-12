@@ -8,10 +8,10 @@
     "Egyptian IP Law No. 82 of 2002 (ITIDA & Supreme Council of Culture)",
     "Cryptographic SHA-256 Prior-Art & Git Timestamp Ledger"
   ],
-  "generated_at_utc": "2026-11-11T18:09:06Z",
-  "master_sha256": "5319f90a33f73b2f3b26f9192a45348795c27b6231646ca4e83522568c00ef46",
-  "tracked_files_count": 14,
-  "total_protected_bytes": 1864864,
+  "generated_at_utc": "2026-11-12T17:46:31Z",
+  "master_sha256": "fe35f9a5846209ba288fbadb535b9c5309bb7e61a65f66369c9201d9aa20c080",
+  "tracked_files_count": 15,
+  "total_protected_bytes": 1896894,
   "security_controls": {
     "localhost_isolation": "127.0.0.1 Only (Strict Host & Origin Guard)",
     "zero_leak_vault": "Local cindy_secrets.json (Excluded from Git & Static HTTP)",
@@ -19,14 +19,14 @@
   },
   "files": {
     "index.html": {
-      "sha256": "61868a17ac1a502621fcd378845522963a0cd364f17f9c04be0f6466e0dd4d0d",
-      "size_bytes": 1290850,
-      "modified_utc": "2026-11-11T18:06:09Z"
+      "sha256": "0f1776a02b7be366b658cae4fa42d1125c320924602703dd402409cd5d098c0b",
+      "size_bytes": 1312496,
+      "modified_utc": "2026-11-12T17:41:17Z"
     },
     "cindy_server.py": {
-      "sha256": "65f563b5b03d690ff3a4c35006f86287ef45c11136c503e7a47875c7e451cf89",
-      "size_bytes": 284480,
-      "modified_utc": "2026-11-11T17:15:25Z"
+      "sha256": "849ee02f6ca8a46c941b840226b471471124b7de6ce4f987f6cf9b207b3401b4",
+      "size_bytes": 285631,
+      "modified_utc": "2026-11-12T17:46:19Z"
     },
     "cindy_previs_engine.py": {
       "sha256": "bfbeb7e8bcb4448ea4fe874dd0151eba29e518d4fc0ae5d03600f791ba37139d",
@@ -39,9 +39,9 @@
       "modified_utc": "2026-11-11T17:14:54Z"
     },
     "comfyui_client.py": {
-      "sha256": "047489619764ccae74db9a7c275d5d299b50c676157b1b11a8748ac3d5ec1d60",
-      "size_bytes": 43147,
-      "modified_utc": "2026-11-11T17:14:54Z"
+      "sha256": "7513ba8a2b332455a5bc9a18c89942127353c3a3e194d8dedb556ef207e6bfa6",
+      "size_bytes": 45025,
+      "modified_utc": "2026-11-11T19:19:07Z"
     },
     "cindy_storyboard.py": {
       "sha256": "b027c36308183e02eaa7afeccc48c0901d599e1f397da081ba5c881fc9440294",
@@ -57,6 +57,11 @@
       "sha256": "582164aa0f62796dab9c7493ba75d0c02aa5d1a019f9dfaf24e6f03359faecb7",
       "size_bytes": 7205,
       "modified_utc": "2026-11-11T17:14:54Z"
+    },
+    "cindy_reframe_engine.py": {
+      "sha256": "5063266439c12533c968eb84c10b712b2e88312f627f604ca58201c62a04e204",
+      "size_bytes": 7355,
+      "modified_utc": "2026-11-12T17:15:35Z"
     },
     "cindy_local_tts.py": {
       "sha256": "51a43bc62211829bf99a80269b447abb6dce96d38221cb92ad7396ee56183ba1",

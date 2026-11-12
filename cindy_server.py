@@ -123,6 +123,7 @@ def generate_ip_manifest():
         "cindy_storyboard.py",
         "cindy_pricing.py",
         "cindy_radar.py",
+        "cindy_reframe_engine.py",
         "cindy_local_tts.py",
         "runpod_trainer.py",
         "LICENSE",
@@ -1438,7 +1439,7 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
 
             return
 
-        max_bytes = 150 * 1024 * 1024 if self.path in ('/api/upload', '/api/bridge/complete_task', '/api/lora/train') else 2 * 1024 * 1024
+        max_bytes = 350 * 1024 * 1024 if self.path in ('/api/upload', '/api/bridge/complete_task', '/api/lora/train', '/api/reframe/process') else 2 * 1024 * 1024
 
         if content_length < 0 or content_length > max_bytes:
 
@@ -1457,6 +1458,59 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             payload = {}
 
 
+
+        if self.path == '/api/reframe/process':
+            try:
+                import cindy_reframe_engine
+                ratio = payload.get('target_ratio', '16:9')
+                mode = payload.get('mode', 'smart_ambient')
+                video_data_b64 = payload.get('video_base64', '')
+                video_filename = payload.get('filename', 'input_video.mp4')
+                
+                if not video_data_b64:
+                    self.send_error_response(400, "لم يتم إرسال أي ملف فيديو")
+                    return
+                
+                # Clean base64 header if present
+                if ',' in video_data_b64:
+                    video_data_b64 = video_data_b64.split(',', 1)[1]
+                
+                video_bytes = base64.b64decode(video_data_b64)
+                
+                outputs_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'outputs')
+                os.makedirs(outputs_dir, exist_ok=True)
+                
+                timestamp = int(time.time())
+                clean_name = re.sub(r'[^a-zA-Z0-9_\-\.]', '_', video_filename)
+                in_path = os.path.join(outputs_dir, f"raw_reframe_{timestamp}_{clean_name}")
+                out_path = os.path.join(outputs_dir, f"Reframe_{timestamp}_{ratio.replace(':', '_')}.mp4")
+                
+                with open(in_path, 'wb') as f_in:
+                    f_in.write(video_bytes)
+                
+                # Execute Reframe Engine
+                final_out = cindy_reframe_engine.reframe_video_pipeline(
+                    input_video_path=in_path,
+                    output_video_path=out_path,
+                    target_ratio=ratio,
+                    mode=mode
+                )
+                
+                rel_url = f"/outputs/{os.path.basename(final_out)}"
+                res = {
+                    "status": "success",
+                    "output_url": rel_url,
+                    "filename": os.path.basename(final_out),
+                    "target_ratio": ratio,
+                    "message": "تم تحويل الفيديو وإعادة التأطير بنجاح وبأعلى جودة"
+                }
+                self.send_json_response(res)
+                return
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                self.send_error_response(500, f"خطأ أثناء معالجة الفيديو: {str(e)}")
+                return
 
         if self.path == '/api/comfyui/cancel_video':
             jid = (payload.get('job_id') or '').strip()

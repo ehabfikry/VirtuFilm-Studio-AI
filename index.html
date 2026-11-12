@@ -367,6 +367,12 @@
         </button>
 
         <!-- 6: VAULT & IP PROTECTION SHIELD -->
+        <button onclick="switchTab('reframe')" id="nav-main-reframe" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-cyan-300 hover:text-white transition flex items-center gap-1.5 border border-cyan-500/40 bg-cyan-500/10 shadow" title="7. استوديو التأطير الذكي وتوسيع الكادر (AI Reframe)">
+          <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+          </svg>
+          <span>تأطير سينمائي (Reframe)</span>
+        </button>
         <button onclick="switchTab('vault')" id="nav-main-vault" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-amber-300 transition flex items-center gap-1.5" title="6. الخزنة ودرع حماية الملكية الفكرية">
           <i class="fa-solid fa-shield-halved text-amber-400 text-[10px]"></i>
           <span id="nav-vault-text">6. الخزنة والحماية</span>
@@ -1143,7 +1149,266 @@
     <!-- ========================================== -->
     <!-- TAB 4: SCRIPT & STORYBOARD STUDIO          -->
     <!-- ========================================== -->
-    <section id="tab-storyboard" class="hidden flex-1 flex flex-col space-y-4 pb-12 overflow-y-auto">
+    
+    <!-- ======================================================================= -->
+    <!-- 7. REFRAME STUDIO (استوديو التأطير الذكي وتوسيع الكادر السينمائي) -->
+    <!-- ======================================================================= -->
+    <section id="tab-reframe" class="hidden flex-1 flex flex-col glass-panel border border-cinema-700 rounded-2xl p-6 shadow-2xl space-y-6 overflow-y-auto">
+      
+      <!-- Header -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-cinema-800">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">Zero-Flickering V2</span>
+            <h2 class="text-xl font-black text-white flex items-center gap-2">
+              استوديو التأطير وتوسيع الكادر السينمائي
+              <span class="text-cinema-gold text-sm font-normal">(VirtuFilm AI Reframe)</span>
+            </h2>
+          </div>
+          <p class="text-xs text-slate-400 mt-1">
+            تحويل الفيديو الرأسي (9:16) إلى شاشة سينمائية عريضة (16:9) بدون تشويه وبأعلى ثبات واستمرارية بصرية.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <span class="text-xs text-slate-400">نمط المعالجة:</span>
+          <span class="px-3 py-1 rounded-lg text-xs font-semibold bg-cinema-800 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            محلي فائق السرعة (Local Engine)
+          </span>
+        </div>
+      </div>
+
+      <!-- Main Workspace Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Controls Column (Left) -->
+        <div class="lg:col-span-4 space-y-5 bg-cinema-900/60 border border-cinema-800 rounded-xl p-5">
+          
+          <!-- Upload Area -->
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-2">1. اختيار أو سحب الفيديو الأصلي</label>
+            <div id="reframe-dropzone" onclick="document.getElementById('reframe-file-input').click()" class="border-2 border-dashed border-cinema-700 hover:border-cyan-500/80 rounded-xl p-6 text-center cursor-pointer transition bg-cinema-950/40 hover:bg-cyan-500/5 group">
+              <svg class="w-10 h-10 mx-auto text-slate-500 group-hover:text-cyan-400 transition mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+              </svg>
+              <p class="text-xs font-bold text-slate-300 group-hover:text-white" id="reframe-file-name">انقر هنا لاختيار فيديو أو اسحبه هنا</p>
+              <p class="text-[10px] text-slate-500 mt-1">يدعم MP4, MOV, WebM حتى 300 ميجابايت</p>
+              <input type="file" id="reframe-file-input" accept="video/*" class="hidden" onchange="handleReframeFileSelected(event)">
+            </div>
+          </div>
+
+          <!-- Target Aspect Ratio Selection -->
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-2">2. الكادر والأبعاد المستهدفة (Target Ratio)</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" onclick="selectReframeRatio('16:9')" id="ratio-btn-16_9" class="p-3 rounded-xl border border-cyan-500/60 bg-cyan-500/15 text-white font-bold text-xs flex flex-col items-center gap-1 transition shadow">
+                <span class="text-sm">16:9</span>
+                <span class="text-[10px] text-cyan-300 font-normal">سينمائي / يوتيوب</span>
+              </button>
+              <button type="button" onclick="selectReframeRatio('9:16')" id="ratio-btn-9_16" class="p-3 rounded-xl border border-cinema-700 bg-cinema-800/40 text-slate-400 hover:text-white font-bold text-xs flex flex-col items-center gap-1 transition">
+                <span class="text-sm">9:16</span>
+                <span class="text-[10px] text-slate-500 font-normal">ريلز / تيك توك</span>
+              </button>
+              <button type="button" onclick="selectReframeRatio('1:1')" id="ratio-btn-1_1" class="p-3 rounded-xl border border-cinema-700 bg-cinema-800/40 text-slate-400 hover:text-white font-bold text-xs flex flex-col items-center gap-1 transition">
+                <span class="text-sm">1:1</span>
+                <span class="text-[10px] text-slate-500 font-normal">مربع (Instagram)</span>
+              </button>
+              <button type="button" onclick="selectReframeRatio('21:9')" id="ratio-btn-21_9" class="p-3 rounded-xl border border-cinema-700 bg-cinema-800/40 text-slate-400 hover:text-white font-bold text-xs flex flex-col items-center gap-1 transition">
+                <span class="text-sm">21:9</span>
+                <span class="text-[10px] text-slate-500 font-normal">شاشة عريضة فائقة</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Processing Button -->
+          <div class="pt-2">
+            <button type="button" onclick="startReframeProcessing()" id="reframe-submit-btn" class="w-full py-3 px-4 rounded-xl font-black text-sm bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-cinema-950 shadow-lg shadow-cyan-500/20 transition flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span>بدء إعادة التأطير الآن (Reframe)</span>
+            </button>
+          </div>
+
+          <!-- Status Box -->
+          <div id="reframe-status-box" class="hidden p-3 rounded-xl border border-cinema-700 bg-cinema-950/60 text-xs">
+            <div class="flex items-center gap-2 mb-2">
+              <div id="reframe-spinner" class="w-3.5 h-3.5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+              <span id="reframe-status-text" class="text-slate-300 font-medium">جارٍ معالجة الفيديو...</span>
+            </div>
+            <div class="w-full bg-cinema-800 rounded-full h-1.5 overflow-hidden">
+              <div id="reframe-progress-bar" class="bg-cyan-400 h-full rounded-full transition-all duration-300" style="width: 15%"></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Preview Column (Right) -->
+        <div class="lg:col-span-8 flex flex-col space-y-4">
+          <div class="bg-cinema-950/80 border border-cinema-800 rounded-xl p-4 flex-1 flex flex-col items-center justify-center min-h-[420px] relative overflow-hidden">
+            
+            <!-- Video Player (Shown when processed) -->
+            <video id="reframe-output-player" controls class="hidden max-h-[500px] w-full rounded-lg shadow-2xl border border-cinema-700/60 bg-black"></video>
+
+            <!-- Placeholder -->
+            <div id="reframe-placeholder" class="text-center p-8 space-y-3">
+              <div class="w-16 h-16 rounded-2xl bg-cinema-800/80 border border-cinema-700 flex items-center justify-center mx-auto text-cyan-400">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                </svg>
+              </div>
+              <h3 class="text-base font-bold text-white">معاينة الفيديو النهائي</h3>
+              <p class="text-xs text-slate-400 max-w-sm">
+                اختر الفيديو والأبعاد المستهدفة من القائمة الجانبية، وسيعرض الفيديو المعالج هنا مباشرة بدقة عالية بدون أي وميض.
+              </p>
+            </div>
+
+            <!-- Download Button -->
+            <div id="reframe-download-container" class="hidden mt-4 w-full flex justify-end">
+              <a id="reframe-download-link" href="#" download class="px-5 py-2.5 rounded-xl font-bold text-xs bg-emerald-500 hover:bg-emerald-400 text-cinema-950 transition flex items-center gap-2 shadow-lg">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                <span>تحميل الفيديو المعالج</span>
+              </a>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- REFRAME CLIENT JAVASCRIPT -->
+    <script>
+      let currentSelectedReframeRatio = '16:9';
+      let selectedReframeFile = null;
+
+      function selectReframeRatio(ratio) {
+        currentSelectedReframeRatio = ratio;
+        const allRatios = ['16:9', '9:16', '1:1', '21:9'];
+        allRatios.forEach(r => {
+          const btnId = 'ratio-btn-' + r.replace(':', '_');
+          const btn = document.getElementById(btnId);
+          if (!btn) return;
+          if (r === ratio) {
+            btn.className = 'p-3 rounded-xl border border-cyan-500/60 bg-cyan-500/15 text-white font-bold text-xs flex flex-col items-center gap-1 transition shadow';
+          } else {
+            btn.className = 'p-3 rounded-xl border border-cinema-700 bg-cinema-800/40 text-slate-400 hover:text-white font-bold text-xs flex flex-col items-center gap-1 transition';
+          }
+        });
+      }
+
+      function handleReframeFileSelected(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        selectedReframeFile = file;
+        const nameLabel = document.getElementById('reframe-file-name');
+        if (nameLabel) {
+          nameLabel.textContent = 'تم اختيار: ' + file.name + ' (' + (file.size / (1024 * 1024)).toFixed(1) + ' MB)';
+          nameLabel.classList.add('text-cyan-300');
+        }
+      }
+
+      // Drag and drop handlers
+      const dropzone = document.getElementById('reframe-dropzone');
+      if (dropzone) {
+        dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('border-cyan-400'); });
+        dropzone.addEventListener('dragleave', (e) => { e.preventDefault(); dropzone.classList.remove('border-cyan-400'); });
+        dropzone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          dropzone.classList.remove('border-cyan-400');
+          if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            selectedReframeFile = e.dataTransfer.files[0];
+            const nameLabel = document.getElementById('reframe-file-name');
+            if (nameLabel) {
+              nameLabel.textContent = 'تم اختيار: ' + selectedReframeFile.name;
+              nameLabel.classList.add('text-cyan-300');
+            }
+          }
+        });
+      }
+
+      async function startReframeProcessing() {
+        if (!selectedReframeFile) {
+          alert('يرجى اختيار ملف فيديو أولاً');
+          return;
+        }
+
+        const statusBox = document.getElementById('reframe-status-box');
+        const statusText = document.getElementById('reframe-status-text');
+        const progressBar = document.getElementById('reframe-progress-bar');
+        const submitBtn = document.getElementById('reframe-submit-btn');
+
+        statusBox.classList.remove('hidden');
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+        statusText.textContent = 'جارٍ قراءة وتجهيز الفيديو...';
+        progressBar.style.width = '25%';
+
+        try {
+          // Read file as base64
+          const reader = new FileReader();
+          reader.onload = async function() {
+            const b64 = reader.result;
+            statusText.textContent = 'جارٍ معالجة وتوسيع الكادر بالأبعاد ' + currentSelectedReframeRatio + '...';
+            progressBar.style.width = '60%';
+
+            const payload = {
+              video_base64: b64,
+              filename: selectedReframeFile.name,
+              target_ratio: currentSelectedReframeRatio,
+              mode: 'smart_ambient'
+            };
+
+            const resp = await fetch('/api/reframe/process', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+
+            if (!resp.ok) {
+              const err = await resp.text();
+              throw new Error(err || 'فشل في المعالجة');
+            }
+
+            const data = await resp.json();
+            progressBar.style.width = '100%';
+            statusText.textContent = 'تم الانتهاء بنجاح!';
+
+            // Display in player
+            const player = document.getElementById('reframe-output-player');
+            const placeholder = document.getElementById('reframe-placeholder');
+            const dlContainer = document.getElementById('reframe-download-container');
+            const dlLink = document.getElementById('reframe-download-link');
+
+            placeholder.classList.add('hidden');
+            player.classList.remove('hidden');
+            player.src = data.output_url;
+            player.play();
+
+            dlContainer.classList.remove('hidden');
+            dlLink.href = data.output_url;
+            dlLink.download = data.filename;
+
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+          };
+          reader.readAsDataURL(selectedReframeFile);
+        } catch (err) {
+          alert('حدث خطأ أثناء معالجة الفيديو: ' + err.message);
+          statusText.textContent = 'حدث خطأ أثناء المعالجة';
+          submitBtn.disabled = false;
+          submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+      }
+    </script>
+
+<section id="tab-storyboard" class="hidden flex-1 flex flex-col space-y-4 pb-12 overflow-y-auto">
       
       <!-- Storyboard Header -->
       <div class="glass-panel border border-cyan-500/40 rounded-2xl p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3 shadow-xl bg-gradient-to-r from-cinema-950 via-cinema-900 to-cyan-950/40">
@@ -3441,7 +3706,7 @@
       window.currentActiveTabId = tabId;
       setTimeout(() => { if (typeof applyUniversalTextI18n === 'function') applyUniversalTextI18n(window.currentAppLang || 'ar'); }, 50);
 
-      const allTabs = ['chat', 'comfy', 'screening', 'lora', 'vault', 'storyboard'];
+      const allTabs = ['chat', 'comfy', 'screening', 'lora', 'vault', 'storyboard', 'reframe'];
       const ON = 'px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-cinema-gold text-cinema-900 shadow';
       const OFF = 'px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition flex items-center gap-1.5';
 
@@ -10078,6 +10343,26 @@ let currentUploadContext = 'chat';
     
     // --- BIDIRECTIONAL BI-LINGUAL ENGINE (ARABIC <-> ENGLISH) ---
     const BI_TEXT_PAIRS = [
+      ['تأطير سينمائي (Reframe)', 'AI Reframe Studio'],
+      ['استوديو التأطير وتوسيع الكادر السينمائي', 'AI Reframe & Cinematic Expansion Studio'],
+      ['(VirtuFilm AI Reframe)', '(VirtuFilm AI Reframe)'],
+      ['تحويل الفيديو الرأسي (9:16) إلى شاشة سينمائية عريضة (16:9) بدون تشويه وبأعلى ثبات واستمرارية بصرية.', 'Convert vertical video (9:16) to cinematic widescreen (16:9) with zero-distortion and rock-solid temporal consistency.'],
+      ['نمط المعالجة:', 'Processing Engine:'],
+      ['محلي فائق السرعة (Local Engine)', 'Ultra-Fast Local Engine'],
+      ['1. اختيار أو سحب الفيديو الأصلي', '1. Select or Drag Source Video'],
+      ['انقر هنا لاختيار فيديو أو اسحبه هنا', 'Click here to select video or drop it here'],
+      ['يدعم MP4, MOV, WebM حتى 300 ميجابايت', 'Supports MP4, MOV, WebM up to 300MB'],
+      ['2. الكادر والأبعاد المستهدفة (Target Ratio)', '2. Target Aspect Ratio'],
+      ['سينمائي / يوتيوب', 'Cinematic / YouTube'],
+      ['ريلز / تيك توك', 'Reels / TikTok'],
+      ['مربع (Instagram)', 'Square (Instagram)'],
+      ['شاشة عريضة فائقة', 'Ultra-Widescreen'],
+      ['بدء إعادة التأطير الآن (Reframe)', 'Start AI Reframe Now'],
+      ['جارٍ معالجة الفيديو...', 'Processing Video...'],
+      ['معاينة الفيديو النهائي', 'Processed Video Preview'],
+      ['اختر الفيديو والأبعاد المستهدفة من القائمة الجانبية، وسيعرض الفيديو المعالج هنا مباشرة بدقة عالية بدون أي وميض.', 'Select video and target aspect ratio from the side panel; your processed video will appear here in ultra-high quality.'],
+      ['تحميل الفيديو المعالج', 'Download Processed Video'],
+
       ['1. الإخراج', '1. Directing'],
       ['2. السيناريو', '2. Storyboard'],
       ['3. الممثل', '3. Actor'],
