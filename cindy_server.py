@@ -1463,7 +1463,7 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             try:
                 import cindy_reframe_engine
                 ratio = payload.get('target_ratio', '16:9')
-                mode = payload.get('mode', 'smart_ambient')
+                mode = payload.get('mode', 'generative') # 'generative' (AI Outpaint) or 'smart_ambient'
                 video_data_b64 = payload.get('video_base64', '')
                 video_filename = payload.get('filename', 'input_video.mp4')
                 
@@ -1488,7 +1488,77 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                 with open(in_path, 'wb') as f_in:
                     f_in.write(video_bytes)
                 
-                # Execute Reframe Engine
+                secrets = load_secrets()
+                fal_key = secrets.get('fal_api_key') or os.getenv('FAL_KEY', '')
+
+                # Priority 1: High-Fidelity Generative Outpainting (LTX-2.5 Reframe)
+                if mode == 'generative' and fal_key:
+                    # Upload video to Fal CDN storage
+                    video_cloud_url = self._resolve_media_for_fal(f"/outputs/{os.path.basename(in_path)}", fal_key)
+                    if not video_cloud_url or not video_cloud_url.startswith('http'):
+                        raise RuntimeError("تعذر رفع الفيديو إلى السحابة للتأطير التوليدي.")
+                    
+                    # Map aspect ratio to LTX resolution
+                    res_map = {
+                        "16:9": "1920x1080",
+                        "9:16": "1080x1920",
+                        "1:1": "1080x1080",
+                        "21:9": "1920x1080" # closest landscape standard
+                    }
+                    target_res = res_map.get(ratio, "1920x1080")
+                    ltx_payload = {
+                        "video_url": video_cloud_url,
+                        "resolution": target_res
+                    }
+                    
+                    sub_r = requests.post(
+                        "https://queue.fal.run/lightricks/ltx-2.5/reframe",
+                        headers={'Authorization': f'Key {fal_key}', 'Content-Type': 'application/json'},
+                        json=ltx_payload,
+                        timeout=30
+                    )
+                    if sub_r.status_code not in [200, 201, 202]:
+                        raise RuntimeError(f"خطأ في إرسال طلب التأطير التوليدي: {sub_r.text[:200]}")
+                    
+                    q_info = sub_r.json()
+                    st_url = q_info.get('status_url')
+                    res_url = q_info.get('response_url')
+                    
+                    gen_video_url = None
+                    for _ in range(120): # poll for up to 6 minutes
+                        time.sleep(3)
+                        chk_st = requests.get(st_url, headers={'Authorization': f'Key {fal_key}'}, timeout=15)
+                        if chk_st.status_code in [200, 202]:
+                            st_data = chk_st.json()
+                            status_val = st_data.get('status')
+                            if status_val == 'COMPLETED':
+                                chk_res = requests.get(res_url, headers={'Authorization': f'Key {fal_key}'}, timeout=20)
+                                if chk_res.status_code == 200:
+                                    r_data = chk_res.json()
+                                    gen_video_url = (r_data.get('video') or {}).get('url') or r_data.get('video_url')
+                                    break
+                            elif status_val == 'FAILED':
+                                raise RuntimeError(f"فشل التأطير التوليدي: {st_data.get('error', 'Unknown')}")
+                    
+                    if gen_video_url:
+                        # Download generated video locally
+                        dl_r = requests.get(gen_video_url, timeout=60)
+                        if dl_r.status_code == 200:
+                            with open(out_path, 'wb') as f_out:
+                                f_out.write(dl_r.content)
+                            rel_url = f"/outputs/{os.path.basename(out_path)}"
+                            res = {
+                                "status": "success",
+                                "output_url": rel_url,
+                                "filename": os.path.basename(out_path),
+                                "target_ratio": ratio,
+                                "engine": "Generative AI Outpainting (Lightricks LTX-2.5)",
+                                "message": "تم بناء وتوسيع المشهد بالذكاء الاصطناعي التوليدي الحقيقي بنجاح 🎬"
+                            }
+                            self.send_json_response(200, res)
+                            return
+
+                # Fallback to local ultra-fast GPU accelerated engine if cloud generative is unconfigured
                 final_out = cindy_reframe_engine.reframe_video_pipeline(
                     input_video_path=in_path,
                     output_video_path=out_path,
@@ -1502,7 +1572,8 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                     "output_url": rel_url,
                     "filename": os.path.basename(final_out),
                     "target_ratio": ratio,
-                    "message": "تم تحويل الفيديو وإعادة التأطير بنجاح وبأعلى جودة"
+                    "engine": "Local Fast Engine",
+                    "message": "تم تحويل الفيديو وإعادة التأطير بنجاح"
                 }
                 self.send_json_response(200, res)
                 return

@@ -1171,11 +1171,16 @@
         </div>
 
         <div class="flex items-center gap-3">
-          <span class="text-xs text-slate-400">نمط المعالجة:</span>
-          <span class="px-3 py-1 rounded-lg text-xs font-semibold bg-cinema-800 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            محلي فائق السرعة (Local Engine)
-          </span>
+          <span class="text-xs text-slate-400">محرك المعالجة:</span>
+          <div class="inline-flex p-1 rounded-xl bg-cinema-900 border border-cinema-700">
+            <button type="button" onclick="setReframeMode('generative')" id="reframe-mode-gen" class="px-3 py-1 rounded-lg text-xs font-black bg-cyan-500 text-cinema-950 transition flex items-center gap-1.5 shadow">
+              <span class="w-2 h-2 rounded-full bg-cinema-950 animate-pulse"></span>
+              توليدي حقيقي (AI Outpaint 🎬)
+            </button>
+            <button type="button" onclick="setReframeMode('smart_ambient')" id="reframe-mode-local" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition flex items-center gap-1.5">
+              محلي سريع (Ambient Wings)
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1291,6 +1296,20 @@
     <script>
       let currentSelectedReframeRatio = '16:9';
       let selectedReframeFile = null;
+      let currentReframeMode = 'generative'; // 'generative' (AI Outpaint) or 'smart_ambient'
+
+      function setReframeMode(m) {
+        currentReframeMode = m;
+        const genBtn = document.getElementById('reframe-mode-gen');
+        const locBtn = document.getElementById('reframe-mode-local');
+        if (m === 'generative') {
+          if (genBtn) genBtn.className = 'px-3 py-1 rounded-lg text-xs font-black bg-cyan-500 text-cinema-950 transition flex items-center gap-1.5 shadow';
+          if (locBtn) locBtn.className = 'px-3 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition flex items-center gap-1.5';
+        } else {
+          if (genBtn) genBtn.className = 'px-3 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition flex items-center gap-1.5';
+          if (locBtn) locBtn.className = 'px-3 py-1 rounded-lg text-xs font-black bg-cyan-500 text-cinema-950 transition flex items-center gap-1.5 shadow';
+        }
+      }
 
       function selectReframeRatio(ratio) {
         currentSelectedReframeRatio = ratio;
@@ -1367,7 +1386,7 @@
               video_base64: b64,
               filename: selectedReframeFile.name,
               target_ratio: currentSelectedReframeRatio,
-              mode: 'smart_ambient'
+              mode: currentReframeMode
             };
 
             const resp = await fetch('/api/reframe/process', {
