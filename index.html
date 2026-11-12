@@ -1234,9 +1234,14 @@
 
           <!-- Status Box -->
           <div id="reframe-status-box" class="hidden p-3 rounded-xl border border-cinema-700 bg-cinema-950/60 text-xs">
-            <div class="flex items-center gap-2 mb-2">
-              <div id="reframe-spinner" class="w-3.5 h-3.5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
-              <span id="reframe-status-text" class="text-slate-300 font-medium">جارٍ معالجة الفيديو...</span>
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <div id="reframe-spinner" class="w-3.5 h-3.5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+                <span id="reframe-status-text" class="text-slate-300 font-medium">جارٍ معالجة الفيديو...</span>
+              </div>
+              <button type="button" onclick="cancelReframeProcessing()" class="px-2.5 py-1 rounded bg-rose-500/20 hover:bg-rose-500/40 text-rose-300 border border-rose-500/40 text-[10px] font-bold transition">
+                ⏹ إلغاء وحماية الكارت
+              </button>
             </div>
             <div class="w-full bg-cinema-800 rounded-full h-1.5 overflow-hidden">
               <div id="reframe-progress-bar" class="bg-cyan-400 h-full rounded-full transition-all duration-300" style="width: 15%"></div>
@@ -1405,6 +1410,20 @@
           submitBtn.disabled = false;
           submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
         }
+      }
+
+      async function cancelReframeProcessing() {
+        try {
+          await fetch('/api/reframe/cancel', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: '{}' });
+        } catch (_) {}
+        const statusBox = document.getElementById('reframe-status-box');
+        const submitBtn = document.getElementById('reframe-submit-btn');
+        if (statusBox) statusBox.classList.add('hidden');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+        showToast('تم إيقاف عملية التأطير وتحرير كارت الشاشة فوراً 🛡️', 'info');
       }
     </script>
 

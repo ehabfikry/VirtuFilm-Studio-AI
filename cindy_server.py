@@ -1512,6 +1512,17 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_error_response(500, f"خطأ أثناء معالجة الفيديو: {str(e)}")
                 return
 
+        if self.path == '/api/reframe/cancel':
+            try:
+                import cindy_reframe_engine
+                cindy_reframe_engine.cancel_active_reframe()
+                import subprocess
+                subprocess.run(["taskkill", "/F", "/IM", "ffmpeg.exe", "/T"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                self.send_json_response(200, {"success": True, "message": "تم إلغاء عملية التأطير وإيقاف المعالجة فوراً."})
+            except Exception as e:
+                self.send_json_response(200, {"success": True, "message": str(e)})
+            return
+
         if self.path == '/api/comfyui/cancel_video':
             jid = (payload.get('job_id') or '').strip()
             if jid and jid in VIDEO_JOBS:

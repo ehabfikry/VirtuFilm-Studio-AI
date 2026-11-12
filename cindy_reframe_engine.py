@@ -17,6 +17,19 @@ import shutil
 import pathlib
 import subprocess
 
+ACTIVE_REFRAME_PROC = None
+
+def cancel_active_reframe():
+    global ACTIVE_REFRAME_PROC
+    if ACTIVE_REFRAME_PROC and ACTIVE_REFRAME_PROC.poll() is None:
+        try:
+            ACTIVE_REFRAME_PROC.kill()
+            ACTIVE_REFRAME_PROC = None
+            return True
+        except Exception:
+            pass
+    return False
+
 def _safe_path(p):
     p = pathlib.Path(p).resolve()
     if sys.platform == "win32":
@@ -128,8 +141,15 @@ def reframe_video_pipeline(
         _safe_path(output_path)
     ]
     
-    r = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
-    if r.returncode != 0:
+    global ACTIVE_REFRAME_PROC
+    try:
+        ACTIVE_REFRAME_PROC = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
+        _, stderr_text = ACTIVE_REFRAME_PROC.communicate()
+        returncode = ACTIVE_REFRAME_PROC.returncode
+    finally:
+        ACTIVE_REFRAME_PROC = None
+
+    if returncode != 0:
         # Fallback to pure CPU libx264 if hardware encoder fails on specific resolutions
         fallback_cmd = [
             "ffmpeg", "-y",
@@ -142,9 +162,15 @@ def reframe_video_pipeline(
             "-pix_fmt", "yuv420p",
             _safe_path(output_path)
         ]
-        r_fb = subprocess.run(fallback_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
-        if r_fb.returncode != 0:
-            raise RuntimeError(f"FFmpeg Reframe failed: {r_fb.stderr}")
+        try:
+            ACTIVE_REFRAME_PROC = subprocess.Popen(fallback_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
+            _, fb_stderr = ACTIVE_REFRAME_PROC.communicate()
+            fb_returncode = ACTIVE_REFRAME_PROC.returncode
+        finally:
+            ACTIVE_REFRAME_PROC = None
+
+        if fb_returncode != 0:
+            raise RuntimeError(f"FFmpeg Reframe failed: {fb_stderr}")
             
     if progress_callback:
         progress_callback(100, 100, 100)
