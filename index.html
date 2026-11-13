@@ -12701,6 +12701,22 @@ let currentUploadContext = 'chat';
         </div>
       </div>
 
+      <!-- Clean Category Filter Bar for the Director -->
+      <div class="px-4 py-2 border-b border-cinema-800/80 bg-cinema-950/70 flex items-center gap-1.5 overflow-x-auto text-[11px] shrink-0">
+        <button type="button" onclick="filterRadarCards('all')" id="rf-btn-all" class="px-3 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold transition shrink-0">
+          🌟 الكل (All Insights)
+        </button>
+        <button type="button" onclick="filterRadarCards('models')" id="rf-btn-models" class="px-3 py-1 rounded-lg bg-cinema-800 text-slate-400 hover:text-white border border-cinema-700 transition shrink-0">
+          🔥 نماذج الفيديو المتداولة (Top Models)
+        </button>
+        <button type="button" onclick="filterRadarCards('open')" id="rf-btn-open" class="px-3 py-1 rounded-lg bg-cinema-800 text-slate-400 hover:text-white border border-cinema-700 transition shrink-0">
+          💎 أدوات مفتوحة ومجانية (Open Source & Local)
+        </button>
+        <button type="button" onclick="filterRadarCards('drama')" id="rf-btn-drama" class="px-3 py-1 rounded-lg bg-cinema-800 text-slate-400 hover:text-white border border-cinema-700 transition shrink-0">
+          🎬 دراما وتمثيل ومونتاج (Drama & Acting)
+        </button>
+      </div>
+
       <!-- Body: Radar Cards List -->
       <div id="radar-cards-container" class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 text-xs">
         <!-- Dynamically injected via JS -->
@@ -12734,11 +12750,12 @@ let currentUploadContext = 'chat';
       if (modal) modal.classList.add('hidden');
     }
 
+    window.allRadarTrends = [];
+    window.currentRadarFilter = 'all';
+
     async function refreshCinemaRadar(force = false) {
-      const container = document.getElementById('radar-cards-container');
       const timeSpan = document.getElementById('radar-modal-time');
       const icon = document.getElementById('radar-refresh-icon');
-      const isEn = (window.currentAppLang === 'en');
 
       if (icon) icon.classList.add('fa-spin');
 
@@ -12748,52 +12765,86 @@ let currentUploadContext = 'chat';
         if (data.success && data.radar) {
           const radar = data.radar;
           if (timeSpan) timeSpan.textContent = radar.last_updated || 'Now';
-
-          const trends = radar.trends || [];
-          if (container) {
-            container.innerHTML = trends.map(t => `
-              <div class="glass-panel border border-cinema-700/80 rounded-2xl p-4 space-y-2.5 hover:border-cyan-500/50 transition shadow">
-                <div class="flex items-center justify-between flex-wrap gap-2">
-                  <div class="flex items-center gap-2">
-                    <span class="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
-                      <i class="fa-solid fa-bolt text-amber-400"></i> ${t.title}
-                    </span>
-                    <span class="text-[9px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-2 py-0.5 rounded font-bold font-mono">
-                      ${t.category}
-                    </span>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <span class="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded font-bold">
-                      ${t.badge}
-                    </span>
-                    <span class="text-[10px] text-emerald-400 font-mono font-bold">
-                      ${t.cost_indicator}
-                    </span>
-                  </div>
-                </div>
-
-                <p class="text-[11px] text-slate-300 leading-relaxed bg-cinema-950/60 p-2.5 rounded-xl border border-cinema-850">
-                  ${t.summary}
-                </p>
-
-                <div class="flex items-center justify-between text-[11px] pt-1 border-t border-cinema-800/80">
-                  <span class="text-slate-400 flex items-center gap-1.5">
-                    <i class="fa-solid fa-clapperboard text-cyan-400"></i>
-                    <strong>${isEn ? 'Impact for the Director:' : 'أهميته للمخرج:'}</strong> ${t.impact_on_director}
-                  </span>
-                  <button type="button" onclick="applyRadarPrompt('${t.action_prompt || ''}')" class="px-2.5 py-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-[10px] font-bold flex items-center gap-1 transition">
-                    <i class="fa-solid fa-play text-[9px]"></i> ${isEn ? 'Try This Now' : 'تجربة فورية'}
-                  </button>
-                </div>
-              </div>
-            `).join('');
-          }
+          window.allRadarTrends = radar.trends || [];
+          renderFilteredRadarCards();
         }
       } catch (e) {
         console.warn('Radar fetch error:', e);
       } finally {
         if (icon) icon.classList.remove('fa-spin');
       }
+    }
+
+    function filterRadarCards(cat) {
+      window.currentRadarFilter = cat;
+      ['all', 'models', 'open', 'drama'].forEach(c => {
+        const btn = document.getElementById(`rf-btn-${c}`);
+        if (!btn) return;
+        if (c === cat) {
+          btn.className = 'px-3 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold transition shrink-0';
+        } else {
+          btn.className = 'px-3 py-1 rounded-lg bg-cinema-800 text-slate-400 hover:text-white border border-cinema-700 transition shrink-0';
+        }
+      });
+      renderFilteredRadarCards();
+    }
+
+    function renderFilteredRadarCards() {
+      const container = document.getElementById('radar-cards-container');
+      if (!container) return;
+      const isEn = (window.currentAppLang === 'en');
+      const filter = window.currentRadarFilter || 'all';
+
+      let list = window.allRadarTrends || [];
+      if (filter === 'models') {
+        list = list.filter(t => (t.id || '').startsWith('hf_') || (t.category || '').toLowerCase().includes('engine') || (t.category || '').toLowerCase().includes('model'));
+      } else if (filter === 'open') {
+        list = list.filter(t => (t.cost_indicator || '').includes('مجاني') || (t.cost_indicator || '').toLowerCase().includes('open') || (t.category || '').toLowerCase().includes('framework') || (t.category || '').toLowerCase().includes('hub'));
+      } else if (filter === 'drama') {
+        list = list.filter(t => (t.category || '').includes('Drama') || (t.category || '').includes('Actor') || (t.category || '').includes('VFX') || (t.category || '').includes('Timeline') || (t.category || '').includes('Consistency'));
+      }
+
+      if (list.length === 0) {
+        container.innerHTML = `<div class="p-6 text-center text-slate-500 text-xs">${isEn ? 'No items in this category' : 'لا توجد عناصر في هذا التصنيف حالياً'}</div>`;
+        return;
+      }
+
+      container.innerHTML = list.map(t => `
+        <div class="glass-panel border border-cinema-700/80 rounded-2xl p-4 space-y-2.5 hover:border-cyan-500/50 transition shadow">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
+                <i class="fa-solid fa-bolt text-amber-400"></i> ${t.title}
+              </span>
+              <span class="text-[9px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-2 py-0.5 rounded font-bold font-mono">
+                ${t.category}
+              </span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded font-bold">
+                ${t.badge}
+              </span>
+              <span class="text-[10px] text-emerald-400 font-mono font-bold">
+                ${t.cost_indicator}
+              </span>
+            </div>
+          </div>
+
+          <p class="text-[11px] text-slate-300 leading-relaxed bg-cinema-950/60 p-2.5 rounded-xl border border-cinema-850">
+            ${t.summary}
+          </p>
+
+          <div class="flex items-center justify-between text-[11px] pt-1 border-t border-cinema-800/80">
+            <span class="text-slate-400 flex items-center gap-1.5">
+              <i class="fa-solid fa-clapperboard text-cyan-400"></i>
+              <strong>${isEn ? 'Impact for the Director:' : 'أهميته للمخرج:'}</strong> ${t.impact_on_director}
+            </span>
+            <button type="button" onclick="applyRadarPrompt('${t.action_prompt || ''}')" class="px-2.5 py-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-[10px] font-bold flex items-center gap-1 transition cursor-pointer">
+              <i class="fa-solid fa-play text-[9px]"></i> ${isEn ? 'Try This Now' : 'تجربة فورية'}
+            </button>
+          </div>
+        </div>
+      `).join('');
     }
 
     function applyRadarPrompt(promptText) {

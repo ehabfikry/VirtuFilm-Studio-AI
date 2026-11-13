@@ -18,7 +18,7 @@
     "zero_cost_balance_guard": "Active (Blocks all unconfirmed cloud billing)"
   },
   "files": {
-    "index.html": "14f6a5c00af17ff29d22afca06ca3c86e03981edb1dce2b89cbf517b8d9133b3",
+    "index.html": "8d2920d61e00b1561b60c8be77274e5a0ca6d3a876ea3694f19902106a7725ad",
     "cindy_server.py": "c26bd2ae58d1aad952c5cf217bf77a2b2533fb2c8319cc0160b531b13fd09a19",
     "cindy_previs_engine.py": {
       "sha256": "bfbeb7e8bcb4448ea4fe874dd0151eba29e518d4fc0ae5d03600f791ba37139d",
@@ -41,7 +41,7 @@
       "size_bytes": 27647,
       "modified_utc": "2026-11-11T17:14:54Z"
     },
-    "cindy_radar.py": "2dab62ffbe800dda94338e917280986e1af40147e350056aaba285140dc4ee9f",
+    "cindy_radar.py": "4dd557b215665b5ab64ac71e6bbfd94d790ea0d7a764fb99f2590ba2f0ccca5d",
     "cindy_reframe_engine.py": {
       "sha256": "f09d9914189f9f329e766256aae76fe366de61e648b19132f42202f9126f07bb",
       "size_bytes": 10051,
@@ -78,6 +78,6 @@
       "modified_utc": "2026-11-08T12:18:22Z"
     }
   },
-  "last_updated": "2026-11-13 03:09:22 UTC",
-  "update_reason": "Integrated ethical open-source micro-drama episode stitcher and live radar credits"
+  "last_updated": "2026-11-13 03:25:54 UTC",
+  "update_reason": "Added organized category filter tabs to Industry Radar and incorporated curated ethical open-source tools"
 }

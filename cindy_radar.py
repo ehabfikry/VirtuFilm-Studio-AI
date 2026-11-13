@@ -118,7 +118,52 @@ FALLBACK_BASELINE_TRENDS = [
         "impact_on_director": "إلهام متميز لاستعراض 4 خيارات إخراجية لكل لقطة في سيندي قبل اختيار الكادر الفائز للريندر النهائي.",
         "cost_indicator": "مفتوح المصدر (MIT)",
         "action_prompt": "4-way cinematic variation grid exploring different director camera perspectives"
+    },
+    {
+        "id": "toonflow_infinite_canvas",
+        "title": "Toonflow AI (Infinite Canvas & Short-Drama Storyboard)",
+        "source": "HBAI-Ltd (21K+ Stars / GitHub MIT)",
+        "category": "Storyboard & Drama Canvas",
+        "badge": "🎨 كانفاس الدراما اللانهائي",
+        "summary": "منصة مفتوحة المصدر لترتيب مشاهد وقصص الدراما التفاعلية على مساحة عمل بصرية غير محدودة مع إدارة ثابتة لهوية الممثل والديكور.",
+        "impact_on_director": "استلهام طريقة العرض البصري البانورامي للمشاهد وتقليل التشتت أثناء الإخراج المتتابع.",
+        "cost_indicator": "مفتوح المصدر (MIT)",
+        "action_prompt": "Panoramic multi-panel storyboard layout depicting consecutive character scenes"
+    },
+    {
+        "id": "tein_emotion_control",
+        "title": "TEIN Emotion Control & Face Replacement Workflow",
+        "source": "Sirio Berati / TEIN AI (GitHub SOTA)",
+        "category": "Actor Performance & VFX",
+        "badge": "🎭 التحكم بالانفعال والوجه",
+        "summary": "معمارية مفتوحة المصدر عبر ComfyUI لنقل الأداء البشري وتعبيرات الوجه بدقة 478 نقطة تتبع، واستبدال الممثل في المشهد دون مساس بالصوت والإضاءة.",
+        "impact_on_director": "تمكين المخرج من تسجيل انفعالاته بنفسه وتطبيقها على الممثل الرقمي بصدق تمثيلي فائق، واستبدال الدوبلير بنقرة زر.",
+        "cost_indicator": "مفتوح المصدر محلياً",
+        "action_prompt": "High fidelity emotional facial expression transfer with nuanced micro-expressions and intense eye contact"
+    },
+    {
+        "id": "nomi_video_workbench",
+        "title": "Nomi AI Video Workbench (Timeline & MCP Studio)",
+        "source": "Nomi Open Source (AGPL v3)",
+        "category": "Timeline & Multi-Model",
+        "badge": "⏱️ تايم لاين المونتاج المحلي",
+        "summary": "بيئة عمل محلية لمونتاج الفيديو بالذكاء الاصطناعي مع تايم لاين تفاعلي وربط مفتوح لأي موديل دون أي تتبع أو اشتراكات.",
+        "impact_on_director": "دعم استقلالية المخرج وربط أدوات التحرير المباشرة في جهازك دون الاعتماد على خدمات المونتاج السحابية الباهظة.",
+        "cost_indicator": "مجاني محلياً 100%",
+        "action_prompt": "Multi-track video timeline editing sequence with seamless transitions"
+    },
+    {
+        "id": "locally_uncensored_studio",
+        "title": "Locally Uncensored AI Desktop Studio",
+        "source": "PurpleDoubleD Open Source (AGPL v3)",
+        "category": "Desktop Local AI Hub",
+        "badge": "🛡️ حرية الإبداع المحلي",
+        "summary": "استوديو مكتبي محلي متكامل لتشغيل الذكاء الاصطناعي على جهاز المخرج بنقرة واحدة بدون دوكر أو تيرمينال مع حرية درامية كاملة.",
+        "impact_on_director": "دليل إرشادي عملي لتشغيل النماذج محلياً بدون قيود الرقابة السحابية التجارية على النصوص السينمائية الحماسية.",
+        "cost_indicator": "مجاني محلياً 100%",
+        "action_prompt": "Cinematic dramatic noir confrontation with dynamic lighting and intense narrative tension"
     }
+
 
 ]
 
