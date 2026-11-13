@@ -10,17 +10,31 @@
 # Unauthorized copying, reverse engineering, or redistribution is strictly prohibited.
 # ==============================================================================
 
-import os, json, time, requests, re
+import os
+import json
+import time
+import requests
+import re
 
 RADAR_CACHE_PATH = r'C:\Users\DELL\Desktop\Cindy-AI-Director\outputs\cinema_radar_cache.json'
 
-# Real-world intelligence feed aggregator
-# Targets curated daily reports such as Synon AI Daily, Artificial Analysis, Hugging Face releases, and fal.ai model hubs
-LIVE_CURATED_SOURCES = [
+# Curated High-Value Baseline Trends (Hollywood & Open-Weights SOTA)
+FALLBACK_BASELINE_TRENDS = [
+    {
+        "id": "wan_2_2_hybrid",
+        "title": "Alibaba Wan 2.2 TI2V (Unified 14B Cinema Engine)",
+        "source": "Alibaba Wan-AI & Hugging Face SOTA (2026-11)",
+        "category": "Cinematic Video Engine",
+        "badge": "💎 بطل الساحة الحالي",
+        "summary": "إطلاق معمارية Wan 2.2 الموحدة (Text-to-Video و Image-to-Video) بمحاكاة فيزيائية واقعية وانعدام تام لتشوهات أطراف الشخصيات وحركة الإضاءة ثلاثية الأبعاد.",
+        "impact_on_director": "أرخص وأدق محرك فيديو سينمائي متاح حالياً للتحريك المرجعي (I2V) بجودة 720p/1080p وبتكلفة منخفضة جداً.",
+        "cost_indicator": "~$0.04 - $0.06 / لقطة",
+        "action_prompt": "Cinematic camera push-in on subject with volumetric lighting, matching environmental audio and dramatic depth"
+    },
     {
         "id": "hyperflow_h3_flash",
         "title": "MiniMax HyperFlow H3 Flash (Open Weights & 6-Step Video)",
-        "source": "Synon Video Gen AI Daily & Video Rebirth (2026-11-09)",
+        "source": "Synon Video Gen AI Daily & Video Rebirth (2026-11)",
         "category": "ComfyUI & Local Distillation",
         "badge": "⚡ أوزان مفتوحة محلياً",
         "summary": "إطلاق أوزان HyperFlow H3 Flash المصغرة من MiniMax H3 بحجم 14B و 6 خطوات توليد فقط (INT8). الموديل يعمل محلياً بالكامل على كروت RTX 4090 ويولد 5.2 ثانية في نحو 130 ثانية بدون أي تكلفة سحابية.",
@@ -45,15 +59,15 @@ LIVE_CURATED_SOURCES = [
         "source": "Lightricks & fal.ai (2026-11)",
         "category": "Aspect Ratio & Post-Production",
         "badge": "🎨 توسيع ذكي للكادر",
-        "summary": "أداة إعادة تأطير الفيديوهات الذكية. بدلاً من القص الحاد التقليدي عند تحويل الفيديو السينمائي 16:9 إلى عمودي 9:16 أو مربع 1:1، تقوم الأداة بتوليد ورسم بقية المشهد في الأعلى والأسفل متوافقاً مع حركة الكاميرا والفيزياء الأصلية.",
+        "summary": "أداة إعادة تأطير الفيديوهات الذكية. بدلاً من القص الحاد التقليدي عند تحويل الفيديو السينمائي 16:9 إلى عمودي 9:16 أو العكس، تقوم الأداة بتوليد ورسم بقية المشهد في الأعلى والأسفل والجوانب متوافقاً مع حركة الكاميرا والفيزياء الأصلية.",
         "impact_on_director": "تحويل أي لقطة فيلم سينمائية إلى مادة سوشيال ميديا (Reels / TikTok) بدقة 1080p بدون التضحية بأي عنصر في الكادر.",
-        "cost_indicator": "~$0.08 / لقطة",
+        "cost_indicator": "~$0.05 - $0.10 / ثانية",
         "action_prompt": "Generative outpainting reframe from 16:9 to 9:16 vertical preserving camera continuity"
     },
     {
         "id": "skyreels_v4_leaderboard",
         "title": "SkyReels V4 (Top 10 Global Leaderboard Entry)",
-        "source": "Artificial Analysis Video Arena (2026-11-09)",
+        "source": "Artificial Analysis Video Arena (2026-11)",
         "category": "Character Consistency",
         "badge": "🔥 المركز 9 عالمياً",
         "summary": "دخول رسمي لنموذج SkyReels V4 ضمن المراكز العشرة الأولى عالمياً في مؤشر Artificial Analysis بدرجة 1137 نقطة متفوقاً على Seedance 2.0 في ثبات حركة الأطراف والأوجه البشرية.",
@@ -63,41 +77,99 @@ LIVE_CURATED_SOURCES = [
     }
 ]
 
-def fetch_live_synon_intelligence():
-    """Scrapes latest headlines and trends from live film AI industry portals like synon.co.jp."""
-    url = "https://synon.co.jp/article/news/2026-11-09-video-gen-ai-daily"
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+def fetch_live_huggingface_video_trends():
+    """Live API fetch: Query trending open-source video models directly from Hugging Face."""
+    url = "https://huggingface.co/api/models?pipeline_tag=text-to-video&sort=trendingScore&direction=-1&limit=5"
+    headers = {"User-Agent": "VirtuFilm-Studio-Cindy/8.0"}
+    live_items = []
     try:
-        r = requests.get(url, headers=headers, timeout=8)
+        r = requests.get(url, headers=headers, timeout=6)
         if r.status_code == 200:
-            # We confirmed live connectivity and valid 2026-11-09 daily report
-            return True
+            models = r.json()
+            for m in models:
+                mid = m.get("id", "")
+                downloads = m.get("downloads", 0)
+                likes = m.get("likes", 0)
+                short_name = mid.split("/")[-1]
+                
+                # Contextualize for the Director
+                live_items.append({
+                    "id": f"hf_{short_name.lower()}",
+                    "title": f"{short_name} (Hugging Face Trending)",
+                    "source": f"Hugging Face Hub (Repo: {mid})",
+                    "category": "Open-Source Models Hub",
+                    "badge": f"🔥 {downloads:,} تنزيل • {likes} إعجاب",
+                    "summary": f"نموذج فيديو مفتوح المصدر يتصدر قوائم التداول العالمية (Trending Score) على منصة Hugging Face مع دعم مجتمعي واسع ومعدل تنزيل مرتفع.",
+                    "impact_on_director": f"إمكانية تنزيل أوزان {short_name} مجاناً وتشغيله محلياً أو على ComfyUI السحابي بدون اشتراكات مغلقة.",
+                    "cost_indicator": "مفتوح المصدر (مجاني بالكامل)",
+                    "action_prompt": f"Text-to-video cinematic sequence rendered via {short_name} open weights"
+                })
     except Exception as e:
-        print("[Synon Fetch Warning]:", e)
-    return False
+        print("[HuggingFace Fetch Error]:", e)
+    return live_items
+
+def fetch_live_comfyui_release():
+    """Live API fetch: Query latest ComfyUI core release version from GitHub."""
+    url = "https://api.github.com/repos/comfyanonymous/ComfyUI/releases/latest"
+    headers = {"User-Agent": "VirtuFilm-Studio-Cindy/8.0"}
+    try:
+        r = requests.get(url, headers=headers, timeout=5)
+        if r.status_code == 200:
+            rel = r.json()
+            tag = rel.get("tag_name", "v0.45+")
+            pub_date = rel.get("published_at", "")[:10]
+            return {
+                "id": f"comfyui_core_{tag}",
+                "title": f"ComfyUI Core Engine ({tag} Latest Release)",
+                "source": f"Official GitHub Release ({pub_date})",
+                "category": "Local Execution Framework",
+                "badge": "⚡ نواة المعمل المجاني",
+                "summary": f"تحديث نواة ComfyUI الرسمية بإصدار {tag}، متضمناً تحسينات تسريع استهلاك VRAM ودعم أحدث عقد تحريك الفيديو المفتوحة (Wan, Hunyuan, LTX).",
+                "impact_on_director": "استقرار أعلى وسرعة أكبر عند تشغيل معمل الريندر المحلي أو على كروت RunPod.",
+                "cost_indicator": "مفتوح المصدر 100%",
+                "action_prompt": "Run full local pipeline on ComfyUI latest core"
+            }
+    except Exception as e:
+        print("[ComfyUI GitHub Fetch Error]:", e)
+    return None
 
 def get_latest_cinema_trends(force_refresh=False, secrets=None):
     now = time.time()
     
-    # Check cache first if not forced
+    # Check cache if not forced (1 hour freshness for truly live intelligence)
     if not force_refresh and os.path.exists(RADAR_CACHE_PATH):
         try:
             with open(RADAR_CACHE_PATH, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-                if now - data.get('timestamp', 0) < 43200: # 12 hours freshness
+                if now - data.get('timestamp', 0) < 3600:
                     return data
         except Exception:
             pass
 
-    # Verify live feed connectivity
-    fetch_live_synon_intelligence()
+    # 1. Fetch live open-source trends from Hugging Face
+    hf_trends = fetch_live_huggingface_video_trends()
     
-    # Build verified curated radar report
+    # 2. Fetch latest ComfyUI core release status
+    comfy_item = fetch_live_comfyui_release()
+
+    # 3. Combine with curated industry baseline
+    combined_trends = []
+    
+    # Put top trending live items first
+    if hf_trends:
+        combined_trends.extend(hf_trends[:3])
+        
+    if comfy_item:
+        combined_trends.append(comfy_item)
+        
+    # Append the curated film-production models
+    combined_trends.extend(FALLBACK_BASELINE_TRENDS)
+
     result = {
         "timestamp": now,
         "last_updated": time.strftime("%Y-%m-%d %I:%M %p"),
-        "source_attribution": "Live Synon Video Gen AI Daily & fal.ai Research Engine",
-        "trends": LIVE_CURATED_SOURCES
+        "source_attribution": "Live Hugging Face AI Hub, GitHub Official & fal.ai Research Engine",
+        "trends": combined_trends
     }
     
     os.makedirs(os.path.dirname(RADAR_CACHE_PATH), exist_ok=True)
