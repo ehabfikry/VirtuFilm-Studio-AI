@@ -1048,7 +1048,8 @@ def install_comfyui_custom_nodes(base_url, repo_urls=None):
         "https://github.com/kijai/ComfyUI-WanVideoWrapper",
         "https://github.com/kijai/ComfyUI-HunyuanVideoWrapper",
         "https://github.com/kijai/ComfyUI-CogVideoXWrapper",
-        "https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite"
+        "https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite",
+        "https://github.com/Gourieff/ComfyUI-ReActor"
     ]
     repos = repo_urls or default_repos
     results = {}

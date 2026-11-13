@@ -23,3 +23,4 @@ b86bde210ebaca58380b7abefd2aeacd8115271cdc3d221cdcc250c1ad3b811d  EGYPT_IP_FILIN
 b0024a9dbcd85774c3ef7c2ed6b2c20db9449b60ffa873d5def2697df1f56e0e  PATENT_FILING_DOCKET.html (27968 bytes)
 ===================================================================
 [2026-11-13 04:00:08 UTC] MILESTONE: Explicit Origin & Author Badges rendered on all Cinema Radar cards.
+[2026-11-13 04:22:17 UTC] MILESTONE: ComfyUI-ReActor Official SFW Node integration & Actor Transfer Sidecar landed.

@@ -34,11 +34,7 @@
       "size_bytes": 55826,
       "modified_utc": "2026-11-11T17:14:54Z"
     },
-    "comfyui_client.py": {
-      "sha256": "7513ba8a2b332455a5bc9a18c89942127353c3a3e194d8dedb556ef207e6bfa6",
-      "size_bytes": 45025,
-      "modified_utc": "2026-11-11T19:19:07Z"
-    },
+    "comfyui_client.py": "039f08192a0a44e04c0b2e442fcf7364bcf4c8eaf6f7f8f5642a1cda1f92c5bb",
     "cindy_storyboard.py": {
       "sha256": "0619c349b9574be72e4770ff01845e5f0e5e25c50b31d1b120d25a92707a6673",
       "size_bytes": 13896,
@@ -49,11 +45,7 @@
       "size_bytes": 27647,
       "modified_utc": "2026-11-11T17:14:54Z"
     },
-    "cindy_radar.py": {
-      "sha256": "4dd557b215665b5ab64ac71e6bbfd94d790ea0d7a764fb99f2590ba2f0ccca5d",
-      "size_bytes": 19170,
-      "modified_utc": "2026-11-13T03:23:13Z"
-    },
+    "cindy_radar.py": "f231766c9ba83dad26197a2329acfe401067698aac86bfb11395469e6119baef",
     "cindy_reframe_engine.py": {
       "sha256": "f09d9914189f9f329e766256aae76fe366de61e648b19132f42202f9126f07bb",
       "size_bytes": 10051,
@@ -90,6 +82,6 @@
       "modified_utc": "2026-11-08T12:18:22Z"
     }
   },
-  "last_updated": "2026-11-13 04:00:08 UTC",
-  "update_reason": "Added explicit author and origin attribution badges on every Radar card"
+  "last_updated": "2026-11-13 04:22:17 UTC",
+  "update_reason": "Integrated ComfyUI-ReActor auto-install node and updated complete radar catalog"
 }

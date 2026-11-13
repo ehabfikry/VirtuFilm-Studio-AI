@@ -162,7 +162,30 @@ FALLBACK_BASELINE_TRENDS = [
         "impact_on_director": "دليل إرشادي عملي لتشغيل النماذج محلياً بدون قيود الرقابة السحابية التجارية على النصوص السينمائية الحماسية.",
         "cost_indicator": "مجاني محلياً 100%",
         "action_prompt": "Cinematic dramatic noir confrontation with dynamic lighting and intense narrative tension"
+    },
+    {
+        "id": "genjustsu_character_swap",
+        "title": "TEIN Genjustsu (Depth + SAM Character Replacement)",
+        "source": "Sirio Berati (sirioberati/Genjustsu-Open-Source-Workflow)",
+        "category": "Actor Performance & VFX",
+        "badge": "🎭 استبدال الدوبلير في المشهد",
+        "summary": "معمارية مفتوحة المصدر لدمج خرائط العمق (Depth Maps) وتقسيم SAM و Face Meshes لاستبدال الممثل في اللقطات الحركية مع الحفاظ على الصوت والإضاءة الأصلية.",
+        "impact_on_director": "تمكين المخرج من استبدال الدوبلير أو تغيير الممثل في المشاهد الخطرة دون الحاجة لإعادة تصوير الكادر.",
+        "cost_indicator": "مفتوح المصدر (MIT)",
+        "action_prompt": "Cinematic visual actor replacement preserving dynamic lighting and background depth"
+    },
+    {
+        "id": "comfyui_reactor_clean",
+        "title": "ComfyUI ReActor (Clean SFW Face Swap & CodeFormer)",
+        "source": "Gourieff (Gourieff/ComfyUI-ReActor)",
+        "category": "Actor Performance & VFX",
+        "badge": "💎 المعيار الذهبي لتبديل الوجه",
+        "summary": "الإضافة الرسمية الأنظف والأكثر استقراراً في ComfyUI لتبديل وتثبيت ملامح الممثل مع ترميم عالي الدقة للعيون ومسام الجلد عبر CodeFormer.",
+        "impact_on_director": "الحل الآمن والمجاني للمخرج لتثبيت وجه بطله عبر جميع المشاهد السينمائية بجودة 4K نظيفة.",
+        "cost_indicator": "مجاني محلياً 100% (GPL v3)",
+        "action_prompt": "Photorealistic cinematic face consistency and restoration with sharp eye reflections"
     }
+
 
 
 ]
