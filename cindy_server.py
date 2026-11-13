@@ -7403,9 +7403,9 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                         raise RuntimeError("تعذر رفع الكادر المرجعي للسيرفر السحابي.")
 
                     if 'dmad' in ckpt_lower:
-                        endpoint = "fal-ai/wan/v2.1/image-to-video"
-                        label = "DMAD Fast 4-Step Distilled (LoRA Accelerated)"
-                        fal_payload = {"prompt": prompt_text, "image_url": cloud_img, "steps": 4}
+                        endpoint = "fal-ai/wan-i2v"
+                        label = "Alibaba Wan 2.1 (Fal fallback - DMAD runs on ComfyUI only)"
+                        fal_payload = {"prompt": prompt_text, "image_url": cloud_img}
                     elif 'skyreels' in ckpt_lower or 'hunyuan' in ckpt_lower:
                         endpoint = "fal-ai/hunyuan-video/image-to-video"
                         label = "SkyReels-V1 (Tencent Hunyuan 13B Architecture)"

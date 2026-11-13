@@ -221,13 +221,19 @@ def run_training_job(job, api_key, hf_token, data_url, gpu_id, upload_fn, regist
         }
 
         # Fallback list of GPUs if preferred one is out of stock in community cloud
-        candidate_gpus = [gpu_id]
-        for alt in ["NVIDIA GeForce RTX 4090", "NVIDIA RTX A6000", "NVIDIA GeForce RTX 3090", "NVIDIA RTX A5000", "NVIDIA A40"]:
-            if alt not in candidate_gpus:
-                candidate_gpus.append(alt)
+        # Director's rule: cheapest-first by live price (FLUX LoRA needs >= 24GB VRAM)
+        try:
+            from comfyui_client import get_prioritized_cheapest_gpus
+            ranked = [g["id"] for g in get_prioritized_cheapest_gpus(api_key, min_vram=24)]
+        except Exception:
+            ranked = []
+        if not ranked:
+            ranked = ["NVIDIA RTX A5000", "NVIDIA GeForce RTX 3090", "NVIDIA GeForce RTX 4090",
+                      "NVIDIA RTX A6000", "NVIDIA A40"]
+        candidate_gpus = ([gpu_id] if gpu_id else []) + [g for g in ranked if g != gpu_id]
 
         pod = None
-        chosen_gpu = gpu_id
+        chosen_gpu = gpu_id or (candidate_gpus[0] if candidate_gpus else None)
         for cand_gpu in candidate_gpus:
             current_input = dict(base_input, gpuTypeId=cand_gpu)
             for cloud in ("COMMUNITY", "SECURE"):
