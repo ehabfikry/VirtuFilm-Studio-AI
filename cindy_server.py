@@ -1498,14 +1498,24 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                     if not video_cloud_url or not video_cloud_url.startswith('http'):
                         raise RuntimeError("تعذر رفع الفيديو إلى السحابة للتأطير التوليدي.")
                     
-                    # Map aspect ratio to LTX resolution
-                    res_map = {
-                        "16:9": "1920x1080",
-                        "9:16": "1080x1920",
-                        "1:1": "1080x1080",
-                        "21:9": "1920x1080" # closest landscape standard
-                    }
-                    target_res = res_map.get(ratio, "1920x1080")
+                    target_quality = payload.get('quality', '720p') # '720p' (economic ~$0.05/s) or '1080p' (~$0.10/s)
+                    
+                    # Map aspect ratio & quality to LTX resolution
+                    if target_quality == '720p':
+                        res_map = {
+                            "16:9": "1280x720",
+                            "9:16": "720x1280",
+                            "1:1": "720x720",
+                            "21:9": "1280x720"
+                        }
+                    else:
+                        res_map = {
+                            "16:9": "1920x1080",
+                            "9:16": "1080x1920",
+                            "1:1": "1080x1080",
+                            "21:9": "1920x1080"
+                        }
+                    target_res = res_map.get(ratio, "1280x720" if target_quality == '720p' else "1920x1080")
                     ltx_payload = {
                         "video_url": video_cloud_url,
                         "resolution": target_res
@@ -1593,6 +1603,60 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             except Exception as e:
                 self.send_json_response(200, {"success": True, "message": str(e)})
             return
+
+        if self.path == '/api/upscale/process':
+            try:
+                import cindy_reframe_engine
+                video_data_b64 = payload.get('video_base64', '')
+                video_url = payload.get('video_url', '')
+                video_filename = payload.get('filename', 'video_for_upscale.mp4')
+                target_scale = payload.get('target_scale', '4k') # '4k' or '1080p'
+                grain_mode = payload.get('grain_mode', 'subtle')
+                
+                outputs_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'outputs')
+                os.makedirs(outputs_dir, exist_ok=True)
+                timestamp = int(time.time())
+                
+                in_path = None
+                if video_data_b64:
+                    if ',' in video_data_b64:
+                        video_data_b64 = video_data_b64.split(',', 1)[1]
+                    video_bytes = base64.b64decode(video_data_b64)
+                    clean_name = re.sub(r'[^a-zA-Z0-9_\-\.]', '_', video_filename)
+                    in_path = os.path.join(outputs_dir, f"raw_upscale_{timestamp}_{clean_name}")
+                    with open(in_path, 'wb') as f_in:
+                        f_in.write(video_bytes)
+                elif video_url and '/outputs/' in video_url:
+                    rel_name = video_url.split('/outputs/', 1)[1].split('?')[0]
+                    in_path = os.path.join(outputs_dir, rel_name)
+                    
+                if not in_path or not os.path.isfile(in_path):
+                    self.send_error_response(400, "لم يتم العثور على ملف الفيديو للترقية")
+                    return
+                    
+                out_path = os.path.join(outputs_dir, f"Upscale_{target_scale.upper()}_{timestamp}_{os.path.basename(in_path)}")
+                final_out = cindy_reframe_engine.upscale_video_pipeline(
+                    input_video_path=in_path,
+                    output_video_path=out_path,
+                    target_scale=target_scale,
+                    grain_strength=grain_mode
+                )
+                
+                rel_url = f"/outputs/{os.path.basename(final_out)}"
+                res = {
+                    "status": "success",
+                    "output_url": rel_url,
+                    "filename": os.path.basename(final_out),
+                    "target_scale": target_scale.upper(),
+                    "message": f"تمت ترقية دقة الفيديو بنجاح إلى {target_scale.upper()} السينمائية مجاناً وبأعلى جودة"
+                }
+                self.send_json_response(200, res)
+                return
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                self.send_error_response(500, f"خطأ أثناء ترقية الفيديو: {str(e)}")
+                return
 
         if self.path == '/api/comfyui/cancel_video':
             jid = (payload.get('job_id') or '').strip()

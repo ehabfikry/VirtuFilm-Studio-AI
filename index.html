@@ -1226,6 +1226,22 @@
             </div>
           </div>
 
+          <!-- Quality & Cost Selector -->
+          <div id="reframe-quality-block" class="p-3 rounded-xl bg-cinema-950/60 border border-cinema-800 space-y-2">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-bold text-slate-300">3. دقة التوليد التخيلي (التكلفة):</label>
+              <span id="reframe-cost-indicator" class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30">اقتصادي ~$0.05/ثانية</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" onclick="selectReframeQuality('720p')" id="quality-btn-720p" class="py-2 px-2.5 rounded-lg border border-amber-500/60 bg-amber-500/15 text-white font-bold text-[11px] flex items-center justify-center gap-1 transition">
+                <span>⚡ 720p (اقتصادي)</span>
+              </button>
+              <button type="button" onclick="selectReframeQuality('1080p')" id="quality-btn-1080p" class="py-2 px-2.5 rounded-lg border border-cinema-700 bg-cinema-800/40 text-slate-400 hover:text-white font-bold text-[11px] flex items-center justify-center gap-1 transition">
+                <span>💎 1080p (أقصى دقة)</span>
+              </button>
+            </div>
+          </div>
+
           <!-- Processing Button -->
           <div class="pt-2">
             <button type="button" onclick="startReframeProcessing()" id="reframe-submit-btn" class="w-full py-3 px-4 rounded-xl font-black text-sm bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-cinema-950 shadow-lg shadow-cyan-500/20 transition flex items-center justify-center gap-2">
@@ -1275,8 +1291,17 @@
               </p>
             </div>
 
-            <!-- Download Button -->
-            <div id="reframe-download-container" class="hidden mt-4 w-full flex justify-end">
+            <!-- Action & Upscale Buttons -->
+            <div id="reframe-download-container" class="hidden mt-4 w-full flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-cinema-900/80 border border-cinema-700">
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="runDirect4KUpscale()" id="reframe-upscale-btn" class="px-4 py-2 rounded-xl font-bold text-xs bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-cinema-950 transition flex items-center gap-2 shadow-lg">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                  </svg>
+                  <span>ترقية سينمائية فورية (4K Cinema Upscale - مجاناً ⚡)</span>
+                </button>
+                <span id="reframe-upscale-status" class="text-[11px] text-amber-300 font-mono hidden animate-pulse">جارٍ الترقية إلى 4K...</span>
+              </div>
               <a id="reframe-download-link" href="#" download class="px-5 py-2.5 rounded-xl font-bold text-xs bg-emerald-500 hover:bg-emerald-400 text-cinema-950 transition flex items-center gap-2 shadow-lg">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
@@ -1297,17 +1322,38 @@
       let currentSelectedReframeRatio = '16:9';
       let selectedReframeFile = null;
       let currentReframeMode = 'generative'; // 'generative' (AI Outpaint) or 'smart_ambient'
+      let currentReframeQuality = '720p'; // '720p' (economic) or '1080p' (max)
+      let lastReframedVideoUrl = null;
+
+      function selectReframeQuality(q) {
+        currentReframeQuality = q;
+        const btn720 = document.getElementById('quality-btn-720p');
+        const btn1080 = document.getElementById('quality-btn-1080p');
+        const costIndicator = document.getElementById('reframe-cost-indicator');
+        if (q === '720p') {
+          if (btn720) btn720.className = 'py-2 px-2.5 rounded-lg border border-amber-500/60 bg-amber-500/15 text-white font-bold text-[11px] flex items-center justify-center gap-1 transition';
+          if (btn1080) btn1080.className = 'py-2 px-2.5 rounded-lg border border-cinema-700 bg-cinema-800/40 text-slate-400 hover:text-white font-bold text-[11px] flex items-center justify-center gap-1 transition';
+          if (costIndicator) costIndicator.textContent = 'اقتصادي ~$0.05/ثانية';
+        } else {
+          if (btn720) btn720.className = 'py-2 px-2.5 rounded-lg border border-cinema-700 bg-cinema-800/40 text-slate-400 hover:text-white font-bold text-[11px] flex items-center justify-center gap-1 transition';
+          if (btn1080) btn1080.className = 'py-2 px-2.5 rounded-lg border border-cyan-500/60 bg-cyan-500/15 text-white font-bold text-[11px] flex items-center justify-center gap-1 transition';
+          if (costIndicator) costIndicator.textContent = 'أقصى دقة ~$0.10/ثانية';
+        }
+      }
 
       function setReframeMode(m) {
         currentReframeMode = m;
         const genBtn = document.getElementById('reframe-mode-gen');
         const locBtn = document.getElementById('reframe-mode-local');
+        const qBlock = document.getElementById('reframe-quality-block');
         if (m === 'generative') {
           if (genBtn) genBtn.className = 'px-3 py-1 rounded-lg text-xs font-black bg-cyan-500 text-cinema-950 transition flex items-center gap-1.5 shadow';
           if (locBtn) locBtn.className = 'px-3 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition flex items-center gap-1.5';
+          if (qBlock) qBlock.classList.remove('hidden');
         } else {
           if (genBtn) genBtn.className = 'px-3 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition flex items-center gap-1.5';
           if (locBtn) locBtn.className = 'px-3 py-1 rounded-lg text-xs font-black bg-cyan-500 text-cinema-950 transition flex items-center gap-1.5 shadow';
+          if (qBlock) qBlock.classList.add('hidden');
         }
       }
 
@@ -1386,7 +1432,8 @@
               video_base64: b64,
               filename: selectedReframeFile.name,
               target_ratio: currentSelectedReframeRatio,
-              mode: currentReframeMode
+              mode: currentReframeMode,
+              quality: currentReframeQuality
             };
 
             const resp = await fetch('/api/reframe/process', {
@@ -1410,6 +1457,7 @@
             const dlContainer = document.getElementById('reframe-download-container');
             const dlLink = document.getElementById('reframe-download-link');
 
+            lastReframedVideoUrl = data.output_url;
             placeholder.classList.add('hidden');
             player.classList.remove('hidden');
             player.src = data.output_url;
@@ -1443,6 +1491,51 @@
           submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
         }
         showToast('تم إيقاف عملية التأطير وتحرير كارت الشاشة فوراً 🛡️', 'info');
+      }
+
+      async function runDirect4KUpscale() {
+        if (!lastReframedVideoUrl) {
+          alert('يرجى إنتاج أو اختيار فيديو لإجراء الترقية السينمائية إليه أولاً');
+          return;
+        }
+        const upscaleBtn = document.getElementById('reframe-upscale-btn');
+        const statusTxt = document.getElementById('reframe-upscale-status');
+        if (upscaleBtn) upscaleBtn.disabled = true;
+        if (statusTxt) statusTxt.classList.remove('hidden');
+
+        try {
+          const resp = await fetch('/api/upscale/process', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+              video_url: lastReframedVideoUrl,
+              target_scale: '4k',
+              grain_mode: 'subtle'
+            })
+          });
+          if (!resp.ok) {
+            const err = await resp.text();
+            throw new Error(err || 'فشلت عملية الترقية');
+          }
+          const res = await resp.json();
+          const player = document.getElementById('reframe-output-player');
+          const dlLink = document.getElementById('reframe-download-link');
+          if (player) {
+            player.src = res.output_url;
+            player.play();
+          }
+          if (dlLink) {
+            dlLink.href = res.output_url;
+            dlLink.download = res.filename;
+          }
+          lastReframedVideoUrl = res.output_url;
+          alert('🎬 تم الانتهاء بنجاح! تم ترقية الفيديو إلى دقة 4K السينمائية الفائقة مجاناً.');
+        } catch (e) {
+          alert('خطأ أثناء الترقية إلى 4K: ' + e.message);
+        } finally {
+          if (upscaleBtn) upscaleBtn.disabled = false;
+          if (statusTxt) statusTxt.classList.add('hidden');
+        }
       }
     </script>
 
@@ -10386,6 +10479,16 @@ let currentUploadContext = 'chat';
       ['(VirtuFilm AI Reframe)', '(VirtuFilm AI Reframe)'],
       ['إعادة تأطير وتوسيع كادر أي فيديو لأي أبعاد ونسب سينمائية (16:9، 9:16، 1:1، 21:9) بدون تشويه وبأعلى ثبات واستمرارية بصرية.', 'Reframe and expand any video to any cinematic aspect ratio (16:9, 9:16, 1:1, 21:9) with zero-distortion and rock-solid consistency.'],
       ['نمط المعالجة:', 'Processing Engine:'],
+      ['محرك المعالجة:', 'Processing Engine:'],
+      ['توليدي حقيقي (AI Outpaint 🎬)', 'Generative AI Outpaint 🎬'],
+      ['محلي سريع (Ambient Wings)', 'Fast Ambient Wings (Local)'],
+      ['3. دقة التوليد التخيلي (التكلفة):', '3. Generative Quality (Cost):'],
+      ['⚡ 720p (اقتصادي)', '⚡ 720p (Economic)'],
+      ['💎 1080p (أقصى دقة)', '💎 1080p (Max Quality)'],
+      ['اقتصادي ~$0.05/ثانية', 'Economic ~$0.05/s'],
+      ['أقصى دقة ~$0.10/ثانية', 'Max Quality ~$0.10/s'],
+      ['ترقية سينمائية فورية (4K Cinema Upscale - مجاناً ⚡)', 'Direct 4K Cinema Upscale (Free ⚡)'],
+      ['جارٍ الترقية إلى 4K...', 'Upscaling to 4K...'],
       ['محلي فائق السرعة (Local Engine)', 'Ultra-Fast Local Engine'],
       ['1. اختيار أو سحب الفيديو الأصلي', '1. Select or Drag Source Video'],
       ['انقر هنا لاختيار فيديو أو اسحبه هنا', 'Click here to select video or drop it here'],
