@@ -18,16 +18,8 @@
     "zero_cost_balance_guard": "Active (Blocks all unconfirmed cloud billing)"
   },
   "files": {
-    "index.html": {
-      "sha256": "5f708ca80f7fb906f91f1457bacdde66c1884f8a92c63aa12fa1399e69dff0a7",
-      "size_bytes": 1333471,
-      "modified_utc": "2026-11-13T01:55:39Z"
-    },
-    "cindy_server.py": {
-      "sha256": "c31201c7e136789df0f7411ae4aa6c7a3ff55382ef078ab07bfa73c0d91e2acc",
-      "size_bytes": 294103,
-      "modified_utc": "2026-11-13T01:44:22Z"
-    },
+    "index.html": "14f6a5c00af17ff29d22afca06ca3c86e03981edb1dce2b89cbf517b8d9133b3",
+    "cindy_server.py": "c26bd2ae58d1aad952c5cf217bf77a2b2533fb2c8319cc0160b531b13fd09a19",
     "cindy_previs_engine.py": {
       "sha256": "bfbeb7e8bcb4448ea4fe874dd0151eba29e518d4fc0ae5d03600f791ba37139d",
       "size_bytes": 55959,
@@ -43,21 +35,13 @@
       "size_bytes": 45025,
       "modified_utc": "2026-11-11T19:19:07Z"
     },
-    "cindy_storyboard.py": {
-      "sha256": "b027c36308183e02eaa7afeccc48c0901d599e1f397da081ba5c881fc9440294",
-      "size_bytes": 9258,
-      "modified_utc": "2026-11-11T17:14:54Z"
-    },
+    "cindy_storyboard.py": "0619c349b9574be72e4770ff01845e5f0e5e25c50b31d1b120d25a92707a6673",
     "cindy_pricing.py": {
       "sha256": "1ea878376897381d4435875367f0ce31ff80572dbb21f7d636342b8916e5f73f",
       "size_bytes": 27647,
       "modified_utc": "2026-11-11T17:14:54Z"
     },
-    "cindy_radar.py": {
-      "sha256": "da490e3e3d21ff5ee7032b3510eedd84cdb0e0ee678c463decbe89e236c9bda1",
-      "size_bytes": 11250,
-      "modified_utc": "2026-11-13T02:21:50Z"
-    },
+    "cindy_radar.py": "2dab62ffbe800dda94338e917280986e1af40147e350056aaba285140dc4ee9f",
     "cindy_reframe_engine.py": {
       "sha256": "f09d9914189f9f329e766256aae76fe366de61e648b19132f42202f9126f07bb",
       "size_bytes": 10051,
@@ -93,5 +77,7 @@
       "size_bytes": 27968,
       "modified_utc": "2026-11-08T12:18:22Z"
     }
-  }
+  },
+  "last_updated": "2026-11-13 03:09:22 UTC",
+  "update_reason": "Integrated ethical open-source micro-drama episode stitcher and live radar credits"
 }

@@ -74,7 +74,52 @@ FALLBACK_BASELINE_TRENDS = [
         "impact_on_director": "خيار موثوق جداً لتحريك لقطات الممثلين القريبة دون أي تشوه في العيون أو حركة الأصابع.",
         "cost_indicator": "~$0.15 / 5s",
         "action_prompt": "Close-up portrait sequence with flawless eye contact and natural human micro-expressions"
+    },
+    {
+        "id": "open_micro_drama_anil",
+        "title": "Open Micro-Drama Pipeline (Screenplay → Storyboard → Multi-Scene Video)",
+        "source": "Open-Source Community (Anil Matcha / GitHub)",
+        "category": "Episodic AI Direction",
+        "badge": "🎬 معمارية المسلسلات القصيرة",
+        "summary": "معمارية مفتوحة المصدر لتقسيم الأفكار الدرامية إلى مشاهد متتالية (Multi-Agent Pipeline) وتجميعها تلقائياً في حلقة فيديو درامية قصيرة متماسكة.",
+        "impact_on_director": "تم دمجها وتطويرها في سيندي لتوليد حلقات كاملة مع الحفاظ على ترقية الجودة السينمائية 4K ومونتاج FFmpeg الخارق دون أي قيود مدفوعة.",
+        "cost_indicator": "مفتوح المصدر (MIT Inspired)",
+        "action_prompt": "Cinematic vertical micro-drama scene sequence with consistent character arc and dramatic tension"
+    },
+    {
+        "id": "duix_digital_human",
+        "title": "Duix-Avatar (Offline Digital Human & Neural Lip-Sync)",
+        "source": "Duix.com Open Source (GitHub SOTA)",
+        "category": "Actor Cloning & Speech",
+        "badge": "💎 16K+ نجمة • محلي بالكامل",
+        "summary": "حزمة أدوات مفتوحة المصدر بالكامل لاستنساخ الممثلين الرقميين ومزامنة الشفاه (Lip-Sync) في الوقت الحقيقي محلياً دون أي حاجة للإنترنت أو اشتراكات خارجية.",
+        "impact_on_director": "تحرير المخرج من تكاليف خدمات التحدث السحابية وتوفير دبلجة ومزامنة كلام سينمائية للممثل داخل الاستوديو.",
+        "cost_indicator": "مجاني محلياً 100%",
+        "action_prompt": "High fidelity photorealistic digital human monologue with natural facial micro-expressions"
+    },
+    {
+        "id": "wunjo_cinema_toolkit",
+        "title": "Wunjo Studio (Video Inpainting & Clean Plate Studio)",
+        "source": "Wunjo Open Source (C++ / Qt6 / MLT)",
+        "category": "Post-Production & VFX",
+        "badge": "🛠️ استوديو المعالجة المفتوح",
+        "summary": "منظومة إخراجية مفتوحة المصدر لمعالجة الفيديو محلياً: إزالة العناصر والميكروفونات من الكادر (Video Inpainting)، تفريغ الخلفيات وعزل الأصوات بدون أي تكلفة.",
+        "impact_on_director": "أداة VFX وتصحيح كادرات مجانية بجانب سيندي تمنح المخرج حرية تصحيح عيوب التصوير بنقرة واحدة.",
+        "cost_indicator": "مجاني محلياً (GPL v3)",
+        "action_prompt": "Cinematic visual clean plate inpainting removing unwanted objects from foreground"
+    },
+    {
+        "id": "openjourney_gemini_veo",
+        "title": "Openjourney Grid & Google Veo 3 Video Hub",
+        "source": "Next.js 15 & Google Gemini / Veo SDK",
+        "category": "Multi-Variations & Veo",
+        "badge": "⚡ شبكة الكادرات الأربعة",
+        "summary": "واجهة مفتوحة المصدر تعتمد توليد 4 تنويعات بصرية متزامنة للكادر مع دعم محركات Veo 2 و Veo 3 للفيديو عالي الجودة مع الصوت المتزامن.",
+        "impact_on_director": "إلهام متميز لاستعراض 4 خيارات إخراجية لكل لقطة في سيندي قبل اختيار الكادر الفائز للريندر النهائي.",
+        "cost_indicator": "مفتوح المصدر (MIT)",
+        "action_prompt": "4-way cinematic variation grid exploring different director camera perspectives"
     }
+
 ]
 
 def fetch_live_huggingface_video_trends():

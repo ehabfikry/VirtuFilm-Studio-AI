@@ -2030,6 +2030,18 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             cindy_storyboard.save_storyboards(store)
             self.send_json_response(200, {"success": True, "project": project})
             return
+        elif self.path == '/api/storyboard/stitch':
+            video_sources = payload.get('video_sources') or payload.get('clips') or []
+            if not video_sources:
+                self.send_error_response(400, "قائمة لقطات الفيديو (video_sources) مطلوبة لدمج الحلقة الدرامية.")
+                return
+            out_name = payload.get('output_filename')
+            try:
+                res = cindy_storyboard.stitch_episode_videos(video_sources, out_name)
+                self.send_json_response(200, res)
+            except Exception as e:
+                self.send_error_response(500, f"فشل دمج الحلقة: {str(e)}")
+            return
         elif self.path == '/api/pricing/refresh':
             self.handle_pricing_daily(force_refresh=True)
 

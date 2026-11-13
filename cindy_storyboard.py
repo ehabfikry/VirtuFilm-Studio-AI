@@ -190,3 +190,115 @@ def render_storyboard_frame(visual_prompt, aspect_ratio="16:9", fal_key=""):
         raise RuntimeError("No image returned from Fal.ai")
     else:
         raise RuntimeError(f"Fal.ai error {res.status_code}: {res.text[:180]}")
+
+
+def stitch_episode_videos(video_sources, output_filename=None):
+    """
+    Ultra-fast lossless video concatenator using native FFmpeg.
+    Accepts a list of local file paths or URLs, downloads any remote clips to outputs/temp,
+    normalizes video parameters, and stitches them seamlessly into a single cinematic episode.
+    """
+    import subprocess, tempfile, shutil
+
+    outputs_dir = r'C:\Users\DELL\Desktop\Cindy-AI-Director\outputs'
+    os.makedirs(outputs_dir, exist_ok=True)
+    temp_dir = os.path.join(outputs_dir, 'temp_stitch')
+    os.makedirs(temp_dir, exist_ok=True)
+
+    if not video_sources or len(video_sources) == 0:
+        raise ValueError("No video sources provided for episode stitching.")
+
+    local_clips = []
+    downloaded_temps = []
+
+    try:
+        # Step 1: Ensure all clips are local files
+        for i, src in enumerate(video_sources):
+            src_str = str(src).strip()
+            if not src_str:
+                continue
+            if src_str.startswith('http://') or src_str.startswith('https://'):
+                local_path = os.path.join(temp_dir, f'clip_dl_{i}_{int(time.time())}.mp4')
+                res = requests.get(src_str, stream=True, timeout=90)
+                if res.status_code == 200:
+                    with open(local_path, 'wb') as f:
+                        for chunk in res.iter_content(chunk_size=65536):
+                            if chunk:
+                                f.write(chunk)
+                    local_clips.append(local_path)
+                    downloaded_temps.append(local_path)
+                else:
+                    raise RuntimeError(f"Failed to download video clip {i+1} from {src_str} (HTTP {res.status_code})")
+            else:
+                # Local file path
+                if not os.path.isabs(src_str):
+                    src_str = os.path.join(outputs_dir, os.path.basename(src_str))
+                if os.path.exists(src_str):
+                    local_clips.append(src_str)
+                else:
+                    raise FileNotFoundError(f"Local video clip not found: {src_str}")
+
+        if not local_clips:
+            raise ValueError("No valid video clips found to stitch.")
+
+        # Step 2: Prepare output path
+        if not output_filename:
+            output_filename = f'Episode_{int(time.time())}.mp4'
+        final_output_path = os.path.join(outputs_dir, output_filename)
+
+        # If only one clip, simply copy
+        if len(local_clips) == 1:
+            shutil.copyfile(local_clips[0], final_output_path)
+            return {
+                'success': True,
+                'output_path': final_output_path,
+                'output_url': f'/outputs/{os.path.basename(final_output_path)}',
+                'filename': os.path.basename(final_output_path),
+                'clips_count': 1
+            }
+
+        # Step 3: Fast stitch via FFmpeg filter_complex (normalizing to 1080p, 30fps)
+        filter_parts = []
+        cmd = ['ffmpeg', '-y']
+
+        for idx, clip in enumerate(local_clips):
+            cmd.extend(['-i', clip])
+            filter_parts.append(
+                f"[{idx}:v]scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30[v{idx}];"
+            )
+
+        concat_v_inputs = ''.join([f'[v{i}]' for i in range(len(local_clips))])
+        filter_parts.append(f"{concat_v_inputs}concat=n={len(local_clips)}:v=1:a=0[outv]")
+
+        full_filter = ''.join(filter_parts)
+        cmd.extend([
+            '-filter_complex', full_filter,
+            '-map', '[outv]',
+            '-c:v', 'libx264',
+            '-preset', 'fast',
+            '-crf', '19',
+            '-pix_fmt', 'yuv420p',
+            final_output_path
+        ])
+
+        p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=180)
+        if p.returncode != 0:
+            print(f"[Episode Stitch FFmpeg Error]: {p.stderr}")
+            raise RuntimeError(f"FFmpeg episode stitching failed: {p.stderr[-200:]}")
+
+        return {
+            'success': True,
+            'output_path': final_output_path,
+            'output_url': f'/outputs/{os.path.basename(final_output_path)}',
+            'filename': os.path.basename(final_output_path),
+            'clips_count': len(local_clips)
+        }
+
+    finally:
+        # Cleanup temporary downloaded files
+        for t in downloaded_temps:
+            try:
+                if os.path.exists(t):
+                    os.remove(t)
+            except Exception:
+                pass

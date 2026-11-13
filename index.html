@@ -1784,6 +1784,10 @@
                 <i class="fa-solid fa-bolt text-[10px]"></i>
                 <span id="sb-btn-render-all">توليد كل الكادرات فوراً</span>
               </button>
+              <button type="button" id="sb-stitch-episode-btn" onclick="stitchFullEpisodeFromStoryboard()" class="hidden px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[11px] font-bold flex items-center gap-1 transition shadow cursor-pointer">
+                <i class="fa-solid fa-film text-[10px]"></i>
+                <span id="sb-btn-stitch-episode">🎬 تجميع الحلقة الدرامية كاملة (FFmpeg Stitch)</span>
+              </button>
             </div>
           </div>
 
@@ -12431,8 +12435,10 @@ let currentUploadContext = 'chat';
         return;
       }
 
+      const stitchBtn = document.getElementById('sb-stitch-episode-btn');
       if (emptyState) emptyState.classList.add('hidden');
       if (renderAllBtn) renderAllBtn.classList.remove('hidden');
+      if (stitchBtn) stitchBtn.classList.remove('hidden');
       if (sumBox) {
         sumBox.classList.remove('hidden');
         if (sumTitle) sumTitle.innerHTML = `<i class="fa-solid fa-film"></i> ${proj.title || (isEn ? 'Scene Overview' : 'ملخص المشهد')}`;
