@@ -468,7 +468,6 @@
               <optgroup label="🎬 موديلات الفيديو وقفل الملامح بالـ LoRA (Fal.ai)">
                 <option value="Wan 2.1 (Alibaba 14B)" selected>💎 1. Alibaba Wan 2.1 — [~$0.03 / 5s]</option>
                 <option value="MiniMax H3 Lite">⚡ 2. MiniMax Hailuo H3 Lite — [~$0.04 / 6s] (اقتصادي سريع: $0.007/ث)</option>
-                <option value="DMAD Fast Video (4-Step)">⚡ 2b. DMAD Fast 4-Step Video — [~$0.03 / 5s] (تسريع فائق وتقطير LoRA)</option>
                 <option value="Wan 2.2 Image-to-Video">💎 3. Alibaba Wan 2.2 I2V — [~$0.04 / 5s]</option>
                 <option value="LTX-2.3 Distilled Fast LoRA">⚡ 4. LTX-2.3 Distilled LoRA — [~$0.08 / 5s]</option>
                 <option value="Tencent HunyuanVideo">🎬 5. Tencent HunyuanVideo — [~$0.10 / 5s] (ثبات فيزيائي 13B)</option>
@@ -1869,7 +1868,6 @@
                   <optgroup id="screening-optgroup-video" label="🎬 موديلات الفيديو وقفل الملامح بالـ LoRA (Fal.ai)">
                     <option value="Wan 2.1 (Alibaba 14B)" selected>💎 1. Alibaba Wan 2.1 — [~$0.03 / 5s]</option>
                     <option value="MiniMax H3 Lite">⚡ 2. MiniMax Hailuo H3 Lite — [~$0.04 / 6s]</option>
-                    <option value="DMAD Fast Video (4-Step)">⚡ 2b. DMAD Fast 4-Step Video — [~$0.03 / 5s] (تسريع فائق وتقطير LoRA)</option>
                     <option value="Wan 2.2 Image-to-Video">💎 3. Alibaba Wan 2.2 I2V — [~$0.04 / 5s]</option>
                     <option value="LTX-2.3 Distilled Fast LoRA">⚡ 4. LTX-2.3 Distilled LoRA — [~$0.08 / 5s]</option>
                     <option value="Tencent HunyuanVideo">🎬 5. Tencent HunyuanVideo — [~$0.10 / 5s]</option>
@@ -3415,7 +3413,7 @@
                   <span class="text-[10px] bg-amber-500/25 text-amber-300 px-2.5 py-0.5 rounded font-mono font-bold border border-amber-500/30">ComfyUI Video</span>
                 </div>
                 <select id="comfy-video-checkpoint" onchange="onComfyVideoModelChange()" class="w-full bg-cinema-900 border-2 border-amber-500/80 rounded-xl px-3 py-2.5 text-xs text-amber-200 font-extrabold focus:outline-none focus:border-amber-400 shadow-md">
-                  <option value="DMAD/wan2.1_dmad_distill_4step.safetensors">⚡ DMAD Fast 4-Step Distilled (تسريع فائق وتقطير LoRA - 4 خطوات فقط)</option>
+                  <option value="DMAD/wan2.1_dmad_distill_4step.safetensors" disabled>⏳ DMAD 4-Step (قيد التجهيز - الأوزان الحقيقية لم تُثبّت بعد)</option>
                   <option value="Wan2.2/wan2.2_i2v_720p_14B_fp8_e4m3fn.safetensors" selected>💎 Alibaba Wan 2.2 Video (14B فائق الحركية والفيزياء - مفتوح المصدر 720p)</option>
                   <option value="Wan2.1/wan2.1_i2v_720p_14B_fp8_e4m3fn.safetensors">🎬 Alibaba Wan 2.1 Video (14B سينمائي فائق الثبات - مفتوح المصدر 720p)</option>
                   <option value="SkyReels/skyreels_v1_hunyuan_i2v.safetensors">👑 SkyReels-V1 (تثبيت الممثلين والملامح والأيدي 720p - المركز التاسع عالمياً)</option>
@@ -10489,12 +10487,6 @@ let currentUploadContext = 'chat';
     "en": "💎 2. MiniMax Hailuo H3 Lite — [~$0.04 / 6s] (Economy Fast: $0.007/s)",
     "fr": "💎 2. MiniMax Hailuo H3 Lite — [~$0.04 / 6s] (Rapide & Éco: $0.007/s)",
     "es": "💎 2. MiniMax Hailuo H3 Lite — [~$0.04 / 6s] (Económico Rápido: $0.007/s)",
-  },
-  "DMAD Fast Video (4-Step)": {
-    "ar": "⚡ 2b. DMAD Fast 4-Step Video — [~$0.03 / 5s] (تسريع فائق وتقطير LoRA)",
-    "en": "⚡ 2b. DMAD Fast 4-Step Video — [~$0.03 / 5s] (Fast Distilled LoRA)",
-    "fr": "⚡ 2b. DMAD Fast 4-Step Video — [~$0.03 / 5s] (Ultra Rapide 4-Étapes)",
-    "es": "⚡ 2b. DMAD Fast 4-Step Video — [~$0.03 / 5s] (Ultra Rápido 4-Pasos)",
   },
   "Wan 2.2 Image-to-Video": {
     "ar": "💎 3. Alibaba Wan 2.2 I2V — [~$0.04 / 5s]",
