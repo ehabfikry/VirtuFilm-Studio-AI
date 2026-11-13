@@ -8,10 +8,10 @@
     "Egyptian IP Law No. 82 of 2002 (ITIDA & Supreme Council of Culture)",
     "Cryptographic SHA-256 Prior-Art & Git Timestamp Ledger"
   ],
-  "generated_at_utc": "2026-11-13T04:51:35Z",
-  "master_sha256": "eb7dd257e4661b2014d6035a7527839094bb6fae3746b5f55b450adda47ae903",
+  "generated_at_utc": "2026-11-13T05:01:12Z",
+  "master_sha256": "dbd7006019185db997b1ade573c54c19099bee49ee75cd21c5e379a32ef1be41",
   "tracked_files_count": 15,
-  "total_protected_bytes": 1952667,
+  "total_protected_bytes": 1953346,
   "security_controls": {
     "localhost_isolation": "127.0.0.1 Only (Strict Host & Origin Guard)",
     "zero_leak_vault": "Local cindy_secrets.json (Excluded from Git & Static HTTP)",
@@ -19,7 +19,11 @@
   },
   "files": {
     "index.html": "e3003cc160e85193c5ff8a4331108337e831a2844bdfb33046e84e57d2fe8577",
-    "cindy_server.py": "696fb39d25d3cf1addcb4d342840243108c8adaf2dde7d612bd6b8940ca3b3e6",
+    "cindy_server.py": {
+      "sha256": "696fb39d25d3cf1addcb4d342840243108c8adaf2dde7d612bd6b8940ca3b3e6",
+      "size_bytes": 294935,
+      "modified_utc": "2026-11-13T04:58:41Z"
+    },
     "cindy_previs_engine.py": {
       "sha256": "bfbeb7e8bcb4448ea4fe874dd0151eba29e518d4fc0ae5d03600f791ba37139d",
       "size_bytes": 55959,
@@ -86,6 +90,6 @@
       "modified_utc": "2026-11-08T12:18:22Z"
     }
   },
-  "last_updated": "2026-11-13 04:59:36 UTC",
-  "update_reason": "Integrated DMAD Fast 4-Step Video Model in Cinema Studio Model Selector"
+  "last_updated": "2026-11-13 05:02:37 UTC",
+  "update_reason": "Full 4-language i18n verification and audit for Episode Stitcher, Reframe and DMAD"
 }
