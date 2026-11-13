@@ -8,10 +8,10 @@
     "Egyptian IP Law No. 82 of 2002 (ITIDA & Supreme Council of Culture)",
     "Cryptographic SHA-256 Prior-Art & Git Timestamp Ledger"
   ],
-  "generated_at_utc": "2026-11-13T16:52:42Z",
-  "master_sha256": "6e0f28a66285925a0a075bad44c2eb4c70577bce9a36c9e8ed594d228ee0d044",
+  "generated_at_utc": "2026-11-13T22:58:00Z",
+  "master_sha256": "7d21c4c63c1e56800f3e7375c4b9266da6c6b2a7872e6be04227771d048c5fdf",
   "tracked_files_count": 16,
-  "total_protected_bytes": 2011577,
+  "total_protected_bytes": 2028767,
   "security_controls": {
     "localhost_isolation": "127.0.0.1 Only (Strict Host & Origin Guard)",
     "zero_leak_vault": "Local cindy_secrets.json (Excluded from Git & Static HTTP)",
@@ -19,9 +19,9 @@
   },
   "files": {
     "index.html": {
-      "sha256": "60048cb6aa09f36b4a2a9dc35b35b4eb83ed91cd843cbcb73ceea10fd7fa6eb3",
-      "size_bytes": 1374591,
-      "modified_utc": "2026-11-13T16:51:31Z"
+      "sha256": "0ddde33b8bfc4f27e5386d218982afff176b27ebff28e9084081487d9a22df9b",
+      "size_bytes": 1391781,
+      "modified_utc": "2026-11-13T22:57:15Z"
     },
     "cindy_server.py": {
       "sha256": "f13f403ed27122b15b29746f72559a3c2de2801d8b3eca0afa3dab2fd4c4fc8b",

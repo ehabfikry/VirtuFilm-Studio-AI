@@ -1188,20 +1188,20 @@
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
         <!-- Left Column: Scene Canvas & Mask Painter (7 cols) -->
-        <div class="lg:col-span-7 space-y-4">
+        <div class="lg:col-span-7 space-y-3">
           
           <div class="glass-panel p-4 rounded-2xl border border-cinema-700/80 space-y-3">
             <div class="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-cinema-800">
               <span class="text-xs font-bold text-slate-200 flex items-center gap-2">
-                <i class="fa-solid fa-paintbrush text-pink-400"></i>
-                1. كادر المشهد وتحديد موضع العنصر (Scene Canvas & Mask):
+                <span class="w-5 h-5 rounded-full bg-pink-500 text-white flex items-center justify-center text-[10px] font-black">1</span>
+                كادر المشهد وتحديد موضع التعديل (Scene Canvas & Mask):
               </span>
               <div class="flex items-center gap-2">
-                <button type="button" onclick="loadFrameFromScreening()" class="px-2.5 py-1 rounded-lg bg-cinema-800 hover:bg-cinema-700 text-xs text-slate-300 transition flex items-center gap-1.5 border border-cinema-600">
+                <button type="button" onclick="loadFrameFromScreening()" class="px-2.5 py-1.5 rounded-lg bg-cinema-800 hover:bg-cinema-700 text-xs text-slate-300 transition flex items-center gap-1.5 border border-cinema-600 shadow">
                   <i class="fa-solid fa-film text-amber-400"></i>
                   <span>من صالة العرض</span>
                 </button>
-                <label class="px-2.5 py-1 rounded-lg bg-pink-500/20 hover:bg-pink-500/30 text-pink-300 text-xs font-bold transition flex items-center gap-1.5 border border-pink-500/40 cursor-pointer">
+                <label class="px-3 py-1.5 rounded-lg bg-pink-500/20 hover:bg-pink-500/30 text-pink-300 text-xs font-bold transition flex items-center gap-1.5 border border-pink-500/40 cursor-pointer shadow">
                   <i class="fa-solid fa-upload"></i>
                   <span>رفع كادر / لوكيشن</span>
                   <input type="file" id="prodSceneUpload" accept="image/*" class="hidden" onchange="handleProdSceneUpload(event)">
@@ -1209,90 +1209,167 @@
               </div>
             </div>
 
-            <!-- Brush Toolbar -->
-            <div class="flex items-center justify-between flex-wrap gap-2 px-2 py-1.5 bg-cinema-900/90 rounded-xl border border-cinema-800 text-xs">
-              <div class="flex items-center gap-2">
-                <button type="button" id="prodToolBrush" onclick="setProdTool('brush')" class="px-2.5 py-1 rounded-lg bg-pink-500 text-white font-bold text-[11px] flex items-center gap-1">
-                  <i class="fa-solid fa-paint-brush"></i> فرشاة التحديد
+            <!-- Brush Toolbar with Undo / Redo -->
+            <div class="flex items-center justify-between flex-wrap gap-2 px-3 py-2 bg-cinema-900/95 rounded-xl border border-cinema-800 text-xs">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <button type="button" id="prodToolBrush" onclick="setProdTool('brush')" class="px-2.5 py-1.5 rounded-lg bg-pink-500 text-white font-bold text-xs flex items-center gap-1.5 shadow" title="فرشاة التحديد اليدوي">
+                  <i class="fa-solid fa-paint-brush"></i>
+                  <span>فرشاة</span>
                 </button>
-                <button type="button" id="prodToolEraser" onclick="setProdTool('eraser')" class="px-2.5 py-1 rounded-lg bg-cinema-800 text-slate-300 hover:text-white font-bold text-[11px] flex items-center gap-1">
-                  <i class="fa-solid fa-eraser"></i> ممحاة
+                <button type="button" id="prodToolEraser" onclick="setProdTool('eraser')" class="px-2.5 py-1.5 rounded-lg bg-cinema-800 text-slate-300 hover:text-white font-bold text-xs flex items-center gap-1.5 border border-cinema-700" title="ممحاة لتصحيح التحديد">
+                  <i class="fa-solid fa-eraser"></i>
+                  <span>ممحاة</span>
                 </button>
-                <button type="button" onclick="clearProdMask()" class="px-2 py-1 rounded-lg bg-red-500/20 text-red-300 hover:bg-red-500/30 font-bold text-[11px] flex items-center gap-1">
-                  <i class="fa-solid fa-trash-can"></i> مسح التحديد
+
+                <div class="h-4 w-px bg-slate-700 mx-1"></div>
+
+                <!-- UNDO & REDO BUTTONS -->
+                <button type="button" id="prodBtnUndo" onclick="undoProdMask()" disabled class="px-2.5 py-1.5 rounded-lg bg-cinema-800 text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed hover:text-white font-bold text-xs flex items-center gap-1.5 border border-cinema-700 transition" title="تراجع عن آخر خطوة (Ctrl+Z)">
+                  <i class="fa-solid fa-rotate-left text-cyan-400"></i>
+                  <span>تراجع (Undo)</span>
+                </button>
+                <button type="button" id="prodBtnRedo" onclick="redoProdMask()" disabled class="px-2.5 py-1.5 rounded-lg bg-cinema-800 text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed hover:text-white font-bold text-xs flex items-center gap-1.5 border border-cinema-700 transition" title="إعادة الخطوة (Ctrl+Y)">
+                  <i class="fa-solid fa-rotate-right text-cyan-400"></i>
+                  <span>إعادة (Redo)</span>
+                </button>
+
+                <button type="button" onclick="clearProdMask()" class="px-2.5 py-1.5 rounded-lg bg-red-500/15 text-red-300 hover:bg-red-500/30 font-bold text-xs flex items-center gap-1 border border-red-500/30 transition" title="مسح التحديد بالكامل">
+                  <i class="fa-solid fa-trash-can"></i>
+                  <span>مسح الكل</span>
                 </button>
               </div>
+
               <div class="flex items-center gap-2">
-                <span class="text-slate-400 text-[11px]">حجم الفرشاة:</span>
-                <input type="range" id="prodBrushSize" min="10" max="90" value="35" oninput="document.getElementById('prodBrushSizeVal').textContent = this.value + 'px'" class="accent-pink-500 w-24">
-                <span id="prodBrushSizeVal" class="text-pink-300 font-mono text-[11px] w-8">35px</span>
+                <span class="text-slate-400 text-xs">حجم الفرشاة:</span>
+                <input type="range" id="prodBrushSize" min="10" max="120" value="45" oninput="updateBrushSizeDisplay(this.value)" class="accent-pink-500 w-24">
+                <span id="prodBrushSizeVal" class="text-pink-300 font-mono text-xs w-9">45px</span>
               </div>
             </div>
 
-            <!-- Canvas Viewport -->
-            <div id="prodCanvasWrapper" class="relative w-full h-80 sm:h-96 rounded-xl overflow-hidden bg-cinema-950 border border-cinema-700 flex items-center justify-center cursor-crosshair">
+            <!-- Smart Quick Selection Presets -->
+            <div class="flex items-center gap-1.5 flex-wrap px-1 text-[11px] pt-0.5">
+              <span class="text-slate-400 font-bold flex items-center gap-1">
+                <i class="fa-solid fa-wand-magic-sparkles text-pink-400"></i>
+                تحديد سريع ذكي:
+              </span>
+              <button type="button" onclick="autoMaskPreset('body')" class="px-2.5 py-1 rounded-lg bg-cinema-800 hover:bg-cinema-700 text-slate-200 border border-cinema-700 transition font-bold" title="تحديد تلقائي لمنطقة جسم وملابس الشخصية">
+                👤 ملابس الشخصية
+              </button>
+              <button type="button" onclick="autoMaskPreset('lower')" class="px-2.5 py-1 rounded-lg bg-cinema-800 hover:bg-cinema-700 text-slate-200 border border-cinema-700 transition font-bold" title="تحديد النصف السفلي من الكادر للأثاث والأرضيات">
+                🪑 أثاث وأرضية
+              </button>
+              <button type="button" onclick="autoMaskPreset('background')" class="px-2.5 py-1 rounded-lg bg-cinema-800 hover:bg-cinema-700 text-slate-200 border border-cinema-700 transition font-bold" title="تحديد جدران وخلفية المشهد">
+                🧱 جدران وخلفية
+              </button>
+              <button type="button" onclick="autoMaskPreset('all')" class="px-2 py-1 rounded-lg bg-cinema-800 hover:bg-cinema-700 text-slate-300 border border-cinema-700 transition" title="تحديد الكادر كاملاً">
+                🖼️ الكادر كاملاً
+              </button>
+            </div>
+
+            <!-- Canvas Viewport with Brush Cursor Overlay -->
+            <div id="prodCanvasWrapper" class="relative w-full h-[400px] rounded-xl overflow-hidden bg-cinema-950 border border-cinema-700 flex items-center justify-center select-none" style="touch-action: none;">
               <div id="prodCanvasPlaceholder" class="text-center p-6 space-y-3">
                 <div class="w-16 h-16 mx-auto rounded-2xl bg-pink-500/10 border border-pink-500/30 flex items-center justify-center text-pink-400 text-2xl">
                   <i class="fa-solid fa-image"></i>
                 </div>
+                <h4 class="text-sm font-bold text-slate-200">الخطوة 1: ابدأ بتحميل الكادر</h4>
                 <p class="text-xs text-slate-400 max-w-sm">
-                  اختر كادراً من مشاهد الفيلم الحالية أو ارفع صورة لوكيشن / ديكور للبدء في تنسيق الملابس والأثاث فوقه.
+                  اضغط زر <strong>"من صالة العرض"</strong> لاختيار لقطة من مشاهد الفيلم، أو <strong>"رفع كادر / لوكيشن"</strong> لاختيار صورة من جهازك.
                 </p>
               </div>
-              <canvas id="prodSceneCanvas" class="hidden absolute inset-0 w-full h-full object-contain"></canvas>
-              <canvas id="prodMaskCanvas" class="hidden absolute inset-0 w-full h-full object-contain pointer-events-auto"></canvas>
+              
+              <div id="prodCanvasContainer" class="relative hidden flex items-center justify-center">
+                <canvas id="prodSceneCanvas" class="rounded-lg shadow-xl block"></canvas>
+                <canvas id="prodMaskCanvas" class="absolute inset-0 cursor-none block"></canvas>
+                <!-- Visual Brush Ring Cursor -->
+                <div id="prodBrushCursor" class="pointer-events-none absolute rounded-full border-2 border-pink-400 bg-pink-500/25 hidden -translate-x-1/2 -translate-y-1/2 transition-none"></div>
+              </div>
             </div>
 
-            <p class="text-[11px] text-slate-400 flex items-center gap-1.5 px-1">
-              <i class="fa-solid fa-lightbulb text-amber-400"></i>
-              مرر الفرشاة على الجزء المطلوب (مثلاً: ملابس الممثل لتبديلها، موضع قطعة الأثاث، أو الحائط المراد تغيير خامته).
-            </p>
+            <div class="flex items-center justify-between text-[11px] text-slate-400 px-1">
+              <span class="flex items-center gap-1.5">
+                <i class="fa-solid fa-keyboard text-cyan-400"></i>
+                اختصارات سريعة: <code class="text-pink-300 font-mono bg-cinema-900 px-1 rounded">Ctrl+Z</code> للتراجع • <code class="text-pink-300 font-mono bg-cinema-900 px-1 rounded">Ctrl+Y</code> للإعادة
+              </span>
+              <span id="prodMaskStatus" class="font-mono text-pink-300">التحديد فارغ</span>
+            </div>
           </div>
 
         </div>
 
-        <!-- Right Column: Catalog & Relighting Engine (5 cols) -->
+        <!-- Right Column: Catalog, Reference & Relighting Engine (5 cols) -->
         <div class="lg:col-span-5 space-y-4">
           
-          <!-- Category Tabs -->
-          <div class="glass-panel p-4 rounded-2xl border border-cinema-700/80 space-y-4">
+          <!-- Mode Tabs: Catalog vs Direct Reference -->
+          <div class="glass-panel p-4 rounded-2xl border border-cinema-700/80 space-y-3">
             <div class="flex items-center justify-between pb-2 border-b border-cinema-800">
               <span class="text-xs font-bold text-slate-200 flex items-center gap-2">
-                <i class="fa-solid fa-shapes text-pink-400"></i>
-                2. كتالوج الأصول المعتمدة (Asset Rack):
+                <span class="w-5 h-5 rounded-full bg-pink-500 text-white flex items-center justify-center text-[10px] font-black">2</span>
+                اختر الزي أو قطعة الديكور المطلوبة:
               </span>
-              <button type="button" onclick="openAddCustomAssetModal()" class="text-[11px] px-2 py-0.5 rounded bg-pink-500/20 hover:bg-pink-500/30 text-pink-300 font-bold border border-pink-500/40 transition flex items-center gap-1">
-                <i class="fa-solid fa-plus"></i> إضافة عنصر مخصص
+            </div>
+
+            <!-- Choice: Ready Catalog vs Direct Upload -->
+            <div class="grid grid-cols-2 gap-2 p-1 bg-cinema-900 rounded-xl border border-cinema-800 text-xs font-bold">
+              <button type="button" id="prodTabCatalogBtn" onclick="switchProdInputMode('catalog')" class="py-2 rounded-lg text-center transition bg-pink-500 text-white shadow flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-book-open"></i>
+                <span>الكتالوج المعتمد</span>
+              </button>
+              <button type="button" id="prodTabDirectBtn" onclick="switchProdInputMode('direct')" class="py-2 rounded-lg text-center transition text-slate-400 hover:text-white flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-camera"></i>
+                <span>رفع صورة مرجعية مخصصة</span>
               </button>
             </div>
 
-            <!-- Categories Switcher -->
-            <div class="flex rounded-xl bg-cinema-900 p-1 border border-cinema-800 text-xs font-bold">
-              <button type="button" id="catBtnCostumes" onclick="switchProdCategory('costumes')" class="flex-1 py-1.5 rounded-lg text-center transition bg-pink-500 text-white shadow">
-                👗 أزياء وملابس
-              </button>
-              <button type="button" id="catBtnProps" onclick="switchProdCategory('props')" class="flex-1 py-1.5 rounded-lg text-center transition text-slate-400 hover:text-white">
-                🛋️ أثاث وديكور
-              </button>
-              <button type="button" id="catBtnMaterials" onclick="switchProdCategory('materials')" class="flex-1 py-1.5 rounded-lg text-center transition text-slate-400 hover:text-white">
-                🧱 خامات وحوائط
-              </button>
-            </div>
-
-            <!-- Cards Container -->
-            <div id="prodCardsList" class="space-y-2 max-h-56 overflow-y-auto pr-1">
-              <!-- Dynamically populated -->
-              <div class="p-3 text-center text-xs text-slate-500 font-mono">جاري تحميل عناصر الكتالوج...</div>
-            </div>
-
-            <!-- Selected Item Card Banner -->
-            <div id="prodSelectedBanner" class="p-3 rounded-xl bg-pink-950/40 border border-pink-500/50 space-y-1">
-              <div class="flex items-center justify-between">
-                <span class="text-[10px] text-pink-300 font-bold uppercase tracking-wider">العنصر المحدد حالياً:</span>
-                <span id="prodSelectedEra" class="text-[10px] px-2 py-0.5 rounded bg-pink-500/20 text-pink-300 font-mono">كلاسيكي</span>
+            <!-- VIEW A: READY CATALOG -->
+            <div id="prodViewCatalog" class="space-y-3">
+              <!-- Categories Switcher -->
+              <div class="flex rounded-xl bg-cinema-950 p-1 border border-cinema-850 text-xs font-bold">
+                <button type="button" id="catBtnCostumes" onclick="switchProdCategory('costumes')" class="flex-1 py-1.5 rounded-lg text-center transition bg-pink-500 text-white shadow">
+                  👗 أزياء
+                </button>
+                <button type="button" id="catBtnProps" onclick="switchProdCategory('props')" class="flex-1 py-1.5 rounded-lg text-center transition text-slate-400 hover:text-white">
+                  🛋️ أثاث
+                </button>
+                <button type="button" id="catBtnMaterials" onclick="switchProdCategory('materials')" class="flex-1 py-1.5 rounded-lg text-center transition text-slate-400 hover:text-white">
+                  🧱 خامات
+                </button>
               </div>
-              <h4 id="prodSelectedTitle" class="text-xs font-bold text-white">معطف ترينش كلاسيكي (1970s Trench Coat)</h4>
-              <p id="prodSelectedDesc" class="text-[11px] text-slate-300">معطف بيج كلاسيكي بقماش ثقيل وياقة عريضة مع قبعة فيدورا.</p>
+
+              <!-- Cards Container -->
+              <div id="prodCardsList" class="space-y-2 max-h-52 overflow-y-auto pr-1">
+                <!-- Dynamically populated -->
+              </div>
+
+              <!-- Selected Item Card Banner -->
+              <div id="prodSelectedBanner" class="p-3 rounded-xl bg-pink-950/40 border border-pink-500/50 space-y-1">
+                <div class="flex items-center justify-between">
+                  <span class="text-[10px] text-pink-300 font-bold uppercase tracking-wider">العنصر المحدد:</span>
+                  <span id="prodSelectedEra" class="text-[10px] px-2 py-0.5 rounded bg-pink-500/20 text-pink-300 font-mono">كلاسيكي</span>
+                </div>
+                <h4 id="prodSelectedTitle" class="text-xs font-bold text-white">معطف ترينش كلاسيكي (1970s Trench Coat)</h4>
+                <p id="prodSelectedDesc" class="text-[11px] text-slate-300">معطف بيج كلاسيكي بقماش ثقيل وياقة عريضة مع قبعة فيدورا.</p>
+              </div>
+            </div>
+
+            <!-- VIEW B: DIRECT CUSTOM UPLOAD -->
+            <div id="prodViewDirect" class="hidden space-y-3">
+              <div class="border-2 border-dashed border-pink-500/40 hover:border-pink-500 rounded-xl p-4 text-center bg-cinema-950/50 space-y-2 cursor-pointer transition" onclick="document.getElementById('prodDirectRefUpload').click()">
+                <div id="prodDirectRefPreviewWrap" class="hidden w-24 h-24 mx-auto rounded-lg overflow-hidden border border-pink-400 shadow">
+                  <img id="prodDirectRefPreview" class="w-full h-full object-cover">
+                </div>
+                <div id="prodDirectRefPlaceholder" class="space-y-1">
+                  <i class="fa-solid fa-cloud-arrow-up text-pink-400 text-2xl"></i>
+                  <p class="text-xs font-bold text-slate-200">انقر هنا أو اسحب صورة القطعة المطلوبة</p>
+                  <p class="text-[10px] text-slate-400">صورة جاكيت، فستان، كرسي، مصباح، أو خامة معينة من جهازك</p>
+                </div>
+                <input type="file" id="prodDirectRefUpload" accept="image/*" class="hidden" onchange="handleProdDirectRefUpload(event)">
+              </div>
+
+              <div>
+                <label class="text-[11px] font-bold text-slate-300 block mb-1">وصف العنصر أو القطعة (اختياري):</label>
+                <input type="text" id="prodCustomPromptInput" placeholder="مثال: سترة جلدية عتيقة بتفاصيل معدنية..." class="w-full bg-cinema-950 border border-cinema-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-pink-500">
+              </div>
             </div>
           </div>
 
@@ -1300,8 +1377,8 @@
           <div class="glass-panel p-4 rounded-2xl border border-cinema-700/80 space-y-3">
             <h4 class="text-xs font-bold text-slate-200 flex items-center justify-between">
               <span class="flex items-center gap-2">
-                <i class="fa-solid fa-sun text-amber-400"></i>
-                3. محرك الإضاءة والدمج السينمائي (IC-Light Engine):
+                <span class="w-5 h-5 rounded-full bg-pink-500 text-white flex items-center justify-center text-[10px] font-black">3</span>
+                محرك الإضاءة والدمج السينمائي (IC-Light):
               </span>
               <span class="text-[10px] text-emerald-400 font-mono">Apache 2.0</span>
             </h4>
@@ -1336,7 +1413,7 @@
 
             <!-- Action Button -->
             <div class="pt-2">
-              <button type="button" id="prodApplyBtn" onclick="executeProductionDesign()" class="w-full py-3 rounded-xl bg-gradient-to-r from-pink-500 via-rose-600 to-purple-600 hover:opacity-95 text-white font-black text-xs shadow-xl transition flex items-center justify-center gap-2 cursor-pointer border border-pink-300/30">
+              <button type="button" id="prodApplyBtn" onclick="executeProductionDesign()" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-pink-500 via-rose-600 to-purple-600 hover:opacity-95 text-white font-black text-xs shadow-xl transition flex items-center justify-center gap-2 cursor-pointer border border-pink-300/30">
                 <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i>
                 <span>تطبيق وتثبيت العنصر مع إعادة الإضاءة السينمائية</span>
               </button>
@@ -13177,13 +13254,112 @@ let currentUploadContext = 'chat';
     let prodSelectedItem = null;
     let prodTool = 'brush'; // 'brush' or 'eraser'
     let prodIsDrawing = false;
+    let prodLastPos = null;
     let prodSceneImageB64 = null;
+    let prodDirectRefB64 = null;
+    let prodInputMode = 'catalog'; // 'catalog' or 'direct'
     let prodLatestResultUrl = null;
+    let prodHistory = [];
+    let prodHistoryIndex = -1;
+    const PROD_MAX_HISTORY = 25;
 
     function initProductionDesignUI() {
       fetchProductionCatalog();
       setupProdCanvasListeners();
     }
+
+    // --- UNDO / REDO HISTORY SYSTEM ---
+    function saveProdMaskState() {
+      const canvas = document.getElementById('prodMaskCanvas');
+      if (!canvas || !canvas.width || !canvas.height) return;
+      const ctx = canvas.getContext('2d');
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+      if (prodHistoryIndex < prodHistory.length - 1) {
+        prodHistory = prodHistory.slice(0, prodHistoryIndex + 1);
+      }
+      prodHistory.push(imgData);
+      if (prodHistory.length > PROD_MAX_HISTORY) {
+        prodHistory.shift();
+      } else {
+        prodHistoryIndex++;
+      }
+      updateUndoRedoButtons();
+      updateProdMaskStatus();
+    }
+
+    function undoProdMask() {
+      if (prodHistoryIndex <= 0) return;
+      prodHistoryIndex--;
+      const canvas = document.getElementById('prodMaskCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      ctx.putImageData(prodHistory[prodHistoryIndex], 0, 0);
+      updateUndoRedoButtons();
+      updateProdMaskStatus();
+    }
+
+    function redoProdMask() {
+      if (prodHistoryIndex >= prodHistory.length - 1) return;
+      prodHistoryIndex++;
+      const canvas = document.getElementById('prodMaskCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      ctx.putImageData(prodHistory[prodHistoryIndex], 0, 0);
+      updateUndoRedoButtons();
+      updateProdMaskStatus();
+    }
+
+    function updateUndoRedoButtons() {
+      const btnUndo = document.getElementById('prodBtnUndo');
+      const btnRedo = document.getElementById('prodBtnRedo');
+      if (btnUndo) {
+        btnUndo.disabled = (prodHistoryIndex <= 0);
+      }
+      if (btnRedo) {
+        btnRedo.disabled = (prodHistoryIndex >= prodHistory.length - 1 || prodHistory.length === 0);
+      }
+    }
+
+    function updateProdMaskStatus() {
+      const statusEl = document.getElementById('prodMaskStatus');
+      if (!statusEl) return;
+      const canvas = document.getElementById('prodMaskCanvas');
+      if (!canvas || !canvas.width) {
+        statusEl.textContent = 'التحديد فارغ';
+        return;
+      }
+      const ctx = canvas.getContext('2d');
+      const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      let painted = false;
+      for (let i = 3; i < data.length; i += 40) {
+        if (data[i] > 20) {
+          painted = true;
+          break;
+        }
+      }
+      statusEl.textContent = painted ? 'تم رسم التحديد ✓' : 'التحديد فارغ';
+    }
+
+    // Keyboard shortcuts for Undo (Ctrl+Z) and Redo (Ctrl+Y or Ctrl+Shift+Z)
+    window.addEventListener('keydown', function(e) {
+      if (e.ctrlKey || e.metaKey) {
+        const prodTab = document.getElementById('tab-production');
+        if (!prodTab || prodTab.classList.contains('hidden')) return;
+
+        if (e.key === 'z' || e.key === 'Z') {
+          e.preventDefault();
+          if (e.shiftKey) {
+            redoProdMask();
+          } else {
+            undoProdMask();
+          }
+        } else if (e.key === 'y' || e.key === 'Y') {
+          e.preventDefault();
+          redoProdMask();
+        }
+      }
+    });
 
     async function fetchProductionCatalog() {
       try {
@@ -13203,14 +13379,14 @@ let currentUploadContext = 'chat';
       const bC = document.getElementById('catBtnCostumes');
       const bP = document.getElementById('catBtnProps');
       const bM = document.getElementById('catBtnMaterials');
-      
+
       const onCls = 'flex-1 py-1.5 rounded-lg text-center transition bg-pink-500 text-white shadow font-bold text-xs';
       const offCls = 'flex-1 py-1.5 rounded-lg text-center transition text-slate-400 hover:text-white font-bold text-xs';
-      
+
       if (bC) bC.className = (cat === 'costumes') ? onCls : offCls;
       if (bP) bP.className = (cat === 'props') ? onCls : offCls;
       if (bM) bM.className = (cat === 'materials') ? onCls : offCls;
-      
+
       renderProductionCatalog(cat);
     }
 
@@ -13222,7 +13398,7 @@ let currentUploadContext = 'chat';
         list.innerHTML = '<div class="p-3 text-center text-xs text-slate-500">لا توجد عناصر في هذا القسم حالياً.</div>';
         return;
       }
-      
+
       list.innerHTML = items.map(itm => {
         const isSel = prodSelectedItem && prodSelectedItem.id === itm.id;
         const iconCls = itm.icon || (cat === 'costumes' ? 'fa-shirt' : (cat === 'props' ? 'fa-couch' : 'fa-border-all'));
@@ -13252,7 +13428,7 @@ let currentUploadContext = 'chat';
       const itm = items.find(x => x.id === id);
       if (!itm) return;
       prodSelectedItem = itm;
-      
+
       const bTitle = document.getElementById('prodSelectedTitle');
       const bEra = document.getElementById('prodSelectedEra');
       const bDesc = document.getElementById('prodSelectedDesc');
@@ -13268,62 +13444,140 @@ let currentUploadContext = 'chat';
       const b1 = document.getElementById('prodToolBrush');
       const b2 = document.getElementById('prodToolEraser');
       if (tool === 'brush') {
-        b1.className = 'px-2.5 py-1 rounded-lg bg-pink-500 text-white font-bold text-[11px] flex items-center gap-1';
-        b2.className = 'px-2.5 py-1 rounded-lg bg-cinema-800 text-slate-300 hover:text-white font-bold text-[11px] flex items-center gap-1';
+        b1.className = 'px-2.5 py-1.5 rounded-lg bg-pink-500 text-white font-bold text-xs flex items-center gap-1.5 shadow';
+        b2.className = 'px-2.5 py-1.5 rounded-lg bg-cinema-800 text-slate-300 hover:text-white font-bold text-xs flex items-center gap-1.5 border border-cinema-700';
       } else {
-        b2.className = 'px-2.5 py-1 rounded-lg bg-pink-500 text-white font-bold text-[11px] flex items-center gap-1';
-        b1.className = 'px-2.5 py-1 rounded-lg bg-cinema-800 text-slate-300 hover:text-white font-bold text-[11px] flex items-center gap-1';
+        b2.className = 'px-2.5 py-1.5 rounded-lg bg-pink-500 text-white font-bold text-xs flex items-center gap-1.5 shadow';
+        b1.className = 'px-2.5 py-1.5 rounded-lg bg-cinema-800 text-slate-300 hover:text-white font-bold text-xs flex items-center gap-1.5 border border-cinema-700';
       }
     }
 
+    function updateBrushSizeDisplay(val) {
+      const display = document.getElementById('prodBrushSizeVal');
+      if (display) display.textContent = val + 'px';
+    }
+
+    // --- CANVAS SIZING & CONTINUOUS STROKES ---
     function setupProdCanvasListeners() {
       const maskCanvas = document.getElementById('prodMaskCanvas');
+      const cursor = document.getElementById('prodBrushCursor');
       if (!maskCanvas || maskCanvas._hasListeners) return;
       maskCanvas._hasListeners = true;
 
       function getPos(e) {
         const rect = maskCanvas.getBoundingClientRect();
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const clientX = (e.touches && e.touches.length > 0) ? e.touches[0].clientX : e.clientX;
+        const clientY = (e.touches && e.touches.length > 0) ? e.touches[0].clientY : e.clientY;
         const scaleX = maskCanvas.width / rect.width;
         const scaleY = maskCanvas.height / rect.height;
         return {
           x: (clientX - rect.left) * scaleX,
-          y: (clientY - rect.top) * scaleY
+          y: (clientY - rect.top) * scaleY,
+          cssX: (clientX - rect.left),
+          cssY: (clientY - rect.top)
         };
       }
 
-      function draw(pos) {
+      function updateCursor(pos) {
+        if (!cursor) return;
+        const size = parseInt(document.getElementById('prodBrushSize')?.value || 45, 10);
+        const rect = maskCanvas.getBoundingClientRect();
+        const scaleCSS = rect.width / maskCanvas.width;
+        const cursorDiameter = Math.max(8, size * scaleCSS);
+        cursor.style.width = cursorDiameter + 'px';
+        cursor.style.height = cursorDiameter + 'px';
+        cursor.style.left = pos.cssX + 'px';
+        cursor.style.top = pos.cssY + 'px';
+        cursor.classList.remove('hidden');
+      }
+
+      function drawStroke(from, to) {
         const ctx = maskCanvas.getContext('2d');
-        const size = parseInt(document.getElementById('prodBrushSize')?.value || 35, 10);
-        ctx.beginPath();
-        ctx.arc(pos.x, pos.y, size / 2, 0, Math.PI * 2);
+        const size = parseInt(document.getElementById('prodBrushSize')?.value || 45, 10);
+        ctx.lineWidth = size;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
         if (prodTool === 'brush') {
           ctx.globalCompositeOperation = 'source-over';
-          ctx.fillStyle = 'rgba(236, 72, 153, 0.65)';
-          ctx.fill();
+          ctx.strokeStyle = 'rgba(236, 72, 153, 0.75)';
+          ctx.fillStyle = 'rgba(236, 72, 153, 0.75)';
         } else {
           ctx.globalCompositeOperation = 'destination-out';
+          ctx.strokeStyle = 'rgba(0, 0, 0, 1)';
+          ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+        }
+
+        ctx.beginPath();
+        if (from && (from.x !== to.x || from.y !== to.y)) {
+          ctx.moveTo(from.x, from.y);
+          ctx.lineTo(to.x, to.y);
+          ctx.stroke();
+        } else {
+          ctx.arc(to.x, to.y, size / 2, 0, Math.PI * 2);
           ctx.fill();
         }
       }
 
+      maskCanvas.addEventListener('mouseenter', (e) => {
+        updateCursor(getPos(e));
+      });
+
+      maskCanvas.addEventListener('mouseleave', () => {
+        if (cursor) cursor.classList.add('hidden');
+        if (prodIsDrawing) {
+          prodIsDrawing = false;
+          prodLastPos = null;
+          saveProdMaskState();
+        }
+      });
+
       maskCanvas.addEventListener('mousedown', (e) => {
         prodIsDrawing = true;
-        draw(getPos(e));
+        const pos = getPos(e);
+        prodLastPos = pos;
+        drawStroke(null, pos);
+        updateCursor(pos);
       });
-      window.addEventListener('mouseup', () => { prodIsDrawing = false; });
+
+      window.addEventListener('mouseup', () => {
+        if (prodIsDrawing) {
+          prodIsDrawing = false;
+          prodLastPos = null;
+          saveProdMaskState();
+        }
+      });
+
       maskCanvas.addEventListener('mousemove', (e) => {
-        if (prodIsDrawing) draw(getPos(e));
+        const pos = getPos(e);
+        updateCursor(pos);
+        if (prodIsDrawing) {
+          drawStroke(prodLastPos, pos);
+          prodLastPos = pos;
+        }
       });
 
       maskCanvas.addEventListener('touchstart', (e) => {
         prodIsDrawing = true;
-        draw(getPos(e));
+        const pos = getPos(e);
+        prodLastPos = pos;
+        drawStroke(null, pos);
       }, { passive: true });
-      maskCanvas.addEventListener('touchend', () => { prodIsDrawing = false; });
+
+      maskCanvas.addEventListener('touchend', () => {
+        if (prodIsDrawing) {
+          prodIsDrawing = false;
+          prodLastPos = null;
+          saveProdMaskState();
+        }
+      });
+
       maskCanvas.addEventListener('touchmove', (e) => {
-        if (prodIsDrawing) draw(getPos(e));
+        if (prodIsDrawing) {
+          const pos = getPos(e);
+          drawStroke(prodLastPos, pos);
+          prodLastPos = pos;
+        }
       }, { passive: true });
     }
 
@@ -13350,29 +13604,86 @@ let currentUploadContext = 'chat';
       const img = new Image();
       img.crossOrigin = 'anonymous';
       img.onload = function() {
+        const wrapper = document.getElementById('prodCanvasWrapper');
+        const container = document.getElementById('prodCanvasContainer');
         const sceneCanvas = document.getElementById('prodSceneCanvas');
         const maskCanvas = document.getElementById('prodMaskCanvas');
         const placeholder = document.getElementById('prodCanvasPlaceholder');
-        
+
+        const wrapW = wrapper.clientWidth || 640;
+        const wrapH = wrapper.clientHeight || 400;
+        const scale = Math.min(wrapW / img.width, wrapH / img.height);
+        const dispW = Math.round(img.width * scale);
+        const dispH = Math.round(img.height * scale);
+
         sceneCanvas.width = img.width;
         sceneCanvas.height = img.height;
         maskCanvas.width = img.width;
         maskCanvas.height = img.height;
-        
+
+        container.style.width = dispW + 'px';
+        container.style.height = dispH + 'px';
+        sceneCanvas.style.width = dispW + 'px';
+        sceneCanvas.style.height = dispH + 'px';
+        maskCanvas.style.width = dispW + 'px';
+        maskCanvas.style.height = dispH + 'px';
+
         const sCtx = sceneCanvas.getContext('2d');
         sCtx.drawImage(img, 0, 0);
-        
+
         const mCtx = maskCanvas.getContext('2d');
         mCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
-        
+
         placeholder.classList.add('hidden');
-        sceneCanvas.classList.remove('hidden');
-        maskCanvas.classList.remove('hidden');
-        
+        container.classList.remove('hidden');
+
         prodSceneImageB64 = imgSrc;
-        showToast(window.currentAppLang === 'en' ? 'Scene loaded. Paint the area you want to change!' : 'تم تحميل كادر المشهد. حدد بالفرشاة المنطقة المراد تغييرها!', 'success');
+
+        prodHistory = [];
+        prodHistoryIndex = -1;
+        saveProdMaskState();
+
+        showToast(window.currentAppLang === 'en' ? 'Scene loaded. Paint the area you want to change!' : 'تم تحميل كادر المشهد بنجاح! حدد بالفرشاة المنطقة المراد تغييرها.', 'success');
       };
       img.src = imgSrc;
+    }
+
+    function autoMaskPreset(preset) {
+      const maskCanvas = document.getElementById('prodMaskCanvas');
+      if (!maskCanvas || !maskCanvas.width || !maskCanvas.height) {
+        showToast(window.currentAppLang === 'en' ? 'Please load a scene first!' : 'يرجى تحميل الكادر أولاً!', 'warning');
+        return;
+      }
+      const ctx = maskCanvas.getContext('2d');
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = 'rgba(236, 72, 153, 0.75)';
+
+      const w = maskCanvas.width;
+      const h = maskCanvas.height;
+
+      if (preset === 'body') {
+        ctx.beginPath();
+        const cx = w * 0.5;
+        const cy = h * 0.55;
+        const rx = w * 0.22;
+        const ry = h * 0.35;
+        ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+        ctx.fill();
+        showToast('تم تحديد موضع ملابس وجسم الشخصية تلقائياً!', 'info');
+      } else if (preset === 'lower') {
+        ctx.fillRect(0, h * 0.5, w, h * 0.5);
+        showToast('تم تحديد النصف السفلي للكادر (أثاث وأرضية)!', 'info');
+      } else if (preset === 'background') {
+        ctx.fillRect(0, 0, w, h * 0.5);
+        ctx.fillRect(0, 0, w * 0.2, h);
+        ctx.fillRect(w * 0.8, 0, w * 0.2, h);
+        showToast('تم تحديد جدران وخلفية المشهد!', 'info');
+      } else if (preset === 'all') {
+        ctx.fillRect(0, 0, w, h);
+        showToast('تم تحديد الكادر كاملاً!', 'info');
+      }
+
+      saveProdMaskState();
     }
 
     function clearProdMask() {
@@ -13380,7 +13691,45 @@ let currentUploadContext = 'chat';
       if (maskCanvas) {
         const ctx = maskCanvas.getContext('2d');
         ctx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+        saveProdMaskState();
       }
+    }
+
+    function switchProdInputMode(mode) {
+      prodInputMode = mode;
+      const btnCat = document.getElementById('prodTabCatalog');
+      const btnDir = document.getElementById('prodTabDirect');
+      const viewCat = document.getElementById('prodViewCatalog');
+      const viewDir = document.getElementById('prodViewDirect');
+
+      if (mode === 'catalog') {
+        if (btnCat) btnCat.className = 'flex-1 py-1.5 rounded-lg text-center transition bg-pink-500 text-white shadow font-bold text-xs flex items-center justify-center gap-1.5';
+        if (btnDir) btnDir.className = 'flex-1 py-1.5 rounded-lg text-center transition text-slate-400 hover:text-white font-bold text-xs flex items-center justify-center gap-1.5';
+        if (viewCat) viewCat.classList.remove('hidden');
+        if (viewDir) viewDir.classList.add('hidden');
+      } else {
+        if (btnDir) btnDir.className = 'flex-1 py-1.5 rounded-lg text-center transition bg-pink-500 text-white shadow font-bold text-xs flex items-center justify-center gap-1.5';
+        if (btnCat) btnCat.className = 'flex-1 py-1.5 rounded-lg text-center transition text-slate-400 hover:text-white font-bold text-xs flex items-center justify-center gap-1.5';
+        if (viewDir) viewDir.classList.remove('hidden');
+        if (viewCat) viewCat.classList.add('hidden');
+      }
+    }
+
+    function handleProdDirectRefUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        prodDirectRefB64 = evt.target.result;
+        const prevImg = document.getElementById('prodDirectRefPreview');
+        const prevWrap = document.getElementById('prodDirectRefPreviewWrap');
+        const placeholder = document.getElementById('prodDirectRefPlaceholder');
+        if (prevImg) prevImg.src = prodDirectRefB64;
+        if (prevWrap) prevWrap.classList.remove('hidden');
+        if (placeholder) placeholder.classList.add('hidden');
+        showToast(window.currentAppLang === 'en' ? 'Custom reference photo loaded!' : 'تم تحميل صورة المرجع بنجاح!', 'success');
+      };
+      reader.readAsDataURL(file);
     }
 
     async function executeProductionDesign() {
@@ -13388,17 +13737,16 @@ let currentUploadContext = 'chat';
         showToast(window.currentAppLang === 'en' ? 'Please upload or select a scene background first.' : 'يرجى اختيار كادر المشهد أولاً.', 'warning');
         return;
       }
-      
+
       const btn = document.getElementById('prodApplyBtn');
       const statusBox = document.getElementById('prodStatusBox');
       const resSec = document.getElementById('prodResultSection');
-      
+
       btn.disabled = true;
       btn.classList.add('opacity-50');
       statusBox.classList.remove('hidden');
       if (resSec) resSec.classList.add('hidden');
-      
-      // Export mask as solid white on black
+
       const maskCanvas = document.getElementById('prodMaskCanvas');
       let maskB64 = null;
       if (maskCanvas && maskCanvas.width > 0) {
@@ -13408,7 +13756,7 @@ let currentUploadContext = 'chat';
         const bCtx = binCanvas.getContext('2d');
         bCtx.fillStyle = '#000000';
         bCtx.fillRect(0, 0, binCanvas.width, binCanvas.height);
-        
+
         const imgData = maskCanvas.getContext('2d').getImageData(0, 0, maskCanvas.width, maskCanvas.height);
         const binData = bCtx.getImageData(0, 0, binCanvas.width, binCanvas.height);
         let hasMask = false;
@@ -13433,11 +13781,13 @@ let currentUploadContext = 'chat';
         temperature: document.getElementById('prodLightTemp')?.value || 'warm'
       };
 
+      const customPromptVal = document.getElementById('prodCustomPromptInput')?.value?.trim();
       const payload = {
         scene_image: prodSceneImageB64,
         mask_image: maskB64,
-        item_id: prodSelectedItem ? prodSelectedItem.id : null,
-        custom_prompt: prodSelectedItem ? prodSelectedItem.prompt_enhancer : 'realistic cinematic wardrobe and decor',
+        item_id: (prodInputMode === 'catalog' && prodSelectedItem) ? prodSelectedItem.id : null,
+        custom_image: (prodInputMode === 'direct') ? prodDirectRefB64 : null,
+        custom_prompt: customPromptVal || ((prodInputMode === 'catalog' && prodSelectedItem) ? prodSelectedItem.prompt_enhancer : 'realistic cinematic wardrobe and decor'),
         lighting_config: lightConfig
       };
 
@@ -13451,16 +13801,17 @@ let currentUploadContext = 'chat';
         if (data.success && (data.local_url || data.cloud_url)) {
           const finalUrl = data.local_url || data.cloud_url;
           prodLatestResultUrl = finalUrl;
-          
+
           document.getElementById('prodBeforeImg').src = prodSceneImageB64;
           document.getElementById('prodAfterImg').src = finalUrl;
           document.getElementById('prodDownloadBtn').href = finalUrl;
-          
+
           const metaP = document.getElementById('prodResultMeta');
           if (metaP) {
-            metaP.innerHTML = `تم تثبيت العنصر (${prodSelectedItem ? prodSelectedItem.title : 'ديكور مخصص'}) وإعادة إضاءته بنجاح • <strong>التكلفة: ${data.cost || '$0.00'}</strong> • رخصة تجارية حرة 100%.`;
+            const title = (prodInputMode === 'catalog' && prodSelectedItem) ? prodSelectedItem.title : (customPromptVal || 'عنصر مرجعي مخصص');
+            metaP.innerHTML = `تم تثبيت العنصر (${title}) وإعادة إضاءته بنجاح • <strong>التكلفة: ${data.cost || '$0.00'}</strong> • رخصة تجارية حرة 100%.`;
           }
-          
+
           resSec.classList.remove('hidden');
           showToast(window.currentAppLang === 'en' ? 'Element applied and relighted successfully!' : 'تم تطبيق العنصر وتكييف الإضاءة بنجاح!', 'success');
         } else {
