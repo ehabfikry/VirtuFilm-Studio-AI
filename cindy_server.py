@@ -7614,7 +7614,7 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
 
         negative = payload.get('negative_prompt', 'blurry, bad anatomy, bad hands, low quality, artifacts')
 
-        ckpt = payload.get('checkpoint', 'flux1-dev.sft')
+        ckpt = payload.get('checkpoint', 'Qwen/qwen-image-edit-2511.safetensors')
 
         lora_name = payload.get('lora_name')
 
