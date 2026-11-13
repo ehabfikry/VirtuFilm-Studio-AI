@@ -3,14 +3,14 @@ VIRTUFILM STUDIO AI - CRYPTOGRAPHIC PRIOR-ART & IP TIMESTAMP LEDGER
 ===================================================================
 Inventor & Copyright Owner : Ehab Fikry (المخرج إيهاب فكري)
 Patent Reference           : CAD-IP-2026-001
-Timestamp (UTC)            : 2026-11-13T05:07:14Z
-Master Architecture SHA256 : dbd7006019185db997b1ade573c54c19099bee49ee75cd21c5e379a32ef1be41
+Timestamp (UTC)            : 2026-11-13T05:22:27Z
+Master Architecture SHA256 : 9088420a6f3bc4437050d5e91a8f49eae991c2f2914d3f7cbb8ec46d55f11cb7
 -------------------------------------------------------------------
-e3003cc160e85193c5ff8a4331108337e831a2844bdfb33046e84e57d2fe8577  index.html (1338356 bytes)
+455b17f62468fc66b8bd811e1712047a28db11c265c08fcd3ee928b4946be74f  index.html (1338516 bytes)
 696fb39d25d3cf1addcb4d342840243108c8adaf2dde7d612bd6b8940ca3b3e6  cindy_server.py (294935 bytes)
 bfbeb7e8bcb4448ea4fe874dd0151eba29e518d4fc0ae5d03600f791ba37139d  cindy_previs_engine.py (55959 bytes)
 d3b6066212824c399dfe8a61597ded21e4a1a6ae6c80bc498459e3138ad77a05  cindy_blender_bridge.py (55826 bytes)
-039f08192a0a44e04c0b2e442fcf7364bcf4c8eaf6f7f8f5642a1cda1f92c5bb  comfyui_client.py (45081 bytes)
+8df12bfb64a2f299a1714b3abab5af8c8155d0c2e9c2f64071aab527bbe19a56  comfyui_client.py (45238 bytes)
 0619c349b9574be72e4770ff01845e5f0e5e25c50b31d1b120d25a92707a6673  cindy_storyboard.py (13896 bytes)
 1ea878376897381d4435875367f0ce31ff80572dbb21f7d636342b8916e5f73f  cindy_pricing.py (27647 bytes)
 f231766c9ba83dad26197a2329acfe401067698aac86bfb11395469e6119baef  cindy_radar.py (21103 bytes)
@@ -22,4 +22,5 @@ f09d9914189f9f329e766256aae76fe366de61e648b19132f42202f9126f07bb  cindy_reframe_
 b86bde210ebaca58380b7abefd2aeacd8115271cdc3d221cdcc250c1ad3b811d  EGYPT_IP_FILING_DOSSIER.html (24808 bytes)
 b0024a9dbcd85774c3ef7c2ed6b2c20db9449b60ffa873d5def2697df1f56e0e  PATENT_FILING_DOCKET.html (27968 bytes)
 ===================================================================
-[2026-11-13 05:08:09 UTC] MILESTONE: Synchronized DMAD in both Top Bar and Screening Studio dropdowns.
+
+[2026-11-13T05:24:27.223741+00:00] Milestone: Enforced Cheapest-First Cloud GPU Cascade in RunPod and updated 4-language i18n.

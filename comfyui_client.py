@@ -1033,6 +1033,8 @@ def check_comfyui_node_capabilities(base_url, timeout=5):
             "cogvideox": "CogVideoXModelLoader" in data,
             "vhs": "VHS_VideoCombine" in data,
             "svd": "ImageOnlyCheckpointLoader" in data,
+            "reactor": "ReActorFaceSwap" in data or "ReActorLoadFaceModel" in data,
+            "dmad": "LoraLoader" in data or "WanVideoSampler" in data,
             "manager_available": True
         }
     except Exception as e:

@@ -2471,13 +2471,17 @@
 
                 </div>
 
-                <select id="runpod-gpu-select" class="w-full bg-cinema-950 border border-cinema-700 rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none focus:border-purple-400">
+                <select id="runpod-gpu-select" class="w-full bg-cinema-950 border border-purple-500/40 rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none focus:border-purple-400">
 
-                  <option value="NVIDIA GeForce RTX 4090" selected>⚡ NVIDIA RTX 4090 (24GB VRAM) - $0.34/hr (~4¢ per train! Lightning Fast)</option>
+                  <option value="" selected>💎 الأرخص أولاً (تتالي تلقائي: A5000 $0.16 ➔ 3090 $0.22 ➔ 4090 $0.34)</option>
+
+                  <option value="NVIDIA RTX A5000">🟢 NVIDIA RTX A5000 (24GB VRAM) - $0.16/hr (~2¢ per train! الأكثر توفيراً)</option>
+
+                  <option value="NVIDIA GeForce RTX 3090">🟢 NVIDIA RTX 3090 (24GB VRAM) - $0.22/hr (~3¢ per train! توازن ممتاز)</option>
+
+                  <option value="NVIDIA GeForce RTX 4090">⚡ NVIDIA RTX 4090 (24GB VRAM) - $0.34/hr (~4¢ per train! فائق السرعة)</option>
 
                   <option value="NVIDIA A40">👑 NVIDIA A40 (48GB VRAM) - $0.35/hr (~5¢ per train / 48GB VRAM)</option>
-
-                  <option value="NVIDIA A100 80GB PCIe">🚀 NVIDIA A100 (80GB VRAM) - $1.19/hr (Studio Enterprise)</option>
 
                 </select>
 
@@ -3253,9 +3257,12 @@
 
           <!-- Cloud Pod Controls (Always Visible & Accessible) -->
           <div class="flex items-center gap-2 flex-wrap">
-            <select id="comfy-gpu-select" class="bg-cinema-900 border border-cinema-700 text-slate-200 text-xs rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-emerald-400">
-              <option value="NVIDIA GeForce RTX 4090" selected>⚡ RTX 4090 (24GB VRAM) - ~$0.34/ساعة</option>
-              <option value="NVIDIA RTX PRO 4500 Blackwell Server Edition">🚀 Blackwell PRO 4500 (32GB VRAM) - ~$0.50/ساعة</option>
+            <select id="comfy-gpu-select" class="bg-cinema-900 border border-emerald-500/50 text-emerald-200 text-xs font-bold rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-emerald-400 shadow-sm">
+              <option value="" selected>💎 الأرخص أولاً (تتالي تلقائي من $0.16/س: A5000 ➔ 3090 ➔ 4090)</option>
+              <option value="NVIDIA RTX A5000">🟢 RTX A5000 (24GB VRAM) - ~$0.16/ساعة (الخيار الاقتصادي الأول)</option>
+              <option value="NVIDIA GeForce RTX 3090">🟢 RTX 3090 (24GB VRAM) - ~$0.22/ساعة (اقتصادي سريع)</option>
+              <option value="NVIDIA GeForce RTX 4090">⚡ RTX 4090 (24GB VRAM) - ~$0.34/ساعة (فائق السرعة)</option>
+              <option value="NVIDIA A40">👑 A40 Enterprise (48GB VRAM) - ~$0.35/ساعة (ذاكرة ضخمة)</option>
             </select>
 
             <button type="button" onclick="launchComfyStudioPod()" id="comfy-launch-btn" class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:opacity-95 text-white text-xs font-extrabold shadow-lg shadow-emerald-500/20 transition flex items-center gap-1.5">
@@ -8724,9 +8731,15 @@ let currentUploadContext = 'chat';
     }
 
     async function launchComfyStudioPod() {
-      showToast('جاري تشغيل استوديو ComfyUI السحابي على RunPod...', 'info');
+      const selectedGpu = document.getElementById('comfy-gpu-select')?.value || null;
+      const gpuNotice = selectedGpu ? selectedGpu : 'الأرخص أولاً (Cascade A5000 ➔ 3090 ➔ 4090)';
+      showToast('جاري حجز وتشغيل استوديو ComfyUI على RunPod: ' + gpuNotice, 'info');
       try {
-        const res = await fetch(`${API_BASE}/api/comfyui/launch`, { method: 'POST' });
+        const res = await fetch(`${API_BASE}/api/comfyui/launch`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ gpu_type: selectedGpu })
+        });
         const d = await res.json();
         showToast(d.message || 'تم إرسال أمر التشغيل بنجاح!', 'success');
         checkComfyStatus();
@@ -12020,35 +12033,82 @@ let currentUploadContext = 'chat';
       const loraGpuLabel = document.querySelector('#lora-gpu-select-group label');
       if (loraGpuLabel) loraGpuLabel.innerHTML = `<span class="text-slate-200 font-bold">` + ((lang === 'en') ? 'GPU Type (RunPod GPU):' : (lang === 'fr') ? 'Type de GPU (RunPod):' : (lang === 'es') ? 'Tipo de GPU (RunPod):' : 'نوع كارت الشاشة (RunPod GPU):') + `</span>`;
 
-      const loraGpuSelect = document.getElementById('lora-train-gpu');
+      const loraGpuSelect = document.getElementById('runpod-gpu-select') || document.getElementById('lora-train-gpu');
       if (loraGpuSelect) {
         const curG = loraGpuSelect.value;
         if (lang === 'en') {
           loraGpuSelect.innerHTML = `
-            <option value="NVIDIA GeForce RTX 4090">⚡ NVIDIA RTX 4090 (24GB VRAM) - $0.34/hr (~4 cents per train!)</option>
-            <option value="NVIDIA A40">⚡ NVIDIA A40 (48GB VRAM) - $0.35/hr (~5 cents per train)</option>
-            <option value="NVIDIA A100 80GB PCIe">⚡ NVIDIA A100 (80GB VRAM) - $1.19/hr (Studio Workstation)</option>
+            <option value="">💎 Cheapest First (Auto Cascade: A5000 $0.16 ➔ 3090 $0.22 ➔ 4090 $0.34)</option>
+            <option value="NVIDIA RTX A5000">🟢 NVIDIA RTX A5000 (24GB VRAM) - $0.16/hr (~2¢ per train! Most Economic)</option>
+            <option value="NVIDIA GeForce RTX 3090">🟢 NVIDIA RTX 3090 (24GB VRAM) - $0.22/hr (~3¢ per train! Great Balance)</option>
+            <option value="NVIDIA GeForce RTX 4090">⚡ NVIDIA RTX 4090 (24GB VRAM) - $0.34/hr (~4¢ per train! Lightning Fast)</option>
+            <option value="NVIDIA A40">👑 NVIDIA A40 (48GB VRAM) - $0.35/hr (~5¢ per train / 48GB VRAM)</option>
           `;
         } else if (lang === 'fr') {
           loraGpuSelect.innerHTML = `
-            <option value="NVIDIA GeForce RTX 4090">⚡ NVIDIA RTX 4090 (24GB VRAM) - 0.34 $/h (~4 centimes)</option>
-            <option value="NVIDIA A40">⚡ NVIDIA A40 (48GB VRAM) - 0.35 $/h (~5 centimes)</option>
-            <option value="NVIDIA A100 80GB PCIe">⚡ NVIDIA A100 (80GB VRAM) - 1.19 $/h (Studio)</option>
+            <option value="">💎 Le Moins Cher d'Abord (Cascade Auto: A5000 0.16$ ➔ 3090 0.22$ ➔ 4090 0.34$)</option>
+            <option value="NVIDIA RTX A5000">🟢 NVIDIA RTX A5000 (24GB VRAM) - 0.16$/h (Option la plus économique)</option>
+            <option value="NVIDIA GeForce RTX 3090">🟢 NVIDIA RTX 3090 (24GB VRAM) - 0.22$/h (Équilibré et rapide)</option>
+            <option value="NVIDIA GeForce RTX 4090">⚡ NVIDIA RTX 4090 (24GB VRAM) - 0.34$/h (Ultra rapide)</option>
+            <option value="NVIDIA A40">👑 NVIDIA A40 (48GB VRAM) - 0.35$/h (Grande mémoire 48 Go)</option>
           `;
         } else if (lang === 'es') {
           loraGpuSelect.innerHTML = `
-            <option value="NVIDIA GeForce RTX 4090">⚡ NVIDIA RTX 4090 (24GB VRAM) - $0.34/h (~4 centavos)</option>
-            <option value="NVIDIA A40">⚡ NVIDIA A40 (48GB VRAM) - $0.35/h (~5 centavos)</option>
-            <option value="NVIDIA A100 80GB PCIe">⚡ NVIDIA A100 (80GB VRAM) - $1.19/h (Estudio)</option>
+            <option value="">💎 El Más Barato Primero (Cascada Auto: A5000 $0.16 ➔ 3090 $0.22 ➔ 4090 $0.34)</option>
+            <option value="NVIDIA RTX A5000">🟢 NVIDIA RTX A5000 (24GB VRAM) - $0.16/h (Opción más económica)</option>
+            <option value="NVIDIA GeForce RTX 3090">🟢 NVIDIA RTX 3090 (24GB VRAM) - $0.22/h (Equilibrado y rápido)</option>
+            <option value="NVIDIA GeForce RTX 4090">⚡ NVIDIA RTX 4090 (24GB VRAM) - $0.34/h (Ultrarrápido)</option>
+            <option value="NVIDIA A40">👑 NVIDIA A40 (48GB VRAM) - $0.35/h (Memoria grande 48GB)</option>
           `;
         } else {
           loraGpuSelect.innerHTML = `
-            <option value="NVIDIA GeForce RTX 4090">⚡ NVIDIA RTX 4090 (24GB VRAM) - $0.34/hr (4 سنت فقط! سرعة فائقة)</option>
-            <option value="NVIDIA A40">⚡ NVIDIA A40 (48GB VRAM) - $0.35/hr (~5 سنت للموديل)</option>
-            <option value="NVIDIA A100 80GB PCIe">⚡ NVIDIA A100 (80GB VRAM) - $1.19/hr (محطة استوديو)</option>
+            <option value="">💎 الأرخص أولاً (تتالي تلقائي: A5000 $0.16 ➔ 3090 $0.22 ➔ 4090 $0.34)</option>
+            <option value="NVIDIA RTX A5000">🟢 NVIDIA RTX A5000 (24GB VRAM) - $0.16/hr (~2¢ لكل تدريب! الأكثر توفيراً)</option>
+            <option value="NVIDIA GeForce RTX 3090">🟢 NVIDIA RTX 3090 (24GB VRAM) - $0.22/hr (~3¢ لكل تدريب! توازن ممتاز)</option>
+            <option value="NVIDIA GeForce RTX 4090">⚡ NVIDIA RTX 4090 (24GB VRAM) - $0.34/hr (~4¢ لكل تدريب! فائق السرعة)</option>
+            <option value="NVIDIA A40">👑 NVIDIA A40 (48GB VRAM) - $0.35/hr (~5¢ لكل تدريب / ذاكرة 48GB)</option>
           `;
         }
-        loraGpuSelect.value = curG;
+        if (curG) loraGpuSelect.value = curG;
+      }
+
+      const comfyGpuSelect = document.getElementById('comfy-gpu-select');
+      if (comfyGpuSelect) {
+        const curC = comfyGpuSelect.value;
+        if (lang === 'en') {
+          comfyGpuSelect.innerHTML = `
+            <option value="">💎 Cheapest First (Cascade: A5000 $0.16 ➔ 3090 $0.22 ➔ 4090 $0.34)</option>
+            <option value="NVIDIA RTX A5000">🟢 RTX A5000 (24GB VRAM) - ~$0.16/hr (Economic Priority 1)</option>
+            <option value="NVIDIA GeForce RTX 3090">🟢 RTX 3090 (24GB VRAM) - ~$0.22/hr (Economic & Fast)</option>
+            <option value="NVIDIA GeForce RTX 4090">⚡ RTX 4090 (24GB VRAM) - ~$0.34/hr (Ultra Fast)</option>
+            <option value="NVIDIA A40">👑 A40 Enterprise (48GB VRAM) - ~$0.35/hr (Big VRAM)</option>
+          `;
+        } else if (lang === 'fr') {
+          comfyGpuSelect.innerHTML = `
+            <option value="">💎 Le Moins Cher d'Abord (Cascade: A5000 0.16$ ➔ 3090 0.22$ ➔ 4090 0.34$)</option>
+            <option value="NVIDIA RTX A5000">🟢 RTX A5000 (24GB VRAM) - ~0.16$/h (Économique Priorité 1)</option>
+            <option value="NVIDIA GeForce RTX 3090">🟢 RTX 3090 (24GB VRAM) - ~0.22$/h (Équilibré)</option>
+            <option value="NVIDIA GeForce RTX 4090">⚡ RTX 4090 (24GB VRAM) - ~0.34$/h (Ultra Rapide)</option>
+            <option value="NVIDIA A40">👑 A40 Enterprise (48GB VRAM) - ~0.35$/h (Grande Mémoire)</option>
+          `;
+        } else if (lang === 'es') {
+          comfyGpuSelect.innerHTML = `
+            <option value="">💎 El Más Barato Primero (Cascada: A5000 $0.16 ➔ 3090 $0.22 ➔ 4090 $0.34)</option>
+            <option value="NVIDIA RTX A5000">🟢 RTX A5000 (24GB VRAM) - ~$0.16/h (Económico Prioridad 1)</option>
+            <option value="NVIDIA GeForce RTX 3090">🟢 RTX 3090 (24GB VRAM) - ~$0.22/h (Equilibrado)</option>
+            <option value="NVIDIA GeForce RTX 4090">⚡ RTX 4090 (24GB VRAM) - ~$0.34/h (Ultrarrápido)</option>
+            <option value="NVIDIA A40">👑 A40 Enterprise (48GB VRAM) - ~$0.35/h (Gran Memoria)</option>
+          `;
+        } else {
+          comfyGpuSelect.innerHTML = `
+            <option value="">💎 الأرخص أولاً (تتالي تلقائي من $0.16/س: A5000 ➔ 3090 ➔ 4090)</option>
+            <option value="NVIDIA RTX A5000">🟢 RTX A5000 (24GB VRAM) - ~$0.16/ساعة (الخيار الاقتصادي الأول)</option>
+            <option value="NVIDIA GeForce RTX 3090">🟢 RTX 3090 (24GB VRAM) - ~$0.22/ساعة (اقتصادي سريع)</option>
+            <option value="NVIDIA GeForce RTX 4090">⚡ RTX 4090 (24GB VRAM) - ~$0.34/ساعة (فائق السرعة)</option>
+            <option value="NVIDIA A40">👑 A40 Enterprise (48GB VRAM) - ~$0.35/ساعة (ذاكرة ضخمة)</option>
+          `;
+        }
+        if (curC) comfyGpuSelect.value = curC;
       }
 
       const loraTermBtn = document.querySelector('button[onclick*="terminateAllRunpods"]');
