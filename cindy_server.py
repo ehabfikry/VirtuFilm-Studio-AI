@@ -3468,6 +3468,8 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             "minimax-h3-lite": "fal-ai/minimax-video",
 
             "MiniMax H3 Lite": "fal-ai/minimax-video",
+            "DMAD Fast Video (4-Step)": "fal-ai/minimax-video",
+            "dmad-fast-video": "fal-ai/minimax-video",
 
             "hunyuan-video": "fal-ai/hunyuan-video-image-to-video",
 

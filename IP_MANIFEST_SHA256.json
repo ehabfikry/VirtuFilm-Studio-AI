@@ -8,22 +8,18 @@
     "Egyptian IP Law No. 82 of 2002 (ITIDA & Supreme Council of Culture)",
     "Cryptographic SHA-256 Prior-Art & Git Timestamp Ledger"
   ],
-  "generated_at_utc": "2026-11-13T03:58:56Z",
-  "master_sha256": "daeb348a994994a1466ea399a44b7773e9ec2512e17a311494311901d746d098",
+  "generated_at_utc": "2026-11-13T04:51:35Z",
+  "master_sha256": "eb7dd257e4661b2014d6035a7527839094bb6fae3746b5f55b450adda47ae903",
   "tracked_files_count": 15,
-  "total_protected_bytes": 1950145,
+  "total_protected_bytes": 1952667,
   "security_controls": {
     "localhost_isolation": "127.0.0.1 Only (Strict Host & Origin Guard)",
     "zero_leak_vault": "Local cindy_secrets.json (Excluded from Git & Static HTTP)",
     "zero_cost_balance_guard": "Active (Blocks all unconfirmed cloud billing)"
   },
   "files": {
-    "index.html": "cf2719bad1b5f863fe214cff60b29fd82f9a34e01fed88a72386b0416ec5dd34",
-    "cindy_server.py": {
-      "sha256": "c26bd2ae58d1aad952c5cf217bf77a2b2533fb2c8319cc0160b531b13fd09a19",
-      "size_bytes": 294814,
-      "modified_utc": "2026-11-13T03:06:00Z"
-    },
+    "index.html": "e3003cc160e85193c5ff8a4331108337e831a2844bdfb33046e84e57d2fe8577",
+    "cindy_server.py": "696fb39d25d3cf1addcb4d342840243108c8adaf2dde7d612bd6b8940ca3b3e6",
     "cindy_previs_engine.py": {
       "sha256": "bfbeb7e8bcb4448ea4fe874dd0151eba29e518d4fc0ae5d03600f791ba37139d",
       "size_bytes": 55959,
@@ -34,7 +30,11 @@
       "size_bytes": 55826,
       "modified_utc": "2026-11-11T17:14:54Z"
     },
-    "comfyui_client.py": "039f08192a0a44e04c0b2e442fcf7364bcf4c8eaf6f7f8f5642a1cda1f92c5bb",
+    "comfyui_client.py": {
+      "sha256": "039f08192a0a44e04c0b2e442fcf7364bcf4c8eaf6f7f8f5642a1cda1f92c5bb",
+      "size_bytes": 45081,
+      "modified_utc": "2026-11-13T04:21:40Z"
+    },
     "cindy_storyboard.py": {
       "sha256": "0619c349b9574be72e4770ff01845e5f0e5e25c50b31d1b120d25a92707a6673",
       "size_bytes": 13896,
@@ -45,7 +45,11 @@
       "size_bytes": 27647,
       "modified_utc": "2026-11-11T17:14:54Z"
     },
-    "cindy_radar.py": "f231766c9ba83dad26197a2329acfe401067698aac86bfb11395469e6119baef",
+    "cindy_radar.py": {
+      "sha256": "f231766c9ba83dad26197a2329acfe401067698aac86bfb11395469e6119baef",
+      "size_bytes": 21103,
+      "modified_utc": "2026-11-13T04:11:04Z"
+    },
     "cindy_reframe_engine.py": {
       "sha256": "f09d9914189f9f329e766256aae76fe366de61e648b19132f42202f9126f07bb",
       "size_bytes": 10051,
@@ -82,6 +86,6 @@
       "modified_utc": "2026-11-08T12:18:22Z"
     }
   },
-  "last_updated": "2026-11-13 04:22:17 UTC",
-  "update_reason": "Integrated ComfyUI-ReActor auto-install node and updated complete radar catalog"
+  "last_updated": "2026-11-13 04:59:36 UTC",
+  "update_reason": "Integrated DMAD Fast 4-Step Video Model in Cinema Studio Model Selector"
 }
