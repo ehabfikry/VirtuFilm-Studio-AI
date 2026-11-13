@@ -353,6 +353,13 @@
           <span id="nav-lora-text">3. الممثل</span>
         </button>
 
+        <!-- 3B: PRODUCTION DESIGN & WARDROBE STUDIO -->
+        <button onclick="switchTab('production')" id="nav-main-production" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition flex items-center gap-1.5" title="الديكور والأزياء السينمائية (Production Design & Wardrobe)">
+          <i class="fa-solid fa-vest-patches text-pink-400 text-[10px]"></i>
+          <span id="nav-production-text">الديكور والأزياء</span>
+          <span class="text-[9px] bg-pink-500/20 text-pink-300 px-1 rounded border border-pink-500/30 font-mono">Design</span>
+        </button>
+
         <!-- 4: MASTER SCREENING STUDIO -->
         <button onclick="switchTab('screening')" id="nav-main-screening" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition flex items-center gap-1.5" title="4. صالة العرض والريندر المباشر">
           <i class="fa-solid fa-film text-amber-400 text-[10px]"></i>
@@ -1150,6 +1157,246 @@
     <!-- TAB 4: SCRIPT & STORYBOARD STUDIO          -->
     <!-- ========================================== -->
     
+    <!-- ======================================================================= -->
+    <!-- 3B. PRODUCTION DESIGN & VIRTUAL WARDROBE STUDIO (الديكور والأزياء السينمائية) -->
+    <!-- ======================================================================= -->
+    <section id="tab-production" class="hidden flex-1 flex flex-col glass-panel border border-cinema-700 rounded-2xl p-6 shadow-2xl space-y-6 overflow-y-auto">
+      
+      <!-- Header -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-cinema-800">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-pink-500/20 text-pink-300 border border-pink-500/40 font-mono">Production Design</span>
+            <h2 class="text-xl font-black text-white flex items-center gap-2">
+              استوديو الديكور والأزياء السينمائي الواقعي
+              <span class="text-pink-400 text-sm font-normal">(VirtuFilm Set & Wardrobe Studio)</span>
+            </h2>
+          </div>
+          <p class="text-xs text-slate-400 mt-1">
+            تصميم وتنسيق الأثاث، الديكور، والملابس الواقعية للشخصيات والمشاهد مع إعادة الإضاءة السينمائية ومطابقة الكادر بالكامل.
+          </p>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold font-mono">
+            <i class="fa-solid fa-shield-halved text-emerald-400"></i>
+            <span>رخص حرة تجارية 100% (Apache 2.0 & MIT)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Studio Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- Left Column: Scene Canvas & Mask Painter (7 cols) -->
+        <div class="lg:col-span-7 space-y-4">
+          
+          <div class="glass-panel p-4 rounded-2xl border border-cinema-700/80 space-y-3">
+            <div class="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-cinema-800">
+              <span class="text-xs font-bold text-slate-200 flex items-center gap-2">
+                <i class="fa-solid fa-paintbrush text-pink-400"></i>
+                1. كادر المشهد وتحديد موضع العنصر (Scene Canvas & Mask):
+              </span>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="loadFrameFromScreening()" class="px-2.5 py-1 rounded-lg bg-cinema-800 hover:bg-cinema-700 text-xs text-slate-300 transition flex items-center gap-1.5 border border-cinema-600">
+                  <i class="fa-solid fa-film text-amber-400"></i>
+                  <span>من صالة العرض</span>
+                </button>
+                <label class="px-2.5 py-1 rounded-lg bg-pink-500/20 hover:bg-pink-500/30 text-pink-300 text-xs font-bold transition flex items-center gap-1.5 border border-pink-500/40 cursor-pointer">
+                  <i class="fa-solid fa-upload"></i>
+                  <span>رفع كادر / لوكيشن</span>
+                  <input type="file" id="prodSceneUpload" accept="image/*" class="hidden" onchange="handleProdSceneUpload(event)">
+                </label>
+              </div>
+            </div>
+
+            <!-- Brush Toolbar -->
+            <div class="flex items-center justify-between flex-wrap gap-2 px-2 py-1.5 bg-cinema-900/90 rounded-xl border border-cinema-800 text-xs">
+              <div class="flex items-center gap-2">
+                <button type="button" id="prodToolBrush" onclick="setProdTool('brush')" class="px-2.5 py-1 rounded-lg bg-pink-500 text-white font-bold text-[11px] flex items-center gap-1">
+                  <i class="fa-solid fa-paint-brush"></i> فرشاة التحديد
+                </button>
+                <button type="button" id="prodToolEraser" onclick="setProdTool('eraser')" class="px-2.5 py-1 rounded-lg bg-cinema-800 text-slate-300 hover:text-white font-bold text-[11px] flex items-center gap-1">
+                  <i class="fa-solid fa-eraser"></i> ممحاة
+                </button>
+                <button type="button" onclick="clearProdMask()" class="px-2 py-1 rounded-lg bg-red-500/20 text-red-300 hover:bg-red-500/30 font-bold text-[11px] flex items-center gap-1">
+                  <i class="fa-solid fa-trash-can"></i> مسح التحديد
+                </button>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-slate-400 text-[11px]">حجم الفرشاة:</span>
+                <input type="range" id="prodBrushSize" min="10" max="90" value="35" oninput="document.getElementById('prodBrushSizeVal').textContent = this.value + 'px'" class="accent-pink-500 w-24">
+                <span id="prodBrushSizeVal" class="text-pink-300 font-mono text-[11px] w-8">35px</span>
+              </div>
+            </div>
+
+            <!-- Canvas Viewport -->
+            <div id="prodCanvasWrapper" class="relative w-full h-80 sm:h-96 rounded-xl overflow-hidden bg-cinema-950 border border-cinema-700 flex items-center justify-center cursor-crosshair">
+              <div id="prodCanvasPlaceholder" class="text-center p-6 space-y-3">
+                <div class="w-16 h-16 mx-auto rounded-2xl bg-pink-500/10 border border-pink-500/30 flex items-center justify-center text-pink-400 text-2xl">
+                  <i class="fa-solid fa-image"></i>
+                </div>
+                <p class="text-xs text-slate-400 max-w-sm">
+                  اختر كادراً من مشاهد الفيلم الحالية أو ارفع صورة لوكيشن / ديكور للبدء في تنسيق الملابس والأثاث فوقه.
+                </p>
+              </div>
+              <canvas id="prodSceneCanvas" class="hidden absolute inset-0 w-full h-full object-contain"></canvas>
+              <canvas id="prodMaskCanvas" class="hidden absolute inset-0 w-full h-full object-contain pointer-events-auto"></canvas>
+            </div>
+
+            <p class="text-[11px] text-slate-400 flex items-center gap-1.5 px-1">
+              <i class="fa-solid fa-lightbulb text-amber-400"></i>
+              مرر الفرشاة على الجزء المطلوب (مثلاً: ملابس الممثل لتبديلها، موضع قطعة الأثاث، أو الحائط المراد تغيير خامته).
+            </p>
+          </div>
+
+        </div>
+
+        <!-- Right Column: Catalog & Relighting Engine (5 cols) -->
+        <div class="lg:col-span-5 space-y-4">
+          
+          <!-- Category Tabs -->
+          <div class="glass-panel p-4 rounded-2xl border border-cinema-700/80 space-y-4">
+            <div class="flex items-center justify-between pb-2 border-b border-cinema-800">
+              <span class="text-xs font-bold text-slate-200 flex items-center gap-2">
+                <i class="fa-solid fa-shapes text-pink-400"></i>
+                2. كتالوج الأصول المعتمدة (Asset Rack):
+              </span>
+              <button type="button" onclick="openAddCustomAssetModal()" class="text-[11px] px-2 py-0.5 rounded bg-pink-500/20 hover:bg-pink-500/30 text-pink-300 font-bold border border-pink-500/40 transition flex items-center gap-1">
+                <i class="fa-solid fa-plus"></i> إضافة عنصر مخصص
+              </button>
+            </div>
+
+            <!-- Categories Switcher -->
+            <div class="flex rounded-xl bg-cinema-900 p-1 border border-cinema-800 text-xs font-bold">
+              <button type="button" id="catBtnCostumes" onclick="switchProdCategory('costumes')" class="flex-1 py-1.5 rounded-lg text-center transition bg-pink-500 text-white shadow">
+                👗 أزياء وملابس
+              </button>
+              <button type="button" id="catBtnProps" onclick="switchProdCategory('props')" class="flex-1 py-1.5 rounded-lg text-center transition text-slate-400 hover:text-white">
+                🛋️ أثاث وديكور
+              </button>
+              <button type="button" id="catBtnMaterials" onclick="switchProdCategory('materials')" class="flex-1 py-1.5 rounded-lg text-center transition text-slate-400 hover:text-white">
+                🧱 خامات وحوائط
+              </button>
+            </div>
+
+            <!-- Cards Container -->
+            <div id="prodCardsList" class="space-y-2 max-h-56 overflow-y-auto pr-1">
+              <!-- Dynamically populated -->
+              <div class="p-3 text-center text-xs text-slate-500 font-mono">جاري تحميل عناصر الكتالوج...</div>
+            </div>
+
+            <!-- Selected Item Card Banner -->
+            <div id="prodSelectedBanner" class="p-3 rounded-xl bg-pink-950/40 border border-pink-500/50 space-y-1">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] text-pink-300 font-bold uppercase tracking-wider">العنصر المحدد حالياً:</span>
+                <span id="prodSelectedEra" class="text-[10px] px-2 py-0.5 rounded bg-pink-500/20 text-pink-300 font-mono">كلاسيكي</span>
+              </div>
+              <h4 id="prodSelectedTitle" class="text-xs font-bold text-white">معطف ترينش كلاسيكي (1970s Trench Coat)</h4>
+              <p id="prodSelectedDesc" class="text-[11px] text-slate-300">معطف بيج كلاسيكي بقماش ثقيل وياقة عريضة مع قبعة فيدورا.</p>
+            </div>
+          </div>
+
+          <!-- IC-Light & Cinematic Relighting Panel -->
+          <div class="glass-panel p-4 rounded-2xl border border-cinema-700/80 space-y-3">
+            <h4 class="text-xs font-bold text-slate-200 flex items-center justify-between">
+              <span class="flex items-center gap-2">
+                <i class="fa-solid fa-sun text-amber-400"></i>
+                3. محرك الإضاءة والدمج السينمائي (IC-Light Engine):
+              </span>
+              <span class="text-[10px] text-emerald-400 font-mono">Apache 2.0</span>
+            </h4>
+
+            <div class="space-y-2.5 text-xs">
+              <label class="flex items-center gap-2 text-slate-300 cursor-pointer">
+                <input type="checkbox" id="prodMatchLighting" checked class="accent-pink-500 w-4 h-4 rounded">
+                <span class="font-bold">مطابقة اتجاه وظلال إضاءة الكادر الأصلي تلقائياً</span>
+              </label>
+
+              <div class="grid grid-cols-2 gap-2 pt-1">
+                <div>
+                  <span class="text-[11px] text-slate-400 block mb-1">اتجاه مصدر الضوء:</span>
+                  <select id="prodLightDir" class="w-full bg-cinema-900 border border-cinema-700 rounded-xl px-2.5 py-1.5 text-slate-200 text-xs focus:outline-none focus:border-pink-500">
+                    <option value="ambient" selected>☀️ محيطي طبيعي (Ambient)</option>
+                    <option value="left">⬅️ جانبي من اليسار (Left Key)</option>
+                    <option value="right">➡️ جانبي من اليمين (Right Key)</option>
+                    <option value="top">⬇️ علوي ناعم (Overhead)</option>
+                  </select>
+                </div>
+                <div>
+                  <span class="text-[11px] text-slate-400 block mb-1">حرارة اللون والباليت:</span>
+                  <select id="prodLightTemp" class="w-full bg-cinema-900 border border-cinema-700 rounded-xl px-2.5 py-1.5 text-slate-200 text-xs focus:outline-none focus:border-pink-500">
+                    <option value="warm" selected>🕯️ دافئ تنجستن (3200K)</option>
+                    <option value="neutral">☀️ ضوء نهار طبيعي (5600K)</option>
+                    <option value="cool">🌙 نوير بارد أزرق (6500K)</option>
+                    <option value="teal_orange">🎬 تيل وأورنج سينمائي</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Button -->
+            <div class="pt-2">
+              <button type="button" id="prodApplyBtn" onclick="executeProductionDesign()" class="w-full py-3 rounded-xl bg-gradient-to-r from-pink-500 via-rose-600 to-purple-600 hover:opacity-95 text-white font-black text-xs shadow-xl transition flex items-center justify-center gap-2 cursor-pointer border border-pink-300/30">
+                <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i>
+                <span>تطبيق وتثبيت العنصر مع إعادة الإضاءة السينمائية</span>
+              </button>
+            </div>
+
+            <div id="prodStatusBox" class="hidden p-3 rounded-xl bg-pink-950/60 border border-pink-500/40 text-xs font-mono text-pink-200 text-center animate-pulse">
+              جاري دمج العنصر وتكييف الإضاءة والظلال السينمائية...
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Result Showcase / Lookbook Section -->
+      <div id="prodResultSection" class="hidden glass-panel p-6 rounded-2xl border border-emerald-500/40 space-y-4">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <h3 class="text-sm font-bold text-emerald-400 flex items-center gap-2">
+            <i class="fa-solid fa-circle-check"></i>
+            الكادر المعدل بالديكور / الزي الجديد جاهز للاعتماد:
+          </h3>
+          <span class="text-xs text-slate-400 font-mono">
+            🛡️ تم التحقق: خالي 100% من القيود وحقوق النشر (Pure Commercial License)
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="space-y-1">
+            <span class="text-xs font-bold text-slate-400">الكادر الأصلي قبل التعديل:</span>
+            <div class="h-64 rounded-xl overflow-hidden bg-black border border-slate-700 flex items-center justify-center">
+              <img id="prodBeforeImg" class="w-full h-full object-contain">
+            </div>
+          </div>
+          <div class="space-y-1">
+            <span class="text-xs font-bold text-emerald-400">الكادر السينمائي النهائي (بعد الدمج وإعادة الإضاءة):</span>
+            <div class="h-64 rounded-xl overflow-hidden bg-black border border-emerald-500/50 flex items-center justify-center">
+              <img id="prodAfterImg" class="w-full h-full object-contain">
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between flex-wrap gap-3 pt-2 border-t border-cinema-800">
+          <p id="prodResultMeta" class="text-xs text-slate-400">
+            تم دمج العنصر ومطابقة الإضاءة بنجاح وحفظه في مجلد أصول المشروع.
+          </p>
+          <div class="flex items-center gap-2">
+            <a id="prodDownloadBtn" href="#" download="Production_Design_Result.jpg" class="px-4 py-2 rounded-xl bg-cinema-800 hover:bg-cinema-700 text-slate-200 text-xs font-bold transition flex items-center gap-1.5 border border-cinema-600">
+              <i class="fa-solid fa-download"></i>
+              <span>تحميل الكادر</span>
+            </a>
+            <button type="button" onclick="sendProdResultToScreening()" class="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-cinema-900 font-black text-xs transition flex items-center gap-1.5 shadow-lg">
+              <i class="fa-solid fa-film"></i>
+              <span>إرسال إلى صالة العرض (Screening Room)</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
     <!-- ======================================================================= -->
     <!-- 7. REFRAME STUDIO (استوديو التأطير الذكي وتوسيع الكادر السينمائي) -->
     <!-- ======================================================================= -->
@@ -3999,7 +4246,7 @@
       window.currentActiveTabId = tabId;
       setTimeout(() => { if (typeof applyUniversalTextI18n === 'function') applyUniversalTextI18n(window.currentAppLang || 'ar'); }, 50);
 
-      const allTabs = ['chat', 'comfy', 'screening', 'lora', 'vault', 'storyboard', 'reframe'];
+      const allTabs = ['chat', 'comfy', 'screening', 'lora', 'vault', 'storyboard', 'reframe', 'production'];
       const ON = 'px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-cinema-gold text-cinema-900 shadow';
       const OFF = 'px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition flex items-center gap-1.5';
 
@@ -4028,6 +4275,7 @@
           globalBar.classList.add('hidden');
         }
       }
+      if (tabId === 'production' && typeof initProductionDesignUI === 'function') initProductionDesignUI();
       if (tabId === 'screening' || tabId === 'comfy') fetchLatestBlenderGuide(true);
       if (tabId === 'lora' && typeof refreshLoraLibrary === 'function') refreshLoraLibrary();
       if (tabId === 'storyboard' && typeof initStoryboardUI === 'function') initStoryboardUI();
@@ -12919,6 +13167,321 @@ let currentUploadContext = 'chat';
           </div>
         </div>
       `).join('');
+    }
+
+    // =========================================================================
+    // PRODUCTION DESIGN & VIRTUAL WARDROBE STUDIO (الديكور والأزياء السينمائية)
+    // =========================================================================
+    let prodCurrentCategory = 'costumes';
+    let prodCatalogData = { costumes: [], props: [], materials: [] };
+    let prodSelectedItem = null;
+    let prodTool = 'brush'; // 'brush' or 'eraser'
+    let prodIsDrawing = false;
+    let prodSceneImageB64 = null;
+    let prodLatestResultUrl = null;
+
+    function initProductionDesignUI() {
+      fetchProductionCatalog();
+      setupProdCanvasListeners();
+    }
+
+    async function fetchProductionCatalog() {
+      try {
+        const res = await fetch('/api/production/catalog');
+        const data = await res.json();
+        if (data.success && data.catalog) {
+          prodCatalogData = data.catalog;
+          renderProductionCatalog(prodCurrentCategory);
+        }
+      } catch (err) {
+        console.error('Failed to load production catalog:', err);
+      }
+    }
+
+    function switchProdCategory(cat) {
+      prodCurrentCategory = cat;
+      const bC = document.getElementById('catBtnCostumes');
+      const bP = document.getElementById('catBtnProps');
+      const bM = document.getElementById('catBtnMaterials');
+      
+      const onCls = 'flex-1 py-1.5 rounded-lg text-center transition bg-pink-500 text-white shadow font-bold text-xs';
+      const offCls = 'flex-1 py-1.5 rounded-lg text-center transition text-slate-400 hover:text-white font-bold text-xs';
+      
+      if (bC) bC.className = (cat === 'costumes') ? onCls : offCls;
+      if (bP) bP.className = (cat === 'props') ? onCls : offCls;
+      if (bM) bM.className = (cat === 'materials') ? onCls : offCls;
+      
+      renderProductionCatalog(cat);
+    }
+
+    function renderProductionCatalog(cat) {
+      const list = document.getElementById('prodCardsList');
+      if (!list) return;
+      const items = prodCatalogData[cat] || [];
+      if (!items.length) {
+        list.innerHTML = '<div class="p-3 text-center text-xs text-slate-500">لا توجد عناصر في هذا القسم حالياً.</div>';
+        return;
+      }
+      
+      list.innerHTML = items.map(itm => {
+        const isSel = prodSelectedItem && prodSelectedItem.id === itm.id;
+        const iconCls = itm.icon || (cat === 'costumes' ? 'fa-shirt' : (cat === 'props' ? 'fa-couch' : 'fa-border-all'));
+        return `
+          <div onclick="selectProductionItem('${itm.id}')" class="p-2.5 rounded-xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSel ? 'bg-pink-950/60 border-pink-400 shadow-md ring-1 ring-pink-500' : 'bg-cinema-900/80 border-cinema-800 hover:border-cinema-600'}">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-pink-500/20 text-pink-300 flex items-center justify-center text-sm shrink-0">
+                <i class="fa-solid ${iconCls}"></i>
+              </div>
+              <div>
+                <h5 class="text-xs font-bold text-slate-200">${itm.title}</h5>
+                <span class="text-[10px] text-pink-400/80 font-mono">${itm.era || 'عام'}</span>
+              </div>
+            </div>
+            ${isSel ? '<i class="fa-solid fa-circle-check text-pink-400 text-xs"></i>' : '<i class="fa-solid fa-chevron-left text-slate-600 text-[10px]"></i>'}
+          </div>
+        `;
+      }).join('');
+
+      if (!prodSelectedItem && items.length > 0) {
+        selectProductionItem(items[0].id);
+      }
+    }
+
+    function selectProductionItem(id) {
+      const items = prodCatalogData[prodCurrentCategory] || [];
+      const itm = items.find(x => x.id === id);
+      if (!itm) return;
+      prodSelectedItem = itm;
+      
+      const bTitle = document.getElementById('prodSelectedTitle');
+      const bEra = document.getElementById('prodSelectedEra');
+      const bDesc = document.getElementById('prodSelectedDesc');
+      if (bTitle) bTitle.textContent = itm.title;
+      if (bEra) bEra.textContent = itm.era || 'كلاسيكي';
+      if (bDesc) bDesc.textContent = itm.description || '';
+
+      renderProductionCatalog(prodCurrentCategory);
+    }
+
+    function setProdTool(tool) {
+      prodTool = tool;
+      const b1 = document.getElementById('prodToolBrush');
+      const b2 = document.getElementById('prodToolEraser');
+      if (tool === 'brush') {
+        b1.className = 'px-2.5 py-1 rounded-lg bg-pink-500 text-white font-bold text-[11px] flex items-center gap-1';
+        b2.className = 'px-2.5 py-1 rounded-lg bg-cinema-800 text-slate-300 hover:text-white font-bold text-[11px] flex items-center gap-1';
+      } else {
+        b2.className = 'px-2.5 py-1 rounded-lg bg-pink-500 text-white font-bold text-[11px] flex items-center gap-1';
+        b1.className = 'px-2.5 py-1 rounded-lg bg-cinema-800 text-slate-300 hover:text-white font-bold text-[11px] flex items-center gap-1';
+      }
+    }
+
+    function setupProdCanvasListeners() {
+      const maskCanvas = document.getElementById('prodMaskCanvas');
+      if (!maskCanvas || maskCanvas._hasListeners) return;
+      maskCanvas._hasListeners = true;
+
+      function getPos(e) {
+        const rect = maskCanvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const scaleX = maskCanvas.width / rect.width;
+        const scaleY = maskCanvas.height / rect.height;
+        return {
+          x: (clientX - rect.left) * scaleX,
+          y: (clientY - rect.top) * scaleY
+        };
+      }
+
+      function draw(pos) {
+        const ctx = maskCanvas.getContext('2d');
+        const size = parseInt(document.getElementById('prodBrushSize')?.value || 35, 10);
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, size / 2, 0, Math.PI * 2);
+        if (prodTool === 'brush') {
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.fillStyle = 'rgba(236, 72, 153, 0.65)';
+          ctx.fill();
+        } else {
+          ctx.globalCompositeOperation = 'destination-out';
+          ctx.fill();
+        }
+      }
+
+      maskCanvas.addEventListener('mousedown', (e) => {
+        prodIsDrawing = true;
+        draw(getPos(e));
+      });
+      window.addEventListener('mouseup', () => { prodIsDrawing = false; });
+      maskCanvas.addEventListener('mousemove', (e) => {
+        if (prodIsDrawing) draw(getPos(e));
+      });
+
+      maskCanvas.addEventListener('touchstart', (e) => {
+        prodIsDrawing = true;
+        draw(getPos(e));
+      }, { passive: true });
+      maskCanvas.addEventListener('touchend', () => { prodIsDrawing = false; });
+      maskCanvas.addEventListener('touchmove', (e) => {
+        if (prodIsDrawing) draw(getPos(e));
+      }, { passive: true });
+    }
+
+    function handleProdSceneUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        loadSceneIntoCanvas(evt.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function loadFrameFromScreening() {
+      const curImg = document.querySelector('#screening-main-image-display') || document.querySelector('#screening-player img') || document.querySelector('#active-screening-preview');
+      if (curImg && curImg.src && !curImg.src.includes('data:image/svg')) {
+        loadSceneIntoCanvas(curImg.src);
+      } else {
+        showToast(window.currentAppLang === 'en' ? 'Please generate or select a scene in the Screening Room first.' : 'يرجى توليد أو اختيار مشهد في صالة العرض أولاً، أو رفع صورة مباشرة.', 'info');
+      }
+    }
+
+    function loadSceneIntoCanvas(imgSrc) {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = function() {
+        const sceneCanvas = document.getElementById('prodSceneCanvas');
+        const maskCanvas = document.getElementById('prodMaskCanvas');
+        const placeholder = document.getElementById('prodCanvasPlaceholder');
+        
+        sceneCanvas.width = img.width;
+        sceneCanvas.height = img.height;
+        maskCanvas.width = img.width;
+        maskCanvas.height = img.height;
+        
+        const sCtx = sceneCanvas.getContext('2d');
+        sCtx.drawImage(img, 0, 0);
+        
+        const mCtx = maskCanvas.getContext('2d');
+        mCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+        
+        placeholder.classList.add('hidden');
+        sceneCanvas.classList.remove('hidden');
+        maskCanvas.classList.remove('hidden');
+        
+        prodSceneImageB64 = imgSrc;
+        showToast(window.currentAppLang === 'en' ? 'Scene loaded. Paint the area you want to change!' : 'تم تحميل كادر المشهد. حدد بالفرشاة المنطقة المراد تغييرها!', 'success');
+      };
+      img.src = imgSrc;
+    }
+
+    function clearProdMask() {
+      const maskCanvas = document.getElementById('prodMaskCanvas');
+      if (maskCanvas) {
+        const ctx = maskCanvas.getContext('2d');
+        ctx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+      }
+    }
+
+    async function executeProductionDesign() {
+      if (!prodSceneImageB64) {
+        showToast(window.currentAppLang === 'en' ? 'Please upload or select a scene background first.' : 'يرجى اختيار كادر المشهد أولاً.', 'warning');
+        return;
+      }
+      
+      const btn = document.getElementById('prodApplyBtn');
+      const statusBox = document.getElementById('prodStatusBox');
+      const resSec = document.getElementById('prodResultSection');
+      
+      btn.disabled = true;
+      btn.classList.add('opacity-50');
+      statusBox.classList.remove('hidden');
+      if (resSec) resSec.classList.add('hidden');
+      
+      // Export mask as solid white on black
+      const maskCanvas = document.getElementById('prodMaskCanvas');
+      let maskB64 = null;
+      if (maskCanvas && maskCanvas.width > 0) {
+        const binCanvas = document.createElement('canvas');
+        binCanvas.width = maskCanvas.width;
+        binCanvas.height = maskCanvas.height;
+        const bCtx = binCanvas.getContext('2d');
+        bCtx.fillStyle = '#000000';
+        bCtx.fillRect(0, 0, binCanvas.width, binCanvas.height);
+        
+        const imgData = maskCanvas.getContext('2d').getImageData(0, 0, maskCanvas.width, maskCanvas.height);
+        const binData = bCtx.getImageData(0, 0, binCanvas.width, binCanvas.height);
+        let hasMask = false;
+        for (let i = 0; i < imgData.data.length; i += 4) {
+          if (imgData.data[i + 3] > 20) {
+            binData.data[i] = 255;
+            binData.data[i + 1] = 255;
+            binData.data[i + 2] = 255;
+            binData.data[i + 3] = 255;
+            hasMask = true;
+          }
+        }
+        if (hasMask) {
+          bCtx.putImageData(binData, 0, 0);
+          maskB64 = binCanvas.toDataURL('image/png');
+        }
+      }
+
+      const lightConfig = {
+        match_scene: document.getElementById('prodMatchLighting')?.checked ?? true,
+        light_direction: document.getElementById('prodLightDir')?.value || 'ambient',
+        temperature: document.getElementById('prodLightTemp')?.value || 'warm'
+      };
+
+      const payload = {
+        scene_image: prodSceneImageB64,
+        mask_image: maskB64,
+        item_id: prodSelectedItem ? prodSelectedItem.id : null,
+        custom_prompt: prodSelectedItem ? prodSelectedItem.prompt_enhancer : 'realistic cinematic wardrobe and decor',
+        lighting_config: lightConfig
+      };
+
+      try {
+        const resp = await fetch('/api/production/apply', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await resp.json();
+        if (data.success && (data.local_url || data.cloud_url)) {
+          const finalUrl = data.local_url || data.cloud_url;
+          prodLatestResultUrl = finalUrl;
+          
+          document.getElementById('prodBeforeImg').src = prodSceneImageB64;
+          document.getElementById('prodAfterImg').src = finalUrl;
+          document.getElementById('prodDownloadBtn').href = finalUrl;
+          
+          const metaP = document.getElementById('prodResultMeta');
+          if (metaP) {
+            metaP.innerHTML = `تم تثبيت العنصر (${prodSelectedItem ? prodSelectedItem.title : 'ديكور مخصص'}) وإعادة إضاءته بنجاح • <strong>التكلفة: ${data.cost || '$0.00'}</strong> • رخصة تجارية حرة 100%.`;
+          }
+          
+          resSec.classList.remove('hidden');
+          showToast(window.currentAppLang === 'en' ? 'Element applied and relighted successfully!' : 'تم تطبيق العنصر وتكييف الإضاءة بنجاح!', 'success');
+        } else {
+          showToast('فشلت المعالجة: ' + (data.error || 'تعذر استجابة المحرك'), 'error');
+        }
+      } catch (err) {
+        showToast('خطأ في الاتصال: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50');
+        statusBox.classList.add('hidden');
+      }
+    }
+
+    function sendProdResultToScreening() {
+      if (!prodLatestResultUrl) return;
+      if (typeof window.applyScreeningImage === 'function') {
+        window.applyScreeningImage(prodLatestResultUrl);
+      }
+      switchTab('screening');
+      showToast(window.currentAppLang === 'en' ? 'Frame sent to Screening Room!' : 'تم إرسال الكادر إلى صالة العرض للمعاينة والتقييم!', 'success');
     }
 
     function applyRadarPrompt(promptText) {

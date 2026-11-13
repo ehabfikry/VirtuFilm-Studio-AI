@@ -124,6 +124,7 @@ def generate_ip_manifest():
         "cindy_pricing.py",
         "cindy_radar.py",
         "cindy_reframe_engine.py",
+        "cindy_production_design.py",
         "cindy_local_tts.py",
         "runpod_trainer.py",
         "LICENSE",
@@ -1064,7 +1065,7 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
 
         clean_path = (self.path or '').split('?')[0]
 
-        if clean_path.startswith('/outputs/'):
+        if clean_path.startswith('/outputs/') or clean_path.startswith('/production_assets/'):
 
             self.send_header('Content-Security-Policy', "default-src 'none'; img-src 'self'; media-src 'self'; style-src 'unsafe-inline'; sandbox")
 
@@ -1137,6 +1138,14 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             return
 
 
+
+        elif self.path == '/api/production/catalog':
+            try:
+                import cindy_production_design
+                self.send_json_response(200, {"success": True, "catalog": cindy_production_design.load_catalog()})
+            except Exception as e:
+                self.send_json_response(500, {"success": False, "error": str(e)})
+            return
 
         elif self.path.startswith('/api/ip/status'):
             manifest = generate_ip_manifest()
@@ -1419,6 +1428,9 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
 
                     return super().do_GET()
 
+            if clean.startswith('/production_assets/'):
+                return super().do_GET()
+
             self.send_error_response(404, "Not found")
 
 
@@ -1439,7 +1451,7 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
 
             return
 
-        max_bytes = 350 * 1024 * 1024 if self.path in ('/api/upload', '/api/bridge/complete_task', '/api/lora/train', '/api/reframe/process') else 2 * 1024 * 1024
+        max_bytes = 350 * 1024 * 1024 if self.path in ('/api/upload', '/api/bridge/complete_task', '/api/lora/train', '/api/reframe/process', '/api/production/apply', '/api/production/add_item') else 2 * 1024 * 1024
 
         if content_length < 0 or content_length > max_bytes:
 
@@ -1665,6 +1677,35 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                 VIDEO_JOBS[jid]['error'] = 'cancelled_by_director'
                 VIDEO_JOBS[jid]['message'] = 'تم إلغاء عملية الريندر فوراً بأمر المخرج.'
             self.send_json_response(200, {'success': True, 'message': 'تم إلغاء الريندر فوراً.'})
+            return
+
+        if self.path == '/api/production/add_item':
+            try:
+                import cindy_production_design
+                cat = payload.get('category', 'costumes')
+                title = payload.get('title', '')
+                desc = payload.get('description', '')
+                era = payload.get('era', 'مخصص')
+                prompt_enhancer = payload.get('prompt_enhancer', '')
+                image_b64 = payload.get('image_base64', '')
+                new_item = cindy_production_design.add_custom_item(cat, title, desc, era, prompt_enhancer, image_b64)
+                self.send_json_response(200, {"success": True, "item": new_item})
+            except Exception as e:
+                self.send_json_response(500, {"success": False, "error": str(e)})
+            return
+
+        if self.path == '/api/production/apply':
+            try:
+                import cindy_production_design
+                scene_img_b64 = payload.get('scene_image', '')
+                mask_b64 = payload.get('mask_image', '')
+                item_id = payload.get('item_id', '')
+                custom_prompt = payload.get('custom_prompt', '')
+                lighting_config = payload.get('lighting_config', {})
+                res = cindy_production_design.apply_production_design(scene_img_b64, mask_b64, item_id, custom_prompt, lighting_config)
+                self.send_json_response(200, res)
+            except Exception as e:
+                self.send_json_response(500, {"success": False, "error": str(e)})
             return
 
         if self.path == '/api/previs/generate':
