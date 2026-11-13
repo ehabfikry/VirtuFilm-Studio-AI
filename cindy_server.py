@@ -7402,7 +7402,11 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                     if not cloud_img or (not cloud_img.startswith('http') and not cloud_img.startswith('data:')):
                         raise RuntimeError("تعذر رفع الكادر المرجعي للسيرفر السحابي.")
 
-                    if 'skyreels' in ckpt_lower or 'hunyuan' in ckpt_lower:
+                    if 'dmad' in ckpt_lower:
+                        endpoint = "fal-ai/wan/v2.1/image-to-video"
+                        label = "DMAD Fast 4-Step Distilled (LoRA Accelerated)"
+                        fal_payload = {"prompt": prompt_text, "image_url": cloud_img, "steps": 4}
+                    elif 'skyreels' in ckpt_lower or 'hunyuan' in ckpt_lower:
                         endpoint = "fal-ai/hunyuan-video/image-to-video"
                         label = "SkyReels-V1 (Tencent Hunyuan 13B Architecture)"
                         fal_payload = {"prompt": prompt_text, "image_url": cloud_img}
@@ -7514,7 +7518,11 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                 # Otherwise try ComfyUI workflow
                 try:
                     uploaded_name = comfyui_client.upload_image_to_comfyui(raw_url, local_img_path)
-                    if 'wan' in ckpt_lower and ('2.2' in ckpt_lower or 'wan2.2' in ckpt_lower):
+                    if 'dmad' in ckpt_lower:
+                        # DMAD uses Wan 2.1 distilled 4-step LoRA workflow
+                        workflow, seed = comfyui_client.build_wan_workflow(uploaded_name, prompt_text, ckpt, width, height, video_frames, steps=4, fps=fps)
+                        engine_label = "DMAD Fast 4-Step (Wan 2.1 Distilled)"
+                    elif 'wan' in ckpt_lower and ('2.2' in ckpt_lower or 'wan2.2' in ckpt_lower):
                         workflow, seed = comfyui_client.build_wan22_workflow(uploaded_name, prompt_text, ckpt, width, height, video_frames, steps, fps)
                         engine_label = "Alibaba Wan 2.2"
                     elif 'wan' in ckpt_lower:

@@ -3415,6 +3415,7 @@
                   <span class="text-[10px] bg-amber-500/25 text-amber-300 px-2.5 py-0.5 rounded font-mono font-bold border border-amber-500/30">ComfyUI Video</span>
                 </div>
                 <select id="comfy-video-checkpoint" onchange="onComfyVideoModelChange()" class="w-full bg-cinema-900 border-2 border-amber-500/80 rounded-xl px-3 py-2.5 text-xs text-amber-200 font-extrabold focus:outline-none focus:border-amber-400 shadow-md">
+                  <option value="DMAD/wan2.1_dmad_distill_4step.safetensors">⚡ DMAD Fast 4-Step Distilled (تسريع فائق وتقطير LoRA - 4 خطوات فقط)</option>
                   <option value="Wan2.2/wan2.2_i2v_720p_14B_fp8_e4m3fn.safetensors" selected>💎 Alibaba Wan 2.2 Video (14B فائق الحركية والفيزياء - مفتوح المصدر 720p)</option>
                   <option value="Wan2.1/wan2.1_i2v_720p_14B_fp8_e4m3fn.safetensors">🎬 Alibaba Wan 2.1 Video (14B سينمائي فائق الثبات - مفتوح المصدر 720p)</option>
                   <option value="SkyReels/skyreels_v1_hunyuan_i2v.safetensors">👑 SkyReels-V1 (تثبيت الممثلين والملامح والأيدي 720p - المركز التاسع عالمياً)</option>
@@ -4424,7 +4425,13 @@
       const durBadge = document.getElementById('comfy-duration-badge');
 
       if (durSel && durBadge) {
-        if (ckpt.includes('wan2.2') || ckpt.includes('2.2')) {
+        if (ckpt.includes('dmad')) {
+          durBadge.innerText = 'DMAD 4-Step (⚡ فائق السرعة)';
+          durSel.innerHTML = `
+            <option value="81" selected>5 ثوانٍ (81 كادر - توليد فائق بـ 4 خطوات فقط)</option>
+            <option value="49">3 ثوانٍ (49 كادر - مسودة سريعة)</option>
+          `;
+        } else if (ckpt.includes('wan2.2') || ckpt.includes('2.2')) {
           durBadge.innerText = 'Wan 2.2 (14B)';
           durSel.innerHTML = `
             <option value="81" selected>5 ثوانٍ (81 كادر - المعيار الذهبي 720p)</option>
@@ -9688,7 +9695,11 @@ let currentUploadContext = 'chat';
       const btnText = document.getElementById('comfy-render-btn-text');
       const hint = document.getElementById('comfy-video-model-hint');
 
-      if (engine === 'wan22') {
+      if (engine === 'dmad') {
+        if (ckptSel) ckptSel.value = 'DMAD/wan2.1_dmad_distill_4step.safetensors';
+        if (btnText) btnText.innerText = '▶ ريندر المشهد الآن عبر DMAD Fast 4-Step (تسريع فائق وتقطير LoRA)';
+        if (hint) hint.innerText = '⚡ نموذج DMAD (Wan 2.1 Distilled): تقطير تسريع خارق بـ 4 خطوات فقط، يولد مشهد الفيديو كاملاً في ثوانٍ معدودة!';
+      } else if (engine === 'wan22') {
         if (ckptSel) ckptSel.value = 'Wan2.2/wan2.2_i2v_720p_14B_fp8_e4m3fn.safetensors';
         if (btnText) btnText.innerText = '▶ ريندر المشهد الآن عبر Alibaba Wan 2.2 (720p فائق الحركية)';
         if (hint) hint.innerText = '⚡ محرك Alibaba Wan 2.2 (14B): أعلى ثبات فيزيائي وكاميرا سينمائية ثلاثية الأبعاد مع حركية ديناميكية متقدمة.';

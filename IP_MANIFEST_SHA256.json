@@ -1,12 +1,12 @@
 {
   "project": "VirtuFilm Studio AI (Cindy)",
   "author": "Ehab Fekry (Creative Director) & Engineering Team",
-  "last_updated": "2026-11-13T05:24:27.222997+00:00",
+  "last_updated": "2026-11-13T05:30:44.612180+00:00",
   "tracked_files_count": 5,
   "files": {
-    "cindy_server.py": "696fb39d25d3cf1addcb4d342840243108c8adaf2dde7d612bd6b8940ca3b3e6",
+    "cindy_server.py": "53dafac2040992baa131010fed53f5c06a42840875fe82b0e6deb68571b6e67e",
     "comfyui_client.py": "8df12bfb64a2f299a1714b3abab5af8c8155d0c2e9c2f64071aab527bbe19a56",
-    "index.html": "033a85c7f848ec52d6e1a97d9f21ac9633777bf4e0866dbfab0951df4b86d043",
+    "index.html": "0ee62e8ae545ad0a384d5637dab3fcdb113ce41a0ec4f7c298d1e02bc1dcfed7",
     "cindy_storyboard.py": "0619c349b9574be72e4770ff01845e5f0e5e25c50b31d1b120d25a92707a6673",
     "cindy_radar.py": "f231766c9ba83dad26197a2329acfe401067698aac86bfb11395469e6119baef"
   }
