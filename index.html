@@ -366,12 +366,12 @@
           <span id="comfy-status-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
         </button>
 
-        <!-- 6: VAULT & IP PROTECTION SHIELD -->
-        <button onclick="switchTab('reframe')" id="nav-main-reframe" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-cyan-300 hover:text-white transition flex items-center gap-1.5 border border-cyan-500/40 bg-cyan-500/10 shadow" title="7. استوديو التأطير الذكي وتوسيع الكادر (AI Reframe)">
+        <!-- 6: REFRAME & 4K UPSCALE STUDIO -->
+        <button onclick="switchTab('reframe')" id="nav-main-reframe" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-cyan-300 hover:text-white transition flex items-center gap-1.5 border border-cyan-500/40 bg-cyan-500/10 shadow" title="7. استوديو التأطير وترقية الدقة 4K السينمائي">
           <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
           </svg>
-          <span>تأطير سينمائي (Reframe)</span>
+          <span>تأطير وترقية 4K (Reframe & Upscale)</span>
         </button>
         <button onclick="switchTab('vault')" id="nav-main-vault" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-amber-300 transition flex items-center gap-1.5" title="6. الخزنة ودرع حماية الملكية الفكرية">
           <i class="fa-solid fa-shield-halved text-amber-400 text-[10px]"></i>
@@ -1159,27 +1159,39 @@
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-cinema-800">
         <div>
           <div class="flex items-center gap-2">
-            <span class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">Zero-Flickering V2</span>
+            <span class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">Studio V3.0</span>
             <h2 class="text-xl font-black text-white flex items-center gap-2">
-              استوديو التأطير وتوسيع الكادر السينمائي
-              <span class="text-cinema-gold text-sm font-normal">(VirtuFilm AI Reframe)</span>
+              استوديو التأطير وترقية الجودة السينمائي
+              <span class="text-cinema-gold text-sm font-normal">(VirtuFilm AI Reframe & 4K Studio)</span>
             </h2>
           </div>
           <p class="text-xs text-slate-400 mt-1">
-            إعادة تأطير وتوسيع كادر أي فيديو لأي أبعاد ونسب سينمائية (16:9، 9:16، 1:1، 21:9) بدون تشويه وبأعلى ثبات واستمرارية بصرية.
+            إعادة تأطير وتوسيع الكادر لأي أبعاد، أو ترقية جودة أي فيديو مباشرة إلى 1080p أو 4K UHD بدون أي تكلفة محلياً.
           </p>
         </div>
 
-        <div class="flex items-center gap-3">
-          <span class="text-xs text-slate-400">محرك المعالجة:</span>
-          <div class="inline-flex p-1 rounded-xl bg-cinema-900 border border-cinema-700">
-            <button type="button" onclick="setReframeMode('generative')" id="reframe-mode-gen" class="px-3 py-1 rounded-lg text-xs font-black bg-cyan-500 text-cinema-950 transition flex items-center gap-1.5 shadow">
-              <span class="w-2 h-2 rounded-full bg-cinema-950 animate-pulse"></span>
-              توليدي حقيقي (AI Outpaint 🎬)
+        <div class="flex flex-wrap items-center gap-3">
+          <!-- Main Tab Switch: Reframe vs Upscale Only -->
+          <div class="inline-flex p-1 rounded-xl bg-cinema-900 border border-cinema-700 shadow-inner">
+            <button type="button" onclick="switchReframeStudioAction('reframe')" id="action-tab-reframe" class="px-3.5 py-1.5 rounded-lg text-xs font-black bg-cyan-500 text-cinema-950 transition flex items-center gap-1.5 shadow">
+              <span>📐 تأطير وتوسيع الكادر</span>
             </button>
-            <button type="button" onclick="setReframeMode('smart_ambient')" id="reframe-mode-local" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition flex items-center gap-1.5">
-              محلي سريع (Ambient Wings)
+            <button type="button" onclick="switchReframeStudioAction('upscale')" id="action-tab-upscale" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition flex items-center gap-1.5">
+              <span>✨ ترقية الدقة إلى 4K فقط</span>
             </button>
+          </div>
+
+          <div id="reframe-engine-toggle-wrap" class="flex items-center gap-2">
+            <span class="text-xs text-slate-400">محرك المعالجة:</span>
+            <div class="inline-flex p-1 rounded-xl bg-cinema-900 border border-cinema-700">
+              <button type="button" onclick="setReframeMode('generative')" id="reframe-mode-gen" class="px-3 py-1 rounded-lg text-xs font-black bg-cyan-500 text-cinema-950 transition flex items-center gap-1.5 shadow">
+                <span class="w-2 h-2 rounded-full bg-cinema-950 animate-pulse"></span>
+                توليدي حقيقي (AI Outpaint 🎬)
+              </button>
+              <button type="button" onclick="setReframeMode('smart_ambient')" id="reframe-mode-local" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition flex items-center gap-1.5">
+                محلي سريع (Ambient Wings)
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -1203,8 +1215,8 @@
             </div>
           </div>
 
-          <!-- Target Aspect Ratio Selection -->
-          <div>
+          <!-- Target Aspect Ratio Selection (Hidden in Upscale Only Mode) -->
+          <div id="reframe-ratio-section">
             <label class="block text-xs font-bold text-slate-300 mb-2">2. الكادر والأبعاد المستهدفة (Target Ratio)</label>
             <div class="grid grid-cols-2 gap-2">
               <button type="button" onclick="selectReframeRatio('16:9')" id="ratio-btn-16_9" class="p-3 rounded-xl border border-cyan-500/60 bg-cyan-500/15 text-white font-bold text-xs flex flex-col items-center gap-1 transition shadow">
@@ -1223,6 +1235,29 @@
                 <span class="text-sm">21:9</span>
                 <span class="text-[10px] text-slate-500 font-normal">شاشة عريضة فائقة</span>
               </button>
+            </div>
+          </div>
+
+          <!-- Upscale Scale Target Selection (Shown in Upscale Only Mode) -->
+          <div id="upscale-target-section" class="hidden space-y-2">
+            <label class="block text-xs font-bold text-slate-300 mb-2">2. الدقة السينمائية المستهدفة (مجاناً محلياً ⚡)</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" onclick="selectUpscaleTarget('4k')" id="upscale-target-btn-4k" class="p-3 rounded-xl border border-amber-500/60 bg-amber-500/15 text-white font-bold text-xs flex flex-col items-center gap-1 transition shadow">
+                <span class="text-sm">🎬 4K UHD</span>
+                <span class="text-[10px] text-amber-300 font-normal">3840×2160 (جودة مسرحية)</span>
+              </button>
+              <button type="button" onclick="selectUpscaleTarget('1080p')" id="upscale-target-btn-1080p" class="p-3 rounded-xl border border-cinema-700 bg-cinema-800/40 text-slate-400 hover:text-white font-bold text-xs flex flex-col items-center gap-1 transition">
+                <span class="text-sm">📺 1080p Full HD</span>
+                <span class="text-[10px] text-slate-500 font-normal">1920×1080 (بث عالي الدقة)</span>
+              </button>
+            </div>
+            <div class="pt-1">
+              <label class="block text-[11px] text-slate-400 mb-1">الملمس السينمائي (Film Texture):</label>
+              <select id="upscale-grain-select" class="w-full bg-cinema-950 border border-cinema-700 rounded-lg p-2 text-xs text-slate-200">
+                <option value="subtle">حبيبات فيلم 35mm ناعمة وطبيعية (Subtle)</option>
+                <option value="cinema_grain">ملمس سينمائي كلاسيكي بارز (Classic Cinema)</option>
+                <option value="clean">نقي بدون حبيبات (Ultra Clean)</option>
+              </select>
             </div>
           </div>
 
@@ -1319,11 +1354,75 @@
 
     <!-- REFRAME CLIENT JAVASCRIPT -->
     <script>
+      let currentReframeStudioAction = 'reframe'; // 'reframe' or 'upscale'
       let currentSelectedReframeRatio = '16:9';
       let selectedReframeFile = null;
       let currentReframeMode = 'generative'; // 'generative' (AI Outpaint) or 'smart_ambient'
       let currentReframeQuality = '720p'; // '720p' (economic) or '1080p' (max)
+      let currentUpscaleTarget = '4k'; // '4k' or '1080p'
       let lastReframedVideoUrl = null;
+
+      function switchReframeStudioAction(action) {
+        currentReframeStudioAction = action;
+        const tabRef = document.getElementById('action-tab-reframe');
+        const tabUps = document.getElementById('action-tab-upscale');
+        const ratioSec = document.getElementById('reframe-ratio-section');
+        const qBlock = document.getElementById('reframe-quality-block');
+        const upsSec = document.getElementById('upscale-target-section');
+        const engToggle = document.getElementById('reframe-engine-toggle-wrap');
+        const submitBtn = document.getElementById('reframe-submit-btn');
+
+        if (action === 'reframe') {
+          if (tabRef) tabRef.className = 'px-3.5 py-1.5 rounded-lg text-xs font-black bg-cyan-500 text-cinema-950 transition flex items-center gap-1.5 shadow';
+          if (tabUps) tabUps.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition flex items-center gap-1.5';
+          if (ratioSec) ratioSec.classList.remove('hidden');
+          if (qBlock && currentReframeMode === 'generative') qBlock.classList.remove('hidden');
+          if (upsSec) upsSec.classList.add('hidden');
+          if (engToggle) engToggle.classList.remove('hidden');
+          if (submitBtn) submitBtn.innerHTML = `
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>بدء إعادة التأطير الآن (Reframe)</span>
+          `;
+        } else {
+          if (tabRef) tabRef.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition flex items-center gap-1.5';
+          if (tabUps) tabUps.className = 'px-3.5 py-1.5 rounded-lg text-xs font-black bg-amber-500 text-cinema-950 transition flex items-center gap-1.5 shadow';
+          if (ratioSec) ratioSec.classList.add('hidden');
+          if (qBlock) qBlock.classList.add('hidden');
+          if (upsSec) upsSec.classList.remove('hidden');
+          if (engToggle) engToggle.classList.add('hidden');
+          if (submitBtn) submitBtn.innerHTML = `
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            <span>بدء ترقية الدقة إلى ${currentUpscaleTarget.toUpperCase()} مجاناً ⚡</span>
+          `;
+        }
+      }
+
+      function selectUpscaleTarget(target) {
+        currentUpscaleTarget = target;
+        const b4k = document.getElementById('upscale-target-btn-4k');
+        const b1080 = document.getElementById('upscale-target-btn-1080p');
+        const submitBtn = document.getElementById('reframe-submit-btn');
+        if (target === '4k') {
+          if (b4k) b4k.className = 'p-3 rounded-xl border border-amber-500/60 bg-amber-500/15 text-white font-bold text-xs flex flex-col items-center gap-1 transition shadow';
+          if (b1080) b1080.className = 'p-3 rounded-xl border border-cinema-700 bg-cinema-800/40 text-slate-400 hover:text-white font-bold text-xs flex flex-col items-center gap-1 transition';
+        } else {
+          if (b4k) b4k.className = 'p-3 rounded-xl border border-cinema-700 bg-cinema-800/40 text-slate-400 hover:text-white font-bold text-xs flex flex-col items-center gap-1 transition';
+          if (b1080) b1080.className = 'p-3 rounded-xl border border-cyan-500/60 bg-cyan-500/15 text-white font-bold text-xs flex flex-col items-center gap-1 transition shadow';
+        }
+        if (currentReframeStudioAction === 'upscale' && submitBtn) {
+          submitBtn.innerHTML = `
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            <span>بدء ترقية الدقة إلى ${currentUpscaleTarget.toUpperCase()} مجاناً ⚡</span>
+          `;
+        }
+      }
 
       function selectReframeQuality(q) {
         currentReframeQuality = q;
@@ -1425,6 +1524,61 @@
           const reader = new FileReader();
           reader.onload = async function() {
             const b64 = reader.result;
+
+            if (currentReframeStudioAction === 'upscale') {
+              // Direct 4K Upscale Only Flow
+              statusText.textContent = `جارٍ الترقية الفورية إلى دقة ${currentUpscaleTarget.toUpperCase()} السينمائية (مجاناً محلياً ⚡)...`;
+              progressBar.style.width = '50%';
+
+              const grainSelect = document.getElementById('upscale-grain-select');
+              const grainMode = grainSelect ? grainSelect.value : 'subtle';
+
+              const upPayload = {
+                video_base64: b64,
+                filename: selectedReframeFile.name,
+                target_scale: currentUpscaleTarget,
+                grain_mode: grainMode
+              };
+
+              const resp = await fetch('/api/upscale/process', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(upPayload)
+              });
+
+              if (!resp.ok) {
+                const err = await resp.text();
+                throw new Error(err || 'فشلت عملية ترقية الدقة');
+              }
+
+              const data = await resp.json();
+              progressBar.style.width = '100%';
+              statusText.textContent = `تمت الترقية بنجاح إلى ${currentUpscaleTarget.toUpperCase()}! 🎬`;
+
+              const player = document.getElementById('reframe-output-player');
+              const placeholder = document.getElementById('reframe-placeholder');
+              const dlContainer = document.getElementById('reframe-download-container');
+              const dlLink = document.getElementById('reframe-download-link');
+
+              lastReframedVideoUrl = data.output_url;
+              if (placeholder) placeholder.classList.add('hidden');
+              if (player) {
+                player.classList.remove('hidden');
+                player.src = data.output_url;
+                player.play();
+              }
+              if (dlContainer) dlContainer.classList.remove('hidden');
+              if (dlLink) {
+                dlLink.href = data.output_url;
+                dlLink.download = data.filename;
+              }
+
+              submitBtn.disabled = false;
+              submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+              return;
+            }
+
+            // Otherwise: Reframe Flow
             statusText.textContent = 'جارٍ معالجة وتوسيع الكادر بالأبعاد ' + currentSelectedReframeRatio + '...';
             progressBar.style.width = '60%';
 
@@ -10474,9 +10628,22 @@ let currentUploadContext = 'chat';
     
     // --- BIDIRECTIONAL BI-LINGUAL ENGINE (ARABIC <-> ENGLISH) ---
     const BI_TEXT_PAIRS = [
+      ['تأطير وترقية 4K (Reframe & Upscale)', 'AI Reframe & 4K Studio'],
       ['تأطير سينمائي (Reframe)', 'AI Reframe Studio'],
-      ['استوديو التأطير وتوسيع الكادر السينمائي', 'AI Reframe & Cinematic Expansion Studio'],
-      ['(VirtuFilm AI Reframe)', '(VirtuFilm AI Reframe)'],
+      ['استوديو التأطير وترقية الجودة السينمائي', 'AI Reframe & 4K Cinema Studio'],
+      ['(VirtuFilm AI Reframe & 4K Studio)', '(VirtuFilm AI Reframe & 4K Studio)'],
+      ['إعادة تأطير وتوسيع الكادر لأي أبعاد، أو ترقية جودة أي فيديو مباشرة إلى 1080p أو 4K UHD بدون أي تكلفة محلياً.', 'Reframe and expand any video, or directly upscale any footage to 1080p or 4K UHD with zero cost locally.'],
+      ['📐 تأطير وتوسيع الكادر', '📐 Reframe & Expand Canvas'],
+      ['✨ ترقية الدقة إلى 4K فقط', '✨ Direct 4K Upscale Only'],
+      ['2. الدقة السينمائية المستهدفة (مجاناً محلياً ⚡)', '2. Target Cinematic Resolution (Free Local ⚡)'],
+      ['3840×2160 (جودة مسرحية)', '3840×2160 (Theater Grade)'],
+      ['1920×1080 (بث عالي الدقة)', '1920×1080 (Broadcast HD)'],
+      ['الملمس السينمائي (Film Texture):', 'Film Texture:'],
+      ['حبيبات فيلم 35mm ناعمة وطبيعية (Subtle)', 'Subtle 35mm Film Grain (Natural)'],
+      ['ملمس سينمائي كلاسيكي بارز (Classic Cinema)', 'Classic Cinematic Grain (Punchy)'],
+      ['نقي بدون حبيبات (Ultra Clean)', 'Ultra Clean (No Grain)'],
+      ['بدء ترقية الدقة إلى 4K مجاناً ⚡', 'Start Free 4K Upscale Now ⚡'],
+      ['بدء ترقية الدقة إلى 1080P مجاناً ⚡', 'Start Free 1080P Upscale Now ⚡'],
       ['إعادة تأطير وتوسيع كادر أي فيديو لأي أبعاد ونسب سينمائية (16:9، 9:16، 1:1، 21:9) بدون تشويه وبأعلى ثبات واستمرارية بصرية.', 'Reframe and expand any video to any cinematic aspect ratio (16:9, 9:16, 1:1, 21:9) with zero-distortion and rock-solid consistency.'],
       ['نمط المعالجة:', 'Processing Engine:'],
       ['محرك المعالجة:', 'Processing Engine:'],
