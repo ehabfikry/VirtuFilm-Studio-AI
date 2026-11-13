@@ -8,7 +8,7 @@
     "Egyptian IP Law No. 82 of 2002 (ITIDA & Supreme Council of Culture)",
     "Cryptographic SHA-256 Prior-Art & Git Timestamp Ledger"
   ],
-  "generated_at_utc": "2026-11-13T05:01:12Z",
+  "generated_at_utc": "2026-11-13T05:07:14Z",
   "master_sha256": "dbd7006019185db997b1ade573c54c19099bee49ee75cd21c5e379a32ef1be41",
   "tracked_files_count": 15,
   "total_protected_bytes": 1953346,
@@ -18,7 +18,7 @@
     "zero_cost_balance_guard": "Active (Blocks all unconfirmed cloud billing)"
   },
   "files": {
-    "index.html": "e3003cc160e85193c5ff8a4331108337e831a2844bdfb33046e84e57d2fe8577",
+    "index.html": "455b17f62468fc66b8bd811e1712047a28db11c265c08fcd3ee928b4946be74f",
     "cindy_server.py": {
       "sha256": "696fb39d25d3cf1addcb4d342840243108c8adaf2dde7d612bd6b8940ca3b3e6",
       "size_bytes": 294935,
@@ -90,6 +90,6 @@
       "modified_utc": "2026-11-08T12:18:22Z"
     }
   },
-  "last_updated": "2026-11-13 05:02:37 UTC",
-  "update_reason": "Full 4-language i18n verification and audit for Episode Stitcher, Reframe and DMAD"
+  "last_updated": "2026-11-13 05:08:09 UTC",
+  "update_reason": "Synchronized DMAD Fast 4-Step Video in Screening Room Dropdown"
 }
