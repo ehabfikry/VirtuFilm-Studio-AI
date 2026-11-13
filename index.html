@@ -1683,9 +1683,9 @@
             dlLink.download = res.filename;
           }
           lastReframedVideoUrl = res.output_url;
-          alert('🎬 تم الانتهاء بنجاح! تم ترقية الفيديو إلى دقة 4K السينمائية الفائقة مجاناً.');
+          showToast('🎬 تم الانتهاء بنجاح! تم ترقية الفيديو إلى دقة 4K السينمائية الفائقة مجاناً.', 'success');
         } catch (e) {
-          alert('خطأ أثناء الترقية إلى 4K: ' + e.message);
+          showToast('خطأ أثناء الترقية إلى 4K: ' + e.message, 'error');
         } finally {
           if (upscaleBtn) upscaleBtn.disabled = false;
           if (statusTxt) statusTxt.classList.add('hidden');
