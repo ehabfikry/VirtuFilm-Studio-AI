@@ -12830,6 +12830,13 @@ let currentUploadContext = 'chat';
             </div>
           </div>
 
+          <!-- Explicit Source & Author Attribution Badge -->
+          <div class="flex items-center gap-1.5 text-[11px] text-amber-300 bg-amber-500/10 border border-amber-500/25 px-2.5 py-1 rounded-lg">
+            <i class="fa-solid fa-code-branch text-amber-400 text-[10px]"></i>
+            <span class="text-slate-400">${isEn ? 'Author & Origin:' : 'المصدر والمؤلف الأصلي:'}</span>
+            <strong class="text-amber-200 font-mono">${t.source || 'Open-Source Community'}</strong>
+          </div>
+
           <p class="text-[11px] text-slate-300 leading-relaxed bg-cinema-950/60 p-2.5 rounded-xl border border-cinema-850">
             ${t.summary}
           </p>

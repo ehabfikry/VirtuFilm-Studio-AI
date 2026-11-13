@@ -8,18 +8,22 @@
     "Egyptian IP Law No. 82 of 2002 (ITIDA & Supreme Council of Culture)",
     "Cryptographic SHA-256 Prior-Art & Git Timestamp Ledger"
   ],
-  "generated_at_utc": "2026-11-13T02:35:41Z",
-  "master_sha256": "b3ecebf873ef56bb0e4011c6fa943203b15541f236bd421d860a45f490e48113",
+  "generated_at_utc": "2026-11-13T03:58:56Z",
+  "master_sha256": "daeb348a994994a1466ea399a44b7773e9ec2512e17a311494311901d746d098",
   "tracked_files_count": 15,
-  "total_protected_bytes": 1933082,
+  "total_protected_bytes": 1950145,
   "security_controls": {
     "localhost_isolation": "127.0.0.1 Only (Strict Host & Origin Guard)",
     "zero_leak_vault": "Local cindy_secrets.json (Excluded from Git & Static HTTP)",
     "zero_cost_balance_guard": "Active (Blocks all unconfirmed cloud billing)"
   },
   "files": {
-    "index.html": "8d2920d61e00b1561b60c8be77274e5a0ca6d3a876ea3694f19902106a7725ad",
-    "cindy_server.py": "c26bd2ae58d1aad952c5cf217bf77a2b2533fb2c8319cc0160b531b13fd09a19",
+    "index.html": "cf2719bad1b5f863fe214cff60b29fd82f9a34e01fed88a72386b0416ec5dd34",
+    "cindy_server.py": {
+      "sha256": "c26bd2ae58d1aad952c5cf217bf77a2b2533fb2c8319cc0160b531b13fd09a19",
+      "size_bytes": 294814,
+      "modified_utc": "2026-11-13T03:06:00Z"
+    },
     "cindy_previs_engine.py": {
       "sha256": "bfbeb7e8bcb4448ea4fe874dd0151eba29e518d4fc0ae5d03600f791ba37139d",
       "size_bytes": 55959,
@@ -35,13 +39,21 @@
       "size_bytes": 45025,
       "modified_utc": "2026-11-11T19:19:07Z"
     },
-    "cindy_storyboard.py": "0619c349b9574be72e4770ff01845e5f0e5e25c50b31d1b120d25a92707a6673",
+    "cindy_storyboard.py": {
+      "sha256": "0619c349b9574be72e4770ff01845e5f0e5e25c50b31d1b120d25a92707a6673",
+      "size_bytes": 13896,
+      "modified_utc": "2026-11-13T03:05:39Z"
+    },
     "cindy_pricing.py": {
       "sha256": "1ea878376897381d4435875367f0ce31ff80572dbb21f7d636342b8916e5f73f",
       "size_bytes": 27647,
       "modified_utc": "2026-11-11T17:14:54Z"
     },
-    "cindy_radar.py": "4dd557b215665b5ab64ac71e6bbfd94d790ea0d7a764fb99f2590ba2f0ccca5d",
+    "cindy_radar.py": {
+      "sha256": "4dd557b215665b5ab64ac71e6bbfd94d790ea0d7a764fb99f2590ba2f0ccca5d",
+      "size_bytes": 19170,
+      "modified_utc": "2026-11-13T03:23:13Z"
+    },
     "cindy_reframe_engine.py": {
       "sha256": "f09d9914189f9f329e766256aae76fe366de61e648b19132f42202f9126f07bb",
       "size_bytes": 10051,
@@ -78,6 +90,6 @@
       "modified_utc": "2026-11-08T12:18:22Z"
     }
   },
-  "last_updated": "2026-11-13 03:25:54 UTC",
-  "update_reason": "Added organized category filter tabs to Industry Radar and incorporated curated ethical open-source tools"
+  "last_updated": "2026-11-13 04:00:08 UTC",
+  "update_reason": "Added explicit author and origin attribution badges on every Radar card"
 }
