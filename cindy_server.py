@@ -1702,7 +1702,8 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                 item_id = payload.get('item_id', '')
                 custom_prompt = payload.get('custom_prompt', '')
                 lighting_config = payload.get('lighting_config', {})
-                res = cindy_production_design.apply_production_design(scene_img_b64, mask_b64, item_id, custom_prompt, lighting_config)
+                custom_image_b64 = payload.get('custom_image', '')
+                res = cindy_production_design.apply_production_design(scene_img_b64, mask_b64, item_id, custom_prompt, lighting_config, custom_image_b64)
                 self.send_json_response(200, res)
             except Exception as e:
                 self.send_json_response(500, {"success": False, "error": str(e)})

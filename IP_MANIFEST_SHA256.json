@@ -8,10 +8,10 @@
     "Egyptian IP Law No. 82 of 2002 (ITIDA & Supreme Council of Culture)",
     "Cryptographic SHA-256 Prior-Art & Git Timestamp Ledger"
   ],
-  "generated_at_utc": "2026-11-13T22:58:00Z",
-  "master_sha256": "7d21c4c63c1e56800f3e7375c4b9266da6c6b2a7872e6be04227771d048c5fdf",
+  "generated_at_utc": "2026-11-14T00:35:29Z",
+  "master_sha256": "d9921dbf3741fe2492bc6c75c4370dd59f836e7ce8ca161f595404a95723b869",
   "tracked_files_count": 16,
-  "total_protected_bytes": 2028767,
+  "total_protected_bytes": 2030802,
   "security_controls": {
     "localhost_isolation": "127.0.0.1 Only (Strict Host & Origin Guard)",
     "zero_leak_vault": "Local cindy_secrets.json (Excluded from Git & Static HTTP)",
@@ -19,14 +19,14 @@
   },
   "files": {
     "index.html": {
-      "sha256": "0ddde33b8bfc4f27e5386d218982afff176b27ebff28e9084081487d9a22df9b",
-      "size_bytes": 1391781,
-      "modified_utc": "2026-11-13T22:57:15Z"
+      "sha256": "547a9ff4a6462556c9d39e28c73fcdbbab215489ffa710e87492ccf96b244cea",
+      "size_bytes": 1391859,
+      "modified_utc": "2026-11-14T00:34:06Z"
     },
     "cindy_server.py": {
-      "sha256": "f13f403ed27122b15b29746f72559a3c2de2801d8b3eca0afa3dab2fd4c4fc8b",
-      "size_bytes": 297665,
-      "modified_utc": "2026-11-13T16:52:36Z"
+      "sha256": "778094172682dd668fea7c86897efa7847dbd6f4cac4dd0bdf71c69e6467d78a",
+      "size_bytes": 297751,
+      "modified_utc": "2026-11-14T00:33:52Z"
     },
     "cindy_previs_engine.py": {
       "sha256": "bfbeb7e8bcb4448ea4fe874dd0151eba29e518d4fc0ae5d03600f791ba37139d",
@@ -64,9 +64,9 @@
       "modified_utc": "2026-11-13T01:43:52Z"
     },
     "cindy_production_design.py": {
-      "sha256": "65401c21642b20979ee22edb4a914c8bb665c4396f001bbd228ad58e09cc163b",
-      "size_bytes": 18723,
-      "modified_utc": "2026-11-13T16:46:34Z"
+      "sha256": "b646e1f4b101c44c6cf455180274751d56bebbee7bd810b1f6928e8936399d25",
+      "size_bytes": 20594,
+      "modified_utc": "2026-11-14T00:33:37Z"
     },
     "cindy_local_tts.py": {
       "sha256": "51a43bc62211829bf99a80269b447abb6dce96d38221cb92ad7396ee56183ba1",

@@ -233,26 +233,31 @@ def get_secrets():
 # ---------------------------------------------------------------------------
 # Core Synthesis & Relighting Pipeline
 # ---------------------------------------------------------------------------
-def apply_production_design(scene_img_b64, mask_b64=None, item_id=None, custom_prompt="", lighting_config=None):
+def apply_production_design(scene_img_b64, mask_b64=None, item_id=None, custom_prompt="", lighting_config=None, custom_image_b64=None):
     """
-    Applies realistic wardrobe/decor inpainting & relighting.
-    Uses pure Apache-2.0 / MIT models (Qwen-Image-Edit-2511 / IC-Light).
+    Applies realistic wardrobe/decor inpainting and relighting.
+    Uses pure Apache-2.0 / MIT models (Qwen-Image-Edit-2511 / Fast-SDXL Inpaint).
     """
     secrets = get_secrets()
-    fal_key = secrets.get('fal_key', '').strip()
+    fal_key = (secrets.get('fal_api_key') or secrets.get('fal_key') or '').strip()
     
     if not scene_img_b64:
         raise ValueError("صورة الكادر الأساسية مطلوبة للبدء.")
 
+    if not fal_key:
+        raise ValueError("مفتاح Fal API غير معرف في cindy_secrets.json. يرجى توفيره لتشغيل محركات الرندر السحابية.")
+
     # Find item prompt enhancer if item_id provided
     item_prompt = custom_prompt
     item_category = "general"
+    item_title = "ديكور / زي مخصص"
     if item_id:
         catalog = load_catalog()
         for cat_name, items in catalog.items():
             for itm in items:
                 if itm['id'] == item_id:
                     item_prompt = itm.get('prompt_enhancer', custom_prompt)
+                    item_title = itm.get('title', item_title)
                     item_category = cat_name
                     break
 
@@ -279,16 +284,16 @@ def apply_production_design(scene_img_b64, mask_b64=None, item_id=None, custom_p
     elif temp == 'teal_orange':
         lighting_terms.append("hollywood teal and orange color grading")
 
-    full_prompt = f"{item_prompt}, {', '.join(lighting_terms)}, ultra-realistic, 35mm film photograph, highly detailed, master production design"
-
-    # Prepare data URL
+    # Prepare data URLs
     if not scene_img_b64.startswith('data:'):
         scene_data_url = f"data:image/jpeg;base64,{scene_img_b64}"
     else:
         scene_data_url = scene_img_b64
 
     mask_data_url = None
-    if mask_b64:
+    has_mask = False
+    if mask_b64 and len(mask_b64) > 100:
+        has_mask = True
         if not mask_b64.startswith('data:'):
             mask_data_url = f"data:image/png;base64,{mask_b64}"
         else:
@@ -298,89 +303,114 @@ def apply_production_design(scene_img_b64, mask_b64=None, item_id=None, custom_p
     result_filename = f"prod_design_{timestamp}.jpg"
     result_path = os.path.join(RESULTS_DIR, result_filename)
 
-    # If Fal Key is present, call Qwen-Image-Edit-2511 (Apache 2.0 - $0.02)
-    if fal_key:
-        endpoint = "https://queue.fal.run/fal-ai/qwen-image-edit-2511"
+    headers = {
+        "Authorization": f"Key {fal_key}",
+        "Content-Type": "application/json"
+    }
+
+    # Decide pipeline: Inpainting with Mask VS Semantic Instruction Edit
+    if has_mask:
+        endpoint = "https://queue.fal.run/fal-ai/fast-sdxl/inpainting"
+        terms_str = ', '.join(lighting_terms)
+        full_prompt = f"{item_prompt}, {terms_str}, ultra-realistic, 35mm film photograph, master production design"
         payload = {
             "image_url": scene_data_url,
+            "mask_url": mask_data_url,
             "prompt": full_prompt,
-            "negative_prompt": "blurry, distorted, cartoon, plastic, floating object, mismatched lighting, deformed, low quality, artifacts",
+            "negative_prompt": "blurry, distorted, cartoon, plastic, floating object, deformed, low quality, artifacts",
+            "num_inference_steps": 30,
+            "guidance_scale": 7.5
+        }
+        model_name = "Fast-SDXL Inpainting (MIT / Apache-2.0)"
+        cost_str = "~$0.01 (SDXL Inpainting)"
+    else:
+        endpoint = "https://queue.fal.run/fal-ai/qwen-image-edit-2511"
+        image_urls = [scene_data_url]
+        terms_str = ', '.join(lighting_terms)
+        if custom_image_b64:
+            c_url = custom_image_b64 if custom_image_b64.startswith('data:') else f"data:image/jpeg;base64,{custom_image_b64}"
+            image_urls.append(c_url)
+            full_prompt = f"Seamlessly integrate and adapt the element shown in the second image into the scene in the first image: {item_prompt}, {terms_str}, highly detailed, photorealistic"
+        else:
+            full_prompt = f"Add {item_prompt} seamlessly into the scene, with realistic contact shadows, accurate floor/wall perspective, and {terms_str}, master cinematic production design"
+
+        payload = {
+            "prompt": full_prompt,
+            "image_urls": image_urls,
             "num_inference_steps": 28,
-            "guidance_scale": 6.5
+            "guidance_scale": 5.0
         }
-        if mask_data_url:
-            payload["mask_url"] = mask_data_url
+        model_name = "Qwen-Image-Edit-2511 (Apache 2.0)"
+        cost_str = "~$0.02 (Qwen-Image-Edit-2511)"
 
-        headers = {
-            "Authorization": f"Key {fal_key}",
-            "Content-Type": "application/json"
-        }
+    # Submit to Fal Queue
+    req = urllib.request.Request(endpoint, data=json.dumps(payload).encode('utf-8'), headers=headers, method='POST')
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+    except urllib.error.HTTPError as e:
+        err_msg = e.read().decode('utf-8', errors='replace')
+        raise RuntimeError(f"خطأ في خادم Fal (HTTP {e.code}): {err_msg}")
+    except Exception as e:
+        raise RuntimeError(f"تعذر الاتصال بمحرك الرندر: {e}")
 
-        req = urllib.request.Request(endpoint, data=json.dumps(payload).encode('utf-8'), headers=headers, method='POST')
-        try:
-            with urllib.request.urlopen(req, timeout=30) as resp:
-                data = json.loads(resp.read().decode('utf-8'))
-                
-            # If queued, poll for result
-            if 'status_url' in data or 'response_url' in data:
-                poll_url = data.get('response_url') or data.get('status_url')
-                poll_headers = {"Authorization": f"Key {fal_key}"}
-                for _ in range(30):
-                    time.sleep(2)
-                    poll_req = urllib.request.Request(poll_url, headers=poll_headers)
-                    with urllib.request.urlopen(poll_req, timeout=15) as presp:
-                        pdata = json.loads(presp.read().decode('utf-8'))
-                        if pdata.get('status') == 'COMPLETED':
-                            data = pdata.get('response', pdata)
-                            break
-                        elif pdata.get('status') in ['FAILED', 'ERROR']:
-                            raise RuntimeError(f"فشل التوليد السحابي: {pdata.get('error', 'Unknown')}")
+    req_id = data.get('request_id')
+    status_url = data.get('status_url') or (f"{endpoint}/requests/{req_id}/status" if req_id else None)
+    response_url = data.get('response_url') or (f"{endpoint}/requests/{req_id}" if req_id else None)
 
-            images = data.get('images', [])
-            if images and 'url' in images[0]:
-                out_url = images[0]['url']
-                # Download and save locally to results/
-                img_req = urllib.request.Request(out_url, headers={'User-Agent': 'Mozilla/5.0'})
-                with urllib.request.urlopen(img_req, timeout=30) as rresp:
-                    with open(result_path, 'wb') as out_f:
-                        out_f.write(rresp.read())
-                
-                return {
-                    "success": True,
-                    "filename": result_filename,
-                    "local_url": f"/production_assets/results/{result_filename}",
-                    "cloud_url": out_url,
-                    "category": item_category,
-                    "prompt_used": full_prompt,
-                    "cost": "~$0.02 (Qwen-Image-Edit-2511 - Apache 2.0)",
-                    "legal_audit": {
-                        "ip_clean": True,
-                        "license": "Apache 2.0 (Permissive Commercial)",
-                        "no_commercial_restrictions": True
-                    }
-                }
-        except Exception as e:
-            print(f"[ProductionDesign] Fal API error, falling back to local compositing: {e}")
+    # Polling loop
+    poll_headers = {"Authorization": f"Key {fal_key}"}
+    final_data = None
+    for _ in range(40):
+        time.sleep(2)
+        if status_url:
+            st_req = urllib.request.Request(status_url, headers=poll_headers)
+            try:
+                with urllib.request.urlopen(st_req, timeout=15) as sresp:
+                    st_data = json.loads(sresp.read().decode('utf-8'))
+                    if st_data.get('status') == 'COMPLETED':
+                        resp_req = urllib.request.Request(response_url, headers=poll_headers)
+                        with urllib.request.urlopen(resp_req, timeout=15) as rresp:
+                            final_data = json.loads(rresp.read().decode('utf-8'))
+                        break
+                    elif st_data.get('status') in ['FAILED', 'ERROR']:
+                        raise RuntimeError(f"فشل التوليد في المحرك السحابي: {st_data.get('error', 'Unknown')}")
+            except Exception as e:
+                if 'فشل التوليد' in str(e):
+                    raise
+                pass
 
-    # Local fallback: Save scene directly
-    clean_b64 = scene_img_b64.split(',', 1)[1] if ',' in scene_img_b64 else scene_img_b64
-    with open(result_path, 'wb') as f:
-        f.write(base64.b64decode(clean_b64))
+    if not final_data:
+        raise RuntimeError("تجاوزت المعالجة السحابية الحد الأقصى للوقت (Timeout). يرجى المحاولة مجدداً.")
+
+    images = final_data.get('images', [])
+    if not images or 'url' not in images[0]:
+        raise RuntimeError("لم يُرجع المحرك صورة ناتجة صالحة.")
+
+    out_url = images[0]['url']
+
+    # Download and save locally
+    img_req = urllib.request.Request(out_url, headers={'User-Agent': 'Mozilla/5.0'})
+    with urllib.request.urlopen(img_req, timeout=30) as rresp:
+        with open(result_path, 'wb') as out_f:
+            out_f.write(rresp.read())
 
     return {
         "success": True,
         "filename": result_filename,
         "local_url": f"/production_assets/results/{result_filename}",
-        "cloud_url": None,
+        "cloud_url": out_url,
         "category": item_category,
+        "model_used": model_name,
         "prompt_used": full_prompt,
-        "cost": "$0.00 (Local Stage Simulation)",
+        "cost": cost_str,
         "legal_audit": {
             "ip_clean": True,
-            "license": "Apache 2.0 / MIT",
+            "license": "Apache 2.0 / MIT (Commercially Free)",
             "no_commercial_restrictions": True
         }
     }
+
 
 if __name__ == '__main__':
     cat = load_catalog()
