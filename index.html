@@ -863,7 +863,13 @@
               <span class="text-[11px] font-black text-cinema-gold">سيندي | Cindy</span>
               <span id="cindy-welcome-msg" class="text-[11px] text-slate-300">جاهزة لأمرك يا أستاذنا المخرج. استوديو الإخراج السينمائي ومحركات الكاميرا تحت تصرفك.</span>
             </div>
-            <span id="chat-cindy-control-pill" class="text-[9px] text-blue-300 font-bold bg-blue-950/40 px-2 py-0.5 rounded border border-blue-500/30"><i class="fa-solid fa-sliders"></i> لوحة التحكم نشطة</span>
+            <div class="flex items-center gap-1.5">
+              <span id="chat-cindy-control-pill" class="text-[9px] text-blue-300 font-bold bg-blue-950/40 px-2 py-0.5 rounded border border-blue-500/30"><i class="fa-solid fa-sliders"></i> لوحة التحكم نشطة</span>
+              <button type="button" onclick="confirmClearChat()" id="clear-chat-history-btn" class="px-2 py-0.5 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/40 text-[10px] font-bold flex items-center gap-1 transition shadow cursor-pointer" title="مسح سجل الشات وتصفير المشهد الحالي لبدء مشهد جديد نقي">
+                <i class="fa-solid fa-trash-can text-[9px] text-rose-400"></i>
+                <span id="clear-chat-btn-span">بدء مشهد جديد (مسح الشات)</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -14967,6 +14973,48 @@ let currentUploadContext = 'chat';
         chatInp.value = `سيندي، قومي بتجميع مشاهد الفيلم المنتجة في تايم لاين كامل مع انتقال ${trans} وتصدير الماستر بدقة ${res} عبر FFmpeg و OpenMontage.`;
         chatInp.focus();
         showToast('تم إرسال أمر تجميع التايم لاين والمونتاج لسيندي بنجاح! 🎬', 'success');
+      }
+    }
+
+
+    // --- CLEAR CHAT & RESET SCENE MEMORY (WITHOUT LOSING CINDY'S DIRECTORIAL BRAIN) ---
+    async function confirmClearChat() {
+      const isEn = (window.currentAppLang === 'en');
+      const confirmMsg = isEn 
+        ? "Start a fresh scene? This will clear current chat messages and reset the active scene spec while keeping all Cindy's directorial skills intact."
+        : "هل تريد بدء مشهد جديد؟ سيتم مسح رسائل الشات الحالية وتصفير المشهد مع الاحتفاظ بكامل المعرفة الإخراجية لسيندي.";
+      
+      if (!confirm(confirmMsg)) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/chat/clear`, { method: 'POST' });
+        const data = await res.json();
+        
+        // Clear local memory
+        window.cindyChatHistory = [];
+        window.cindyResetNextTurn = true;
+
+        // Reset Chat UI container, keep only welcome message
+        const container = document.getElementById('chat-messages-container');
+        if (container) {
+          const welcomeBox = container.querySelector('.flex.items-center.gap-2\.5');
+          const welcomeHtml = welcomeBox ? welcomeBox.outerHTML : '';
+          container.innerHTML = welcomeHtml;
+        }
+
+        showToast(isEn ? "Chat cleared and new scene initiated successfully!" : "تم مسح الشات وبدء مشهد جديد نقي بنجاح! 🎬", "success");
+      } catch (err) {
+        console.warn("Clear chat error:", err);
+        // Fallback local clear
+        window.cindyChatHistory = [];
+        window.cindyResetNextTurn = true;
+        const container = document.getElementById('chat-messages-container');
+        if (container) {
+          const welcomeBox = container.querySelector('.flex.items-center.gap-2\.5');
+          const welcomeHtml = welcomeBox ? welcomeBox.outerHTML : '';
+          container.innerHTML = welcomeHtml;
+        }
+        showToast("تم مسح الشات محلياً بنجاح!", "info");
       }
     }
 

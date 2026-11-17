@@ -2127,6 +2127,8 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
 
             self.handle_vault_test_key(payload)
 
+        elif self.path == '/api/chat/clear':
+            self.handle_chat_clear()
         elif self.path == '/api/chat':
 
             self.handle_chat(payload)
@@ -3032,6 +3034,22 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             "duration": duration,
             "frames_count": len(frames)
         }
+
+    def handle_chat_clear(self):
+        try:
+            b_dir = os.path.join(OUTPUTS_DIR, "blender_guides")
+            spec_path = os.path.join(b_dir, "current_previs_spec.json")
+            if os.path.exists(spec_path):
+                try:
+                    os.remove(spec_path)
+                except Exception:
+                    pass
+            self.send_json_response(200, {
+                "success": True,
+                "message": "تم تصفير ذاكرة المحادثة والمشهد الحالي بنجاح مع الاحتفاظ بكامل المعرفة الإخراجية لسيندي!"
+            })
+        except Exception as e:
+            self.send_error_response(500, f"Error clearing chat: {str(e)}")
 
     def handle_chat(self, payload):
         """
