@@ -28,7 +28,7 @@ This project does not claim to invent new generative neural architectures from s
 
 * **Pre-visualization Bridge:** Local interface to experiment with camera tracks and angles in 3D prior to video diffusion.
 * **Cost Guardrails:** Clear estimates and zero-cost local alternatives (ComfyUI local mode) to prevent accidental cloud spend.
-* **Bilingual UI:** Clean English and Arabic directorial interface tailored for independent storytelling experimentation.
+* **Multilingual UI (4 Languages):** Native interface support for English, Arabic, French, and Spanish (`en`, `ar`, `fr`, `es`) tailored for independent storytelling experimentation.
 * **Community Triage Desk:** A lightweight assistant to help answer technical setup questions and organize community feedback.
 
 ---
