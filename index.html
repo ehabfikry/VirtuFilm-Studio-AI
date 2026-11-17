@@ -10780,6 +10780,27 @@ let currentUploadContext = 'chat';
           <span>توليد الأداء الصوتي محلياً الآن</span>
         </button>
       </div>
+
+      <!-- Resonant Cinematic Music & OST Integration Section -->
+      <div class="mt-4 pt-3 border-t border-cinema-700/80 bg-cinema-950/80 rounded-2xl p-3.5 space-y-2 border border-emerald-500/30">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-music text-emerald-400 text-sm"></i>
+            <span class="text-xs font-bold text-emerald-300">Resonant (استوديو الموسيقى التصويرية والمكساج المحلي)</span>
+          </div>
+          <span class="text-[9px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded">Local DAW / MCP</span>
+        </div>
+        <p class="text-[11px] text-slate-300 leading-relaxed">
+          تأليف وتوزيع الموسيقى التصويرية (Original Soundtrack & Ambience) لكل مشهد سينمائي محلياً بدون قيود ملكية أو إنترنت عبر بروتوكول Resonant MCP.
+        </p>
+        <div class="flex items-center justify-between pt-1">
+          <span class="text-[10px] text-slate-400">المؤلف والمصدر: <strong class="text-amber-300 font-mono">calesthio / Resonant (MIT)</strong></span>
+          <button type="button" onclick="closeVoiceStudioModal(); switchTab('chat'); document.getElementById('chat-input').value = 'Cindy, compose an original cinematic orchestral score and ambient background for this scene using Resonant audio engine.'; document.getElementById('chat-input').focus();" class="px-3 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-[10px] font-bold flex items-center gap-1.5 transition cursor-pointer">
+            <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i>
+            <span>تأليف موسيقى تصويرية للمشهد</span>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
