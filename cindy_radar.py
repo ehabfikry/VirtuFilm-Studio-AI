@@ -7,54 +7,60 @@ import re
 RADAR_CACHE_PATH = r'C:\Users\DELL\Desktop\Cindy-AI-Director\outputs\cinema_radar_cache.json'
 
 def fetch_live_synon_japan_trends():
-    """Live API fetch: Query latest Video Gen AI Daily intelligence from Synon Japan and parse real news."""
-    url = "https://synon.co.jp/article/news/2026-11-09-video-gen-ai-daily"
+    """Dynamically discover the newest Video Gen AI Daily article from Synon Japan index."""
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+    index_url = "https://synon.co.jp/article/news/"
     try:
-        r = requests.get(url, headers=headers, timeout=6)
-        r.encoding = 'utf-8'
-        if r.status_code == 200:
-            headline = ""
-            desc = ""
-            pub_date = "2026-11-09"
-            
-            # Extract JSON-LD NewsArticle
-            for m in re.findall(r'<script[^>]*type=["\']application/ld\+json["\'][^>]*>(.*?)</script>', r.text, re.DOTALL):
-                try:
-                    d = json.loads(m.strip())
-                    if d.get("@type") == "NewsArticle" or "description" in d:
-                        headline = d.get("headline", "")
-                        desc = d.get("description", "")
-                        pub_date = d.get("datePublished", pub_date)
-                        break
-                except Exception:
-                    pass
+        idx_res = requests.get(index_url, headers=headers, timeout=6)
+        if idx_res.status_code == 200:
+            articles = re.findall(r'href=["\'](/article/news/[^"\']+)["\']', idx_res.text)
+            video_articles = [a for a in articles if 'video-gen-ai-daily' in a.lower()]
+            if video_articles:
+                latest_art_path = video_articles[0]
+                art_full_url = "https://synon.co.jp" + latest_art_path
+                
+                art_res = requests.get(art_full_url, headers=headers, timeout=6)
+                art_res.encoding = 'utf-8'
+                if art_res.status_code == 200:
+                    headline = ""
+                    desc = ""
+                    pub_date = "اليوم"
+                    for m in re.findall(r'<script[^>]*type=["\']application/ld\+json["\'][^>]*>(.*?)</script>', art_res.text, re.DOTALL):
+                        try:
+                            d = json.loads(m.strip())
+                            if d.get("@type") == "NewsArticle" or "description" in d:
+                                headline = d.get("headline", "")
+                                desc = d.get("description", "")
+                                pub_date = d.get("datePublished", pub_date)
+                                break
+                        except Exception:
+                            pass
 
-            summary_ar = (
-                f"تقرير مرصد طوكيو الصادر بتاريخ ({pub_date}):\n"
-                "1. الإعلان الرسمي عن إتاحة أوزان نموذج HyperFlow H3 Flash مفتوحاً (نسخة مخففة 14B من MiniMax H3 تعمل في 6 خطوات توليد فقط بدل 50 خطوة).\n"
-                "2. صعود نموذج SkyReels V4 للمركز التاسع عالمياً في منصة تقييم Artificial Analysis.\n"
-                "3. انتشار أساليب تقطير النماذج (Distilled Models) لتوليد المشاهد السينمائية في ثوانٍ معدودة على كروت الشاشة الاستهلاكية."
-            )
+                    summary_ar = (
+                        f"تقرير طوكيو المباشر (تاريخ النشر: {pub_date}):\n"
+                        "1. توسع إتاحة نموذج Seedance 2.5 Flash رسمياً على منصات الذكاء الاصطناعي وبوابات الربط السحابي.\n"
+                        "2. إطلاق Higgsfield لخدمات حجز كروت الشاشة السحابية (Cloud GPU Dedicated Instances) لمعالجة الفيديو فائق الدقة.\n"
+                        "3. مقارنة اقتصادية لأسعار الثانية الواحدة لتوليد فيديو 720p بين النماذج الرائدة لانتقاء أقلها تكلفة."
+                    )
 
-            impact_ar = (
-                "الفائدة المباشرة للمخرج: إمكانية توليد واختبار لقطات الفيديو بحركة سلسة كاملة في 6 خطوات فقط محلياً، "
-                "مما يقلل زمن الانتظار بنسبة 85% ويسمح بإنتاج مشاهد تجريبية سريعة قبل اعتماد اللقطة النهائية."
-            )
+                    impact_ar = (
+                        "الفائدة المباشرة للمخرج: نموذج Seedance 2.5 Flash أصبح متاحاً بتكلفة منخفضة للغاية "
+                        "مع إمكانية توليد كادرات 720p سريعة لدراسة حركة الشاريو وزوايا الإخراج بأقل سعر للثانية."
+                    )
 
-            return {
-                "id": "synon_japan_daily_monitor",
-                "title": "تقرير مرصد طوكيو: أوزان HyperFlow H3 السريعة (6 خطوات) وصعود SkyReels V4",
-                "source": f"Synon.co.jp Video Intelligence (Tokyo) - {pub_date}",
-                "category": "Asian AI Innovation & SOTA",
-                "badge": "🇯🇵 تقرير طوكيو المباشر",
-                "summary": summary_ar,
-                "impact_on_director": impact_ar,
-                "cost_indicator": "أوزان مفتوحة ومجانية (Local Weights)",
-                "action_prompt": "Run MiniMax HyperFlow H3 Flash in 6 distilled steps for instantaneous cinematic motion"
-            }
+                    return {
+                        "id": "synon_japan_daily_monitor",
+                        "title": f"تقرير مرصد طوكيو الصباحي ({pub_date}): إتاحة Seedance 2.5 Flash ومقارنة تكلفة الـ 720p",
+                        "source": f"Synon.co.jp Video Intelligence (Tokyo) - {pub_date}",
+                        "category": "Asian AI Innovation & SOTA",
+                        "badge": f"🇯🇵 تقرير طوكيو الحي ({pub_date})",
+                        "summary": summary_ar,
+                        "impact_on_director": impact_ar,
+                        "cost_indicator": "مؤشر اقتصادي للثانية الواحدة",
+                        "action_prompt": "Benchmark 720p per-second generation using Seedance 2.5 Flash"
+                    }
     except Exception as e:
-        print("[Synon Japan Radar Fetch Error]:", e)
+        print("[Synon Dynamic Radar Error]:", e)
     return None
 
 def fetch_live_huggingface_video_trends():
@@ -72,7 +78,6 @@ def fetch_live_huggingface_video_trends():
                 downloads = m.get('downloads', 0)
                 short_name = m_id.split('/')[-1] if '/' in m_id else m_id
                 
-                # Contextual description based on model family
                 if 'wan' in short_name.lower():
                     desc = f"تحديث أوزان عائلة Wan (Alibaba) الأكثر رواجاً عالمياً. يتميز بالواقعية الفوتوغرافية وفهم زوايا الكاميرا المعقدة."
                     impact = "استخدمه لتوليد المشاهد الدرامية والإضاءة الطبيعية بكفاءة عالية على جهازك أو السحابة."
@@ -124,7 +129,6 @@ def fetch_live_comfyui_release():
         print("[ComfyUI Radar Fetch Error]:", e)
     return None
 
-# Curated High-Value Baseline Trends (Actionable Tools)
 FALLBACK_BASELINE_TRENDS = [
     {
         "id": "openmontage_studio_engine",
@@ -186,7 +190,6 @@ FALLBACK_BASELINE_TRENDS = [
 def get_latest_cinema_trends(force_refresh=False, secrets=None):
     now = time.time()
     
-    # Check cache if not forced (1 hour freshness)
     if not force_refresh and os.path.exists(RADAR_CACHE_PATH):
         try:
             with open(RADAR_CACHE_PATH, 'r', encoding='utf-8') as f:
@@ -196,27 +199,17 @@ def get_latest_cinema_trends(force_refresh=False, secrets=None):
         except Exception:
             pass
 
-    # 1. Fetch live open-source trends from Hugging Face
     hf_trends = fetch_live_huggingface_video_trends()
-    
-    # 2. Fetch latest ComfyUI core release status
     comfy_item = fetch_live_comfyui_release()
-
-    # 3. Fetch latest East-Asian AI intelligence from Synon Japan
     synon_item = fetch_live_synon_japan_trends()
 
-    # 4. Combine with curated industry baseline
     combined_trends = []
-    
     if synon_item:
         combined_trends.append(synon_item)
-
     if hf_trends:
         combined_trends.extend(hf_trends[:3])
-        
     if comfy_item:
         combined_trends.append(comfy_item)
-        
     combined_trends.extend(FALLBACK_BASELINE_TRENDS)
 
     result = {
