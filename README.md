@@ -33,9 +33,6 @@ This project does not claim to invent new generative neural architectures from s
 
 ---
 
-
----
-
 ## 💻 Supported Environments & Compatibility Status (حالة التوافق وبيئات التشغيل)
 
 | Operating System | Testing Status | Hardware / GPU | 3D Engine Setup | Launch Command |
@@ -69,9 +66,6 @@ chmod +x install_mac_linux.sh
 ./install_mac_linux.sh
 ```
 The studio will automatically open in your browser at: **`http://127.0.0.1:8765`**
-
----
-
 
 ---
 
