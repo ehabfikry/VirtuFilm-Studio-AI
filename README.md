@@ -6,7 +6,7 @@
 [![3D Engine](https://img.shields.io/badge/3D%20Engine-Blender%205.3%20LTS-orange?style=for-the-badge)](https://www.blender.org/)
 [![Local Studio](https://img.shields.io/badge/Local%20ComfyUI-24.9%20GB%20VRAM-emerald?style=for-the-badge)](http://127.0.0.1:8765)
 
-An autonomous, end-to-end AI virtual filmmaking studio and directorial platform conceived and directed by **Ehab Fikry** (*المخرج إيهاب فكري*) in software and AI architecture collaboration with **Antigravity (Google DeepMind)**.
+An autonomous, end-to-end AI virtual filmmaking studio and directorial platform conceived and directed by **Ehab Fikry** ( إيهاب فكري) in software and AI architecture collaboration with **Antigravity (Google DeepMind)**.
 
 Cindy-AI-Director empowers indie filmmakers, directors, and creators to orchestrate full-length feature films by bridging:
 1. **Local 3D Pre-vis & Camera Orbits** via **Blender 5.3 LTS**.
