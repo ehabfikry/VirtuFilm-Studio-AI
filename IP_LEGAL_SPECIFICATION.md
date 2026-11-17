@@ -1,72 +1,39 @@
-# CINDY-AI-DIRECTOR (VirtuFilm Studio AI)
-## LEGAL CLEARANCE, INTELLECTUAL PROPERTY & CREATIVE PROTECTION SPECIFICATION
+# VIRTUFILM STUDIO AI / CINDY EXPERIMENTAL WORKFLOW
+## OPEN SOURCE SPECIFICATION, COMMUNITY ATTRIBUTION & ETHICAL GUIDELINES
 
-**Project Title:** Cindy-AI-Director / VirtuFilm Studio AI  
-**Directorial Vision, Screenplay & Creator:** Ehab Fikry (المخرج إيهاب فكري)  
-**Autonomous Systems Architecture & AI Engineering:** Antigravity (Google DeepMind)  
-**Governing Standard:** Open-Core Architecture under GNU AGPL-3.0 with Commercial SaaS Reservation  
-**International Legal Framework:** WIPO Berne Convention for the Protection of Literary and Artistic Works (181 Countries)  
-**Cryptographic Timestamp & Proof of Creation:** SHA-256 Git Timestamp Ledger  
+**Conceived & Curated by:** Ehab Fikry (إيهاب فكري - Cinema Enthusiast & Independent Storyteller)  
+**Technical Implementation & AI Systems:** Antigravity (Google DeepMind)  
+**License:** GNU Affero General Public License v3.0 (AGPL-3.0)  
+**Nature of Project:** Personal Creative Research, Open-Source Workflow Synthesis, and Experimental Film Pre-vis  
 
 ---
 
-### 1. CREATIVE INTEGRITY & FILMMAKER'S OWNERSHIP (حماية حقوق المخرج الإبداعية)
+### 1. OPEN-SOURCE COMMUNITY ACKNOWLEDGMENT & ATTRIBUTION (الاعتراف بفضل مجتمع المصادر المفتوحة)
 
-1. **Absolute Ownership of Creative Outputs:**
-   * **100% Commercial Filmmaker Rights:** All screenplay texts, character concepts, storyboards, 3D blocking arrangements, rendered video frames, dialogues, and final feature film exports generated within Cindy-AI-Director are the **exclusive property of the director / creator**.
-   * **Zero Royalty & Zero Platform Claim:** Neither the software maintainers nor downstream AI model providers hold any intellectual property claim, copyright share, or distribution royalties over films produced using this platform.
+This project does not claim exclusive or novel invention of generative diffusion, transformers, or 3D rendering algorithms. Rather, it represents an experimental integration and open workflow designed by a cinema lover to organize and test existing open-source and commercial tools:
 
-2. **Character & Cast Protection (حماية الهوية والشخصيات الدرامية):**
-   * **Private Identity Anchoring:** Actor LoRA weights, facial biometric vectors, and reference photography remain strictly localized on the user's host machine or private cloud storage pods (RunPod/Fal BYOK).
-   * **No Public Scraping or Training:** Cindy-AI-Director contains no telemetry or central data harvesting. Characters and proprietary actors (such as *Abdelaziz*, *Abdelshakoor*, and others) are never uploaded to public model hubs or public repositories without explicit directorial consent.
-
----
-
-### 2. ARCHITECTURAL PRIOR-ART DISCLOSURE (معمارية الابتكار وحماية السبق البرمجي)
-
-Cindy-AI-Director resolves the three fundamental defects of generative video AI (character drift, erratic camera motion, and anatomy hallucinations) through a decoupled **4-Pass Directorial Pipeline**:
-
-1. **Pillar 1: Neural Identity Anchoring Module (NIAM)**
-   * Decouples character identity from temporal video generation.
-   * Utilizes on-demand low-rank adaptation (LoRA) checkpoint matrices ($0.04/run on RTX 4090).
-   * Generates a 2D seed keyframe establishing facial fidelity, costume texture, and lighting continuity before motion synthesis.
-
-2. **Pillar 2: Spatial Geometry & Camera Pre-vis Engine (Blender 5.3 LTS)**
-   * Binds locally to Blender 5.3 to calculate true 6-Degrees-of-Freedom (6-DoF) camera trajectories (Dolly, Track, Crane, Radial Orbit).
-   * Bakes depth maps and spatial blocking coordinates with **$0 API cost** prior to video rendering, preventing erratic drone float.
-
-3. **Pillar 3: Constrained Temporal Neural Dispatcher (CTND)**
-   * Dispatches generation tasks across leading neural engines (ByteDance Seedance 2.5, Kling 4.0 Pro Omni, Google Veo 3.1, or local ComfyUI).
-   * Dynamically injects negative anatomical penalty vectors to prevent extremity distortions (extra fingers, deformed limbs).
-
-4. **Pillar 4: Dual-Engine Master Assembly (OpenMontage & Resonant DAW)**
-   * Directorial timeline assembly with automated dialogue sync and sound environment design.
+* **Blender:** 3D camera staging, viewport math, and spatial trajectory pre-vis are powered by the official Blender Foundation LTS software (GPL).
+* **ComfyUI & Ecosystem:** Local neural execution pipelines leverage the exceptional node architectures pioneered by the ComfyUI community.
+* **Community Cinematography Tools:** We acknowledge and celebrate the pioneering work of projects across the open-source filmmaking community (including Clapper, OpenMontage, Resonant, and community prompt engineering kits) that inspired our workflow approach.
+* **Model Providers:** All external model APIs (Fal.ai, RunPod, Google, ByteDance, Tencent, Wan, Kling) belong entirely to their respective authors and corporate researchers.
 
 ---
 
-### 3. LEGAL CLEARANCE & OPEN-SOURCE COMPLIANCE (التوافق القانوني ونظام التراخيص)
+### 2. CREATIVE FREEDOM & USER OWNERSHIP (ملكية المستخدم الكاملة)
 
-1. **BYOK Standard (Bring Your Own Key):**
-   * Cindy-AI-Director distributes **zero proprietary model weights** and **zero paid cloud subscriptions**.
-   * All API calls are executed directly from the user's local server to official provider endpoints (Fal.ai, RunPod, Gemini, OpenRouter) using the user's private keys stored in `cindy_secrets.json`.
-   * The platform acts purely as an open-source directorial workflow orchestrator, exempt from third-party hosting liabilities.
-
-2. **GPL & Subprocess Compliance:**
-   * External open-source engines (e.g., Blender 5.3 and FFmpeg) are executed strictly via standalone command-line subprocesses and standard IPC pipes, fully complying with GPL/LGPL licensing standards.
-
-3. **Commercial SaaS & Multi-Tenant Reservation:**
-   * While individual filmmakers, indie studios, researchers, and students are free to use, modify, and build upon Cindy-AI-Director for free under the **GNU AGPL-3.0 License**, any deployment of this platform as a hosted, multi-tenant commercial SaaS service requires an explicit commercial agreement with **Director Ehab Fikry**.
+* **Independent Creator Rights:** Any filmmaker, artist, or enthusiast using this workflow retains 100% full rights to their original stories, characters, and generated artistic media.
+* **Zero Royalties:** The maintainers of this repository assert zero royalty, copyright, or commercial ownership claims over videos, screenplays, or visual assets produced by users.
 
 ---
 
-### 4. LIMITATION OF LIABILITY & DISCLAIMER (إخلاء المسؤولية القانونية المعتمد)
+### 3. RESPONSIBLE USE & ETHICAL CLEARANCE (إخلاء المسؤولية والاستخدام الأخلاقي)
 
-* **As-Is Provision:** The software is provided "AS IS", without warranty of any kind, express or implied.
-* **Actor Consent Compliance:** The user warrants that they possess lawful consent, likeness clearance, and commercial rights for any individual or performer whose photography is utilized for training LoRA identity checkpoints.
-* **No Unlawful Generation:** The platform strictly prohibits the generation of non-consensual deepfakes, defamatory media, or content violating international cyber-safety regulations.
+* **Personal Creative Exploration:** This tool is provided free of charge "AS IS", without warranties of any kind.
+* **Likeness & Actor Permissions:** Users are strictly responsible for ensuring they hold appropriate consent and rights for any photographs or reference imagery used in experimental LoRA training.
+* **No Telemetry or Scraping:** This software operates strictly on the user's local machine (`127.0.0.1`), transmits no telemetry, and harvests no personal data.
 
 ---
 
-**Certified & Recorded:** November 2026  
-**Creator & Director:** Ehab Fikry (المخرج إيهاب فكري)  
-**Systems Architecture:** Antigravity (Google DeepMind)
+**Recorded & Maintained:** November 2026  
+**Curator:** Ehab Fikry (محب للسينما وصانع أفكار مستقل)  
+**Implementation Support:** Antigravity (Google DeepMind)

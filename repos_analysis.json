@@ -1,0 +1,473 @@
+[
+  {
+    "slug": "jbilcke-hf/clapper",
+    "stars": 2326,
+    "desc": "Clapper.app, a video synthesizer and sequencer designed for the age of AI cinema",
+    "topics": [
+      "aitube",
+      "clapper",
+      "openclap"
+    ],
+    "language": "TypeScript",
+    "created_at": "2024-05-31T11:09:04Z",
+    "updated_at": "2026-11-13T02:02:21Z"
+  },
+  {
+    "slug": "melMass/comfy_mtb",
+    "stars": 729,
+    "desc": "Animation oriented nodes pack for ComfyUI",
+    "topics": [
+      "animation",
+      "comfyui",
+      "faceswap",
+      "interpolation",
+      "nodes",
+      "stable-diffusion"
+    ],
+    "language": "Python",
+    "created_at": "2023-06-03T15:52:29Z",
+    "updated_at": "2026-11-16T09:32:55Z"
+  },
+  {
+    "slug": "ttiimmaacc/cinema4d-mcp",
+    "stars": 140,
+    "desc": "Cinema 4D plugin integrating Claude AI for prompt-driven 3D modeling, scene creation, and manipulation.",
+    "topics": [
+      "ai-integration",
+      "cinema-4d",
+      "cinema-4d-plugin",
+      "claude-ai",
+      "maxon-cinema-pipeline",
+      "mcp-server"
+    ],
+    "language": "Python",
+    "created_at": "2025-03-13T23:37:43Z",
+    "updated_at": "2026-11-17T09:42:38Z"
+  },
+  {
+    "slug": "Rylaispirit/cinematic-video-prompt-skill",
+    "stars": 195,
+    "desc": "AI video prompt cheat sheet & Claude Skill: cinematic camera angles, camera movement, lighting, composition, color grading for Veo 3, Kling, Sora, Runway, Midjourney. 700+ terms with Vietnamese explanations.",
+    "topics": [
+      "ai-video",
+      "camera-movement",
+      "cinematography",
+      "claude-skill",
+      "generative-ai",
+      "kling",
+      "lighting",
+      "midjourney",
+      "prompt-engineering",
+      "prompts",
+      "runway",
+      "sora",
+      "text-to-video",
+      "veo3",
+      "vietnamese"
+    ],
+    "language": null,
+    "created_at": "2026-09-20T16:44:06Z",
+    "updated_at": "2026-11-17T15:49:00Z"
+  },
+  {
+    "slug": "Matticusnicholas/KupkaProd-Cinema-Pipeline",
+    "stars": 207,
+    "desc": "Autonomous AI movie studio — turn a text prompt into a fully produced video. 100% local, no cloud, no API keys.",
+    "topics": [],
+    "language": "Python",
+    "created_at": "2026-04-07T03:46:01Z",
+    "updated_at": "2026-11-09T04:58:02Z"
+  },
+  {
+    "slug": "amirmushichge/cinematic-scroll-prompt-kit",
+    "stars": 230,
+    "desc": "Reusable AI prompt and project brief system for cinematic scroll-driven 2.5D websites.",
+    "topics": [
+      "claude-code",
+      "codex",
+      "creative-coding",
+      "ltx-studio",
+      "prompt-engineering",
+      "scroll-animation"
+    ],
+    "language": null,
+    "created_at": "2026-07-17T20:16:38Z",
+    "updated_at": "2026-11-16T18:03:17Z"
+  },
+  {
+    "slug": "akseolabs-seo/cinematic-ui",
+    "stars": 112,
+    "desc": "An agent skill that directs websites and apps the way films are made: cast a director, write a shot list, shoot it, screen the rendered frames. For Claude Code, Codex and any agent. 讓 AI 像導演一樣拍網站與後台。Live demos: cinematicskill.com",
+    "topics": [
+      "agent-skills",
+      "ai",
+      "antigravity-skills",
+      "cinematic",
+      "claude-code",
+      "claude-skills",
+      "codex-skills",
+      "design",
+      "frontend",
+      "gsap",
+      "threejs",
+      "ui-design",
+      "web-design"
+    ],
+    "language": "JavaScript",
+    "created_at": "2026-04-03T19:50:54Z",
+    "updated_at": "2026-11-17T15:33:04Z"
+  },
+  {
+    "slug": "Hao0321/ai-media-generator",
+    "stars": 281,
+    "desc": "Zero-skill cinema. Senior-director prompts on autopilot. A Claude Code Skill for high-quality AI image / video / music prompt crafting and browser-based execution across 14+ generative platforms.",
+    "topics": [
+      "ai-image",
+      "ai-music",
+      "ai-video",
+      "claude-code",
+      "claude-skill",
+      "flux",
+      "generative-ai",
+      "kling",
+      "midjourney",
+      "prompt-engineering",
+      "seedance",
+      "sora",
+      "suno",
+      "veo"
+    ],
+    "language": null,
+    "created_at": "2026-05-13T13:26:06Z",
+    "updated_at": "2026-11-17T07:56:01Z"
+  },
+  {
+    "slug": "blendi-remade/earth-cinema",
+    "stars": 91,
+    "desc": "Chrome extension that transforms Google Earth views into cinematic shots using fal.ai",
+    "topics": [],
+    "language": "JavaScript",
+    "created_at": "2025-12-12T16:04:43Z",
+    "updated_at": "2026-11-05T00:39:47Z"
+  },
+  {
+    "slug": "OSideMedia/higgsfield-ai-prompt-skill",
+    "stars": 941,
+    "desc": "No longer maintained (final release v3.42.0). Claude AI skill for cinematic Higgsfield AI prompts: 32 sub-skills covering Seedance 2.5 and 2.0, the Hell Grind feature-film pipeline, an acting system, Cinema Studio 2.5/3.0/3.5, MCSLA, Soul ID, Kling 3.0 Motion Control, the DISCIPLINE framework, and 18 templates.",
+    "topics": [
+      "ai-cinema",
+      "ai-filmmaking",
+      "ai-video",
+      "character-acting",
+      "cinema-studio",
+      "claude-code",
+      "claude-cowork",
+      "claude-skill",
+      "dreamina",
+      "higgsfield",
+      "kling",
+      "mcsla",
+      "motion-control",
+      "prompt-engineering",
+      "seedance",
+      "seedance-2-5",
+      "soul-id",
+      "veo",
+      "video-generation",
+      "wan"
+    ],
+    "language": "Python",
+    "created_at": "2026-03-08T18:03:41Z",
+    "updated_at": "2026-11-17T14:49:10Z"
+  },
+  {
+    "slug": "generalizingai/OpenStudio",
+    "stars": 213,
+    "desc": "OpenStudio - an open-source AI image, video, cinema, reels and lip sync studio powered by MuAPI",
+    "topics": [],
+    "language": "JavaScript",
+    "created_at": "2026-07-05T16:28:44Z",
+    "updated_at": "2026-11-06T18:37:25Z"
+  },
+  {
+    "slug": "workingprototype/Fuobe",
+    "stars": 192,
+    "desc": "The open creative studio on ComfyUI: images, video, 3D and audio on open weights, on your own GPU or the cloud. Camera motions, effects, apps, Cinema, Layers, Image to 3D and an AI agent.",
+    "topics": [
+      "ai-video",
+      "comfyui",
+      "creative-tools",
+      "generative-ai",
+      "ideogram",
+      "image-generation",
+      "image-to-3d",
+      "image-to-video",
+      "ltx-video",
+      "minimax-h3",
+      "nextjs",
+      "open-source",
+      "open-weights",
+      "qwen-image",
+      "text-to-image",
+      "video-generation",
+      "wan"
+    ],
+    "language": "TypeScript",
+    "created_at": "2026-10-16T20:01:33Z",
+    "updated_at": "2026-11-17T16:39:42Z"
+  },
+  {
+    "slug": "CyberJ0605/cinematic-video-prompt-engineer-skill",
+    "stars": 153,
+    "desc": "A Codex skill for turning plot summaries into cinematic AI video prompts. It diagnoses story, emotion, structure, shot design, micro-expressions, sound, reference image prompts, and continuation logic, then outputs copy-ready prompts for short-form AI video generation.",
+    "topics": [],
+    "language": "Python",
+    "created_at": "2026-06-03T02:15:17Z",
+    "updated_at": "2026-11-15T05:44:12Z"
+  },
+  {
+    "slug": "ai9app/AI-Cinematic-Prompt-Director",
+    "stars": 26,
+    "desc": "250 AI Cinematic knowledge base of Master camera movements, 3D design, and video effects with this professional prompt engineering framework for AI video models (Seedance 2.0, Sora, Kling). Features a scene-by-scene video prompt structure and a 250-base cinematography dictionary. Let's gen it!",
+    "topics": [
+      "ai",
+      "ai-video-creator",
+      "ai-video-generation",
+      "ai-video-prompts",
+      "seedance-2",
+      "seedance-2-0",
+      "seedance-prompts"
+    ],
+    "language": null,
+    "created_at": "2026-06-16T17:38:12Z",
+    "updated_at": "2026-11-16T07:47:27Z"
+  },
+  {
+    "slug": "ai9app/360-Camera-Control-Tool-for-AI-Video-Seedance2.5-MinimaxH3-Wan-3.0-",
+    "stars": 2,
+    "desc": "360-Camera-Control-Tool-for-AI-Video-Seedance2.5-MinimaxH3-Wan-3.0- Direct AI camera moves from one image — orbit, 360°, push in, custom 3D paths. Use it on AI9.",
+    "topics": [
+      "ai-video",
+      "ai-video-2026",
+      "ai-video-editing",
+      "ai-video-editor",
+      "ai9app",
+      "camera-control",
+      "minimax",
+      "minimax-h3",
+      "seedance",
+      "seedance-2",
+      "seedance-2-0",
+      "seedance-2-5",
+      "video-generation",
+      "video-tools"
+    ],
+    "language": null,
+    "created_at": "2026-09-21T13:03:45Z",
+    "updated_at": "2026-09-21T15:07:54Z"
+  },
+  {
+    "slug": "STARKTANG108/ai-cinema-studio-kit",
+    "stars": 24,
+    "desc": "One-click AI Cinema Studio Kit: Google Flow + Colab G4 (96GB) ComfyUI + MiniMax-H3 GPU Voice/I2V + 1.0x 24fps AV-Locked Post-Production",
+    "topics": [],
+    "language": "Python",
+    "created_at": "2026-11-13T02:26:33Z",
+    "updated_at": "2026-11-17T15:04:07Z"
+  },
+  {
+    "slug": "Tech-Explorer-AI/ST-CinemaWorld",
+    "stars": 23,
+    "desc": "\"在 AI 创造的世界中游乐。\"  CinemaWorld 是一个为 SillyTavern 设计的沉浸式视觉小说 / RPG 世界引擎扩展。  它把聊天 AI 变成一个真正的\"游戏主持人（GM）\"  你不再只是和 AI 对话，  而是在一个由 AI 动态生成、持续演化的世界里探索、战斗、经营、社交。",
+    "topics": [],
+    "language": "JavaScript",
+    "created_at": "2026-09-19T09:37:56Z",
+    "updated_at": "2026-11-17T13:33:59Z"
+  },
+  {
+    "slug": "AlterLab-IEU/AlterLab-FC-Skills",
+    "stars": 21,
+    "desc": "🎓 72 production-grade Claude AI skills for communication students — PR & advertising, cinema, new media, GenAI production, visual communication & research methods. Built by AlterLab.",
+    "topics": [
+      "agent-skills",
+      "alterlab",
+      "claude-ai",
+      "claude-code",
+      "claude-skills",
+      "communication",
+      "education",
+      "generative-ai",
+      "media-production",
+      "public-relations",
+      "visual-communication"
+    ],
+    "language": "JavaScript",
+    "created_at": "2026-03-26T12:32:37Z",
+    "updated_at": "2026-11-02T14:36:52Z"
+  },
+  {
+    "slug": "poptechstudio/ai-cinema-studio-engine",
+    "stars": 18,
+    "desc": "Self-hosted AI cinema engine. 5-layer production pipeline with RAG-driven virtual cinematography (1,645 presets), 5 N8N workflows (67 nodes), Remotion compositing, 21-LUT color grading, and 15-model lip-sync. MIT licensed.",
+    "topics": [
+      "ai",
+      "cinema",
+      "cinematography",
+      "comfyui",
+      "elevenlabs",
+      "fal-ai",
+      "heygen",
+      "heygen-alternative",
+      "n8n",
+      "preproduction",
+      "production",
+      "qdrant",
+      "rag",
+      "remotion",
+      "video",
+      "video-automation-ai"
+    ],
+    "language": "Python",
+    "created_at": "2026-04-13T17:48:34Z",
+    "updated_at": "2026-11-03T14:22:32Z"
+  },
+  {
+    "slug": "kevin9327/OpenSourceHiggsfield",
+    "stars": 17,
+    "desc": "OpenSourceHiggsfield (#OpenSourceHiggsfield) — 100% Open-Weights 3-in-1 AI Cinema & Video Direction Platform (Cinematic Studio, 3D Video Re-Shoot with CVGEO1 & Sim(3) Verification, OpenJutsu) built on ComfyUI, comfy-sdk v0.5.0, comfy-api-proxy v0.1.6, LTX-2.5 22B & FLUX.3",
+    "topics": [
+      "3d-camera-control",
+      "ai-cinema",
+      "comfy-sdk",
+      "comfyui",
+      "flux",
+      "ltx-video",
+      "opensourcehiggsfield"
+    ],
+    "language": "Python",
+    "created_at": "2026-10-17T16:49:00Z",
+    "updated_at": "2026-11-16T05:29:24Z"
+  },
+  {
+    "slug": "DenisHumen/cinema-skills",
+    "stars": 14,
+    "desc": "🎬 Claude Agent Skills for cinematic AI video production: screenplay → directed shots → color grade → voice-over → mini-series, all in one consistent style. Growing library, EN/RU.",
+    "topics": [
+      "agent-skills",
+      "ai-filmmaking",
+      "ai-video",
+      "cinematography",
+      "claude",
+      "claude-code",
+      "claude-code-plugin",
+      "claude-skills",
+      "color-grading",
+      "davinci-resolve",
+      "directing",
+      "ffmpeg",
+      "filmmaking",
+      "generative-ai",
+      "mini-series",
+      "screenwriting",
+      "storyboard",
+      "video-editing",
+      "video-production",
+      "voice-over"
+    ],
+    "language": "Python",
+    "created_at": "2026-09-26T13:53:36Z",
+    "updated_at": "2026-11-16T16:22:54Z"
+  },
+  {
+    "slug": "wajason/Nano_Cinema_AI_Video_Studio",
+    "stars": 12,
+    "desc": "🎬 Nano Cinema: An all-in-one local AI video production studio. Automatically orchestrates Llama-3 (Script), SDXL-Turbo (Visuals), EdgeTTS (Audio), and LTX-Video (Motion) into a seamless Python workflow. Create cinematic short films with no API fees, full privacy, and professional-grade editing logic included!!! 🚀",
+    "topics": [
+      "ai-video-generator",
+      "ai-video-generator-tool",
+      "automation",
+      "edgetts",
+      "ffmpeg",
+      "gradio",
+      "gradio-interface",
+      "llama-3",
+      "local-ai",
+      "local-ai-development",
+      "local-ai-llm",
+      "ltx-video",
+      "python",
+      "sdxl-turbo",
+      "short-film",
+      "text-to-video",
+      "text-to-video-generation"
+    ],
+    "language": "Jupyter Notebook",
+    "created_at": "2026-01-23T19:04:41Z",
+    "updated_at": "2026-10-13T22:42:48Z"
+  },
+  {
+    "slug": "wajason/AI-Video-Creator-VACE-WAN",
+    "stars": 2,
+    "desc": "🎬 One-click AI video creator that automatically generates scripts, voiceovers, images, and complete videos from simple topics. Video AI Creation Engine with Automatic Narration.",
+    "topics": [],
+    "language": "Jupyter Notebook",
+    "created_at": "2025-06-23T12:55:43Z",
+    "updated_at": "2026-08-31T10:37:33Z"
+  },
+  {
+    "slug": "Zentra94/ai-cinema-engine",
+    "stars": 12,
+    "desc": "AI video maker",
+    "topics": [],
+    "language": "Jupyter Notebook",
+    "created_at": "2023-03-23T18:45:11Z",
+    "updated_at": "2026-01-26T08:34:41Z"
+  },
+  {
+    "slug": "QiaoBit/cinematic-prompts",
+    "stars": 12,
+    "desc": "Professional cinematic AI prompt generator for image-to-video workflows",
+    "topics": [],
+    "language": null,
+    "created_at": "2026-01-10T02:56:42Z",
+    "updated_at": "2026-07-18T10:58:22Z"
+  },
+  {
+    "slug": "mmttangyuan/cinematic-prompt-plugin",
+    "stars": 11,
+    "desc": "电影感 AI 成图提示词 Skill：导演卡 × 摄影师卡，支持产品图、人像、电影场景、视觉验收与迭代。",
+    "topics": [
+      "ai-image-generation",
+      "chatgpt",
+      "cinematic",
+      "codex",
+      "photography",
+      "prompt-engineering",
+      "skills"
+    ],
+    "language": null,
+    "created_at": "2026-07-17T13:40:08Z",
+    "updated_at": "2026-11-13T03:10:16Z"
+  },
+  {
+    "slug": "thuongtin/cinematique",
+    "stars": 10,
+    "desc": "150 cinematic technique notes for Obsidian with cover images, demo videos, and AI prompt templates",
+    "topics": [],
+    "language": null,
+    "created_at": "2026-04-08T01:05:25Z",
+    "updated_at": "2026-11-17T08:38:52Z"
+  },
+  {
+    "slug": "lbjlaq/Antigravity-Manager",
+    "stars": 33241,
+    "desc": "Professional Antigravity Account Manager & Switcher. One-click seamless account switching for Antigravity Tools. Built with Tauri v2 + React (Rust).专业的 Antigravity 账号管理与切换工具。为 Antigravity 提供一键无缝账号切换功能。",
+    "topics": [
+      "account-manager",
+      "antigravity"
+    ],
+    "language": "Rust",
+    "created_at": "2025-11-26T10:47:13Z",
+    "updated_at": "2026-11-17T16:03:20Z"
+  }
+]

@@ -151,8 +151,8 @@ def generate_ip_manifest():
     manifest = {
         "system": "VirtuFilm Studio AI (Cindy AI Director)",
         "version": "8.0-Protected",
-        "creator_and_director": "Ehab Fikry (المخرج إيهاب فكري)",
-        "engineering_and_ai": "Antigravity (Google DeepMind)",
+        "conceived_and_curated_by": "Ehab Fikry (إيهاب فكري - Cinema Enthusiast)",
+        "technical_support": "Antigravity (Google DeepMind)",
         "legal_frameworks": [
             "WIPO Berne Convention (181 Member States - Automatic Author Protection)",
             "Cryptographic SHA-256 Prior-Art & Git Timestamp Ledger"
