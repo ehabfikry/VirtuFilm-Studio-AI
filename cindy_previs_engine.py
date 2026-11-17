@@ -1102,10 +1102,13 @@ def generate_previs_from_spec(spec):
                             arm_obj.pose.bones[b_name].keyframe_insert("rotation_euler", frame=f_step)
 
         if arm_obj.animation_data and arm_obj.animation_data.action:
-            for fc in arm_obj.animation_data.action.fcurves:
-                for kp in fc.keyframe_points:
-                    kp.interpolation = 'BEZIER'
-                    kp.easing = 'EASE_IN_OUT'
+            act = arm_obj.animation_data.action
+            fcurves_list = getattr(act, "fcurves", None)
+            if fcurves_list is not None:
+                for fc in fcurves_list:
+                    for kp in fc.keyframe_points:
+                        kp.interpolation = 'BEZIER'
+                        kp.easing = 'EASE_IN_OUT'
 
     # 4. Create Cinema Camera & True Spherical/Polar Trajectory Solver
     bpy.ops.object.camera_add(location=(0, -2.5, 1.6))
@@ -1242,19 +1245,33 @@ def generate_previs_from_spec(spec):
             "url": f"/outputs/blender_guides/{fname}.jpg"
         })
 
-    # Render Full MP4 Video
+    # Render Full MP4 Video (Compatible with Blender 4.x and Blender 5.3+)
     ts = int(time.time())
     mp4_name = f"cindy_previs_{ts}.mp4"
     mp4_path = os.path.join(OUTPUT_DIR, mp4_name)
     latest_mp4_path = os.path.join(OUTPUT_DIR, "director_confrontation_previz_v3.mp4")
 
-    scene.render.image_settings.file_format = 'FFMPEG'
-    scene.render.ffmpeg.format = 'MPEG4'
-    scene.render.ffmpeg.codec = 'H264'
-    scene.render.ffmpeg.constant_rate_factor = 'HIGH'
-    scene.render.filepath = mp4_path
-
-    bpy.ops.render.render(animation=True)
+    try:
+        scene.render.image_settings.file_format = 'FFMPEG'
+        scene.render.ffmpeg.format = 'MPEG4'
+        scene.render.ffmpeg.codec = 'H264'
+        scene.render.ffmpeg.constant_rate_factor = 'HIGH'
+        scene.render.filepath = mp4_path
+        bpy.ops.render.render(animation=True)
+    except TypeError:
+        import subprocess
+        seq_dir = os.path.join(OUTPUT_DIR, f"seq_{ts}")
+        os.makedirs(seq_dir, exist_ok=True)
+        scene.render.image_settings.file_format = 'JPEG'
+        scene.render.image_settings.quality = 92
+        scene.render.filepath = os.path.join(seq_dir, "frame_")
+        bpy.ops.render.render(animation=True)
+        subprocess.run([
+            "ffmpeg", "-y", "-framerate", str(fps),
+            "-i", os.path.join(seq_dir, "frame_%04d.jpg"),
+            "-c:v", "libx264", "-pix_fmt", "yuv420p", mp4_path
+        ], check=True)
+        shutil.rmtree(seq_dir, ignore_errors=True)
 
     try:
         shutil.copyfile(mp4_path, latest_mp4_path)

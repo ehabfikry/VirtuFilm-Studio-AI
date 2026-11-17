@@ -1,0 +1,63 @@
+# ==============================================================================
+# Cindy-AI-Director: High-Performance GPU Base Image for AI Video & Diffusion
+# Base: RunPod PyTorch 2.4.0 CUDA 12.4.1 Ubuntu 22.04
+# Target: Zero-latency startup for SEINE, DreamID-V, MotionCanvas, MotionPro,
+#         TTM, MTVCrafter, PISCO, and Magic-Me.
+# ==============================================================================
+
+FROM runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04
+
+LABEL maintainer="Ehab Fikry <ehabfikry@gmail.com>"
+LABEL project="Cindy-AI-Director"
+LABEL version="1.0.0-cinema"
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+ENV HF_HUB_ENABLE_HF_TRANSFER=1
+ENV TOKENIZERS_PARALLELISM=false
+
+# 1. System packages & video codecs
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    libsm6 \
+    libxext6 \
+    libgl1-mesa-glx \
+    git \
+    wget \
+    curl \
+    nano \
+    rsync \
+    && rm -rf /var/lib/apt/lists/*
+
+# 2. Ultra-fast Python packages & Video Stack
+WORKDIR /workspace
+
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir \
+    hf_transfer \
+    huggingface_hub==0.25.2 \
+    diffusers==0.30.3 \
+    transformers==4.44.2 \
+    accelerate==0.34.2 \
+    safetensors==0.4.5 \
+    einops==0.8.0 \
+    omegaconf==2.3.0 \
+    sentencepiece==0.2.0 \
+    protobuf==5.28.2 \
+    ftfy \
+    decord==0.6.0 \
+    opencv-python-headless \
+    imageio \
+    imageio-ffmpeg \
+    pandas \
+    modelscope \
+    peft \
+    datasets
+
+# 3. Create standardized director workspace mounts
+RUN mkdir -p /workspace/models /workspace/input /workspace/out /workspace/scripts
+
+# 4. Expose default progress monitoring HTTP port
+EXPOSE 8000
+
+CMD ["bash"]

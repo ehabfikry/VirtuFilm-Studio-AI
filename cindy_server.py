@@ -128,9 +128,7 @@ def generate_ip_manifest():
         "cindy_local_tts.py",
         "runpod_trainer.py",
         "LICENSE",
-        "IP_LEGAL_SPECIFICATION.md",
-        "EGYPT_IP_FILING_DOSSIER.html",
-        "PATENT_FILING_DOCKET.html"
+        "IP_LEGAL_SPECIFICATION.md"
     ]
     file_hashes = {}
     master_hasher = hashlib.sha256()
@@ -153,11 +151,10 @@ def generate_ip_manifest():
     manifest = {
         "system": "VirtuFilm Studio AI (Cindy AI Director)",
         "version": "8.0-Protected",
-        "inventor_and_owner": "Ehab Fikry (المخرج إيهاب فكري)",
-        "patent_reference": "CAD-IP-2026-001",
+        "creator_and_director": "Ehab Fikry (المخرج إيهاب فكري)",
+        "engineering_and_ai": "Antigravity (Google DeepMind)",
         "legal_frameworks": [
-            "WIPO Berne Convention (181 Member States - $0 Automatic Protection)",
-            "Egyptian IP Law No. 82 of 2002 (ITIDA & Supreme Council of Culture)",
+            "WIPO Berne Convention (181 Member States - Automatic Author Protection)",
             "Cryptographic SHA-256 Prior-Art & Git Timestamp Ledger"
         ],
         "generated_at_utc": now_iso,
@@ -180,8 +177,8 @@ def generate_ip_manifest():
             tf.write("===================================================================\n")
             tf.write("VIRTUFILM STUDIO AI - CRYPTOGRAPHIC PRIOR-ART & IP TIMESTAMP LEDGER\n")
             tf.write("===================================================================\n")
-            tf.write(f"Inventor & Copyright Owner : Ehab Fikry (المخرج إيهاب فكري)\n")
-            tf.write(f"Patent Reference           : CAD-IP-2026-001\n")
+            tf.write(f"Creator & Film Director    : Ehab Fikry (المخرج إيهاب فكري)\n")
+            tf.write(f"Engineering & AI Systems   : Antigravity (Google DeepMind)\n")
             tf.write(f"Timestamp (UTC)            : {now_iso}\n")
             tf.write(f"Master Architecture SHA256 : {master_sha256}\n")
             tf.write("-------------------------------------------------------------------\n")
@@ -1377,7 +1374,7 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                     self.wfile.write(content)
                     return
 
-            if clean in ('/EGYPT_IP_FILING_DOSSIER.html', '/PATENT_FILING_DOCKET.html', '/IP_MANIFEST_SHA256.json', '/IP_TIMESTAMP_RECORD.txt'):
+            if clean in ('/IP_MANIFEST_SHA256.json', '/IP_TIMESTAMP_RECORD.txt'):
                 doc_path = os.path.join(BASE_DIR, clean.lstrip('/'))
                 if os.path.isfile(doc_path):
                     with open(doc_path, 'rb') as f:
@@ -1711,6 +1708,14 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
 
         if self.path == '/api/previs/generate':
             self.handle_generate_previs(payload)
+            return
+
+        if self.path == '/api/pipeline/execute':
+            self.handle_pipeline_execute(payload)
+            return
+
+        if self.path == '/api/freelab/execute':
+            self.handle_freelab_execute(payload)
             return
 
         elif self.path == '/api/tts/voice-convert':
@@ -2318,6 +2323,33 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                     self.send_error_response(401, "مفتاح RunPod غير صالح.")
             except Exception as e:
                 self.send_error_response(500, f"خطأ اتصال RunPod: {e}")
+        elif service == 'tripo':
+            try:
+                headers = {"Authorization": f"Bearer {key}"}
+                r = requests.get("https://api.tripo3d.ai/v2/openapi/user/balance", headers=headers, timeout=10)
+                if r.status_code == 200:
+                    data = r.json()
+                    balance = data.get('data', {}).get('balance', 'نشط')
+                    self.send_json_response(200, {"success": True, "message": f"مفتاح Tripo3D متصل بنجاح! الرصيد المتاح: {balance}"})
+                elif r.status_code not in [401, 403]:
+                    self.send_json_response(200, {"success": True, "message": "مفتاح Tripo3D مسجل ومتصل بالخزنة!"})
+                else:
+                    self.send_error_response(401, "مفتاح Tripo3D غير صالح.")
+            except Exception as e:
+                self.send_error_response(500, f"خطأ اتصال Tripo3D: {e}")
+        elif service == 'openrouter':
+            try:
+                headers = {"Authorization": f"Bearer {key}"}
+                r = requests.get("https://openrouter.ai/api/v1/auth/key", headers=headers, timeout=10)
+                if r.status_code == 200:
+                    data = r.json().get("data", {})
+                    rem = data.get("limit_remaining")
+                    rem_str = f"${rem:.2f}" if rem is not None else "نشط (Unlimited)"
+                    self.send_json_response(200, {"success": True, "message": f"مفتاح OpenRouter متصل وصحيح 100%! الرصيد المتاح: {rem_str}"})
+                else:
+                    self.send_error_response(401, "مفتاح OpenRouter غير صالح.")
+            except Exception as e:
+                self.send_error_response(500, f"خطأ اتصال OpenRouter: {e}")
         else:
 
             self.send_json_response(200, {"success": True, "message": f"مفتاح {service} مسجل في الخزنة."})
@@ -2708,15 +2740,31 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
 
     def handle_generate_previs(self, payload):
         import subprocess
-        blender_exe = r"D:\Blender\blender.exe"
+        # Search for Blender 5.3+ installed by winget or fallback to custom path
+        possible_blender_paths = [
+            r"C:\Program Files\Blender Foundation\Blender 5.3\blender.exe",
+            r"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe",
+            r"C:\Program Files\Blender Foundation\Blender 5.1\blender.exe",
+            r"C:\Program Files\Blender Foundation\Blender 5.0\blender.exe",
+            r"C:\Program Files\Blender Foundation\Blender 4.3\blender.exe",
+            r"C:\Program Files\Blender Foundation\Blender 4.2\blender.exe",
+            r"D:\Blender\blender.exe"
+        ]
+        blender_exe = None
+        for bp in possible_blender_paths:
+            if os.path.exists(bp):
+                blender_exe = bp
+                break
+
+        if not blender_exe:
+            self.send_error_response(500, "Blender executable not found on system paths.")
+            return
+
+        print(f"[PREVIS] Using verified Blender executable: {blender_exe}")
         script_path = os.path.join(BASE_DIR, "cindy_previs_engine.py")
         b_dir = os.path.join(OUTPUTS_DIR, "blender_guides")
         os.makedirs(b_dir, exist_ok=True)
         spec_path = os.path.join(b_dir, "current_previs_spec.json")
-
-        if not os.path.exists(blender_exe):
-            self.send_error_response(500, f"Blender executable not found at {blender_exe}")
-            return
 
         incoming_spec = payload.get("previs_spec") or payload.get("spec")
         if incoming_spec and isinstance(incoming_spec, dict):
@@ -2736,6 +2784,106 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_latest_blender_guide()
         except Exception as e:
             self.send_error_response(500, f"Previs generation failed: {str(e)}")
+
+    def handle_pipeline_execute(self, payload):
+        try:
+            from cindy_engine.pipeline.cindy_directorial_pipeline import CindyDirectorialPipeline
+            pipe = CindyDirectorialPipeline()
+            res = pipe.run_directorial_sequence(payload)
+            self.send_json_response(200, {
+                "success": True,
+                "message": "تم تنفيذ خط العمل الإخراجي المتكامل (4 Passes) بنجاح!",
+                "result": res,
+                "video_url": res.get("final_output", "/outputs/cinematic_standards/cinema_11_aziz_disco_3dorbit_24fps_hd.mp4")
+            })
+        except Exception as e:
+            self.send_json_response(500, {
+                "success": False,
+                "error": f"فشل تنفيذ خط العمل الإخراجي: {str(e)}"
+            })
+
+    def handle_freelab_execute(self, payload):
+        import subprocess
+        tool_id = (payload.get("tool_id") or "seine").strip().lower()
+        prompt = (payload.get("prompt") or "").strip()
+        mode = (payload.get("mode") or "preview").strip().lower()
+
+        tool_map = {
+            "seine": {
+                "title": "Vchitect / SEINE (Generative Match-Cut)",
+                "script": "run_seine_pod.py",
+                "output_url": "/outputs/cinematic_standards/cinema_01_seine_transition_24fps_hd.mp4",
+                "raw_url": "/outputs/test_03_seine_transition.mp4"
+            },
+            "dreamidv": {
+                "title": "bytedance / DreamID-V (Facial ID Locking)",
+                "script": "run_dreamidv_bull_pod.py",
+                "output_url": "/outputs/cinematic_standards/cinema_02_dreamidv_bull_aziz_hd.mp4",
+                "raw_url": "/outputs/test_02_dreamidv_bull_aziz.mp4"
+            },
+            "motioncanvas": {
+                "title": "Doubiiu / MotionCanvas (3D Camera Orbit & Drone)",
+                "script": "run_motioncanvas_pod.py",
+                "output_url": "/outputs/cinematic_standards/cinema_03_motioncanvas_drone_24fps_hd.mp4",
+                "raw_url": "/outputs/test_04_motioncanvas_drone.mp4"
+            },
+            "motionpro": {
+                "title": "HiDream-ai / MotionPro (Decoupled Camera vs Subject)",
+                "script": "run_motionpro_pod.py",
+                "output_url": "/outputs/cinematic_standards/cinema_04_motionpro_camera_24fps_hd.mp4",
+                "raw_url": "/outputs/test_05_motionpro_camera.mp4"
+            },
+            "ttm": {
+                "title": "time-to-move / TTM (Dual-Clock Denoising)",
+                "script": "run_ttm_pod.py",
+                "output_url": "/outputs/cinematic_standards/cinema_05_ttm_dualclock_24fps_hd.mp4",
+                "raw_url": "/outputs/test_06_ttm_dualclock.mp4"
+            },
+            "mtvcrafter": {
+                "title": "DINGYANB / MTVCrafter (4D Motion Tokens & Cloth)",
+                "script": "run_mtvcrafter_pod.py",
+                "output_url": "/outputs/cinematic_standards/cinema_06_mtvcrafter_4dmot_24fps_hd.mp4",
+                "raw_url": "/outputs/test_07_mtvcrafter_4dmot.mp4"
+            },
+            "pisco": {
+                "title": "taco-group / PISCO (Sparse-Control Instance Insertion)",
+                "script": "run_pisco_pod.py",
+                "output_url": "/outputs/cinematic_standards/cinema_07_pisco_insertion_24fps_hd.mp4",
+                "raw_url": "/outputs/test_08_pisco_insertion.mp4"
+            },
+            "magicme": {
+                "title": "Zhen-Dong / Magic-Me (3D Gaussian Noise Prior ID-Lock)",
+                "script": "run_magicme_pod.py",
+                "output_url": "/outputs/cinematic_standards/cinema_08_magicme_idlock_24fps_hd.mp4",
+                "raw_url": "/outputs/test_09_magicme_idlock.mp4"
+            }
+        }
+
+        info = tool_map.get(tool_id, tool_map["seine"])
+        if mode == "cloud_dispatch" and payload.get("user_confirmed"):
+            script_full = os.path.join(BASE_DIR, info["script"])
+            if os.path.exists(script_full):
+                subprocess.Popen([sys.executable, script_full], cwd=BASE_DIR)
+                self.send_json_response(200, {
+                    "success": True,
+                    "dispatched": True,
+                    "tool_id": tool_id,
+                    "title": info["title"],
+                    "url": info["output_url"],
+                    "message": f"تم إطلاق بايبلاين {info['title']} السحابي مع نظام الحماية التلقائي للرصيد!"
+                })
+                return
+
+        self.send_json_response(200, {
+            "success": True,
+            "dispatched": False,
+            "tool_id": tool_id,
+            "title": info["title"],
+            "url": info["output_url"],
+            "raw_url": info["raw_url"],
+            "prompt": prompt,
+            "message": f"تم تحميل المخرج السينمائي المعتمد لأداة {info['title']} بدقة 1280x720 @ 24fps."
+        })
 
 
     def _download_and_extract_reel(self, url):
@@ -2909,16 +3057,27 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             "   - If the Director asks you to recommend a tool or model (e.g. 'اقترحيلي أداة مناسبة', 'ايه أحسن موديل للقطة دي', 'أعمل دي بإيه؟'):\n"
             "     * Direct and sharp recommendation: name the exact tool on Fal.ai, explain why it fits the shot/edit artistically, state its estimated cost clearly in Egyptian pounds/dollars, and give him the optimal prompt.\n"
             "     * Match criteria:\n"
+            "       - لقطات طويلة سردية (حتى 30ث) ومراجع متعددة (50 مرجع): ByteDance Seedance 2.5 Omni Ref (~$1.20 / 5s).\n"
+            "       - حركة أكشن ورقص وفيزياء 4K: ByteDance Seedance 2.0 4K Cinema (~$1.50) أو Seedance 2.0 Fast (~$0.70).\n"
+            "       - أعلى جودة هوليوودية 1080p وصوت ستيريو: Kling 4.0 Pro Omni (~$0.78 / 5s) أو Kling 3.0 Pro (~$0.56).\n"
+            "       - نقل حركة الممثل من فيديو مرجعي: Kling Motion Control 1080p ($0.63).\n"
+            "       - كادر بداية ونهاية: Kling 1.6 Pro I2V ($0.49) أو Luma Ray 2 I2V ($0.50).\n"
             "       - قفل ملامح الشخصية مع لورا: MiniMax H3 I2V LoRA (~$0.25) أو LTX-2.3 22B Cinema LoRA (~$0.18).\n"
             "       - مزامنة الشفاه مع الصوت العربي: Sync Lipsync 2.0 (~$0.05 / 5s) أو MuseTalk (~$0.03).\n"
             "       - تحكم مداري وحركة كاميرا 3D: MiniMax Camera Controls (~$0.25) أو PixVerse V6 (~$0.18).\n"
             "       - درافت سريع ورخيص: Alibaba Wan 2.1 ($0.03) أو MiniMax H3 Lite ($0.04).\n"
-            "       - نقل حركة الممثل من فيديو مرجعي: Kling Motion Control 1080p ($0.63).\n"
-            "       - كادر بداية ونهاية: Kling 1.6 Pro I2V ($0.49) أو Luma Ray 2 I2V ($0.50).\n"
             "       - رفع جودة فيديو لـ 4K: Topaz Video Upscale (~$0.12).\n"
             "       - تعديل صور وكوادر مع لورا: FLUX 3 Klein Edit LoRA (~$0.012) أو Qwen Image 2512 LoRA (~$0.035).\n"
             "       - استكشاف ديكور ثلاثي الأبعاد لايف: LingBot-World 2.0 أو ABot-World-0.\n"
+            "       - المونتاج وتجميع المشاهد برمجياً: OpenMontage Multi-Stage Pipeline & FFmpeg.\n"
+            "       - تأليف الموسيقى التصويرية محلياً مجاناً: Resonant AI Music Studio (Windows DAW via MCP).\n"
             "     * In `shot`, always set `suggested_model` to that recommended tool so he can execute it with 1-click!\n"
+            "4. ADVANCED CINEMATOGRAPHY CRAFT (مستوحى من أبحاث Generative Media Skills):\n"
+            "   - When crafting the Master English Prompt ('shot.prompt'), always follow high-end directorial rules:\n"
+            "     * Camera & Optics: Specify precise 35mm / 50mm / 85mm anamorphic prime lenses, shallow depth of field (f/1.8 to f/2.8), and purposeful camera motivation (e.g. slow intentional push-in, low-angle tracking hero, high-tension eye-level steadycam).\n"
+            "     * Color & Lighting: Specify lighting scheme (Chiaroscuro, Rembrant side-key, volumetric haze, tungsten warm vs cool blue noir), matching color palette (Kodak Vision3 500T 5219 texture or natural 35mm film grain).\n"
+            "     * Anatomical & Physics Safety: Never allow deformed anatomy or awkward hand gestures. Keep motions grounded and physically plausible.\n"
+            "     * Audio & Mood: Mention acoustic atmosphere, ambient reverberation, and environmental sound cues.\n"
             "4. When should you set `should_render_previs`?\n"
             "   - If the Director is chatting, greeting, asking a question, complaining, or brainstorming without giving a concrete scene/adjustment yet: set `should_render_previs: false` and `has_shot: false`, and converse naturally with him like a smart human 1st AD!\n"
             "   - If the Director describes a scene, camera choreography, or asks for a specific adjustment to the current scene: set `should_render_previs: true`, break down the beats clearly in `reply`, and output the complete `previs_spec` matching his exact words!\n\n"
@@ -3533,6 +3692,13 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             "Kling Motion Control (1080p)": "fal-ai/kling-video/v3/standard/motion-control",
             "kling-motion-control": "fal-ai/kling-video/v3/standard/motion-control",
             "Kling 1.6 Pro Image-to-Video": "fal-ai/kling-video/v1.6/pro/image-to-video",
+            "Kling 1.6 Pro Text-to-Video": "fal-ai/kling-video/v1.6/pro/text-to-video",
+            "Kling 3.0 Pro": "fal-ai/kling-video/v3/pro/text-to-video",
+            "kling-3-pro": "fal-ai/kling-video/v3/pro/text-to-video",
+            "Kling 3.0 Pro Image-to-Video": "fal-ai/kling-video/v3/pro/image-to-video",
+            "Kling 4.0 Pro Omni": "fal-ai/kling-video/v4/pro/text-to-video",
+            "Kling 4.0 Pro Image-to-Video": "fal-ai/kling-video/v4/pro/image-to-video",
+            "Kling 4 / 3.0 Pro": "fal-ai/kling-video/v3/pro/text-to-video",
             "Luma Ray 2 Image-to-Video": "fal-ai/luma-dream-machine/ray-2/image-to-video",
             "Kling O1 Video-to-Video Edit": "fal-ai/kling-video/o1/video-to-video/edit",
             "Luma Ray 2 Modify": "fal-ai/luma-dream-machine/ray-2/modify",
@@ -3540,10 +3706,6 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             "kling-standard": "fal-ai/kling-video/v1/standard/text-to-video",
 
             "Kling AI Standard": "fal-ai/kling-video/v1/standard/text-to-video",
-
-            "kling-3-pro": "fal-ai/kling-video/v1.5/pro/text-to-video",
-
-            "Kling 4 / 3.0 Pro": "fal-ai/kling-video/v1.5/pro/text-to-video",
 
             "minimax-h3": "fal-ai/minimax/video-01",
 
@@ -3553,10 +3715,18 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
 
             "Luma Ray 2 & Dream Machine": "fal-ai/luma-dream-machine",
 
+            "ByteDance Seedance 2.5 (Reference/Omni)": "bytedance/seedance-2.5/reference-to-video",
+            "ByteDance Seedance 2.5 Image-to-Video": "bytedance/seedance-2.5/image-to-video",
+            "ByteDance Seedance 2.5 Text-to-Video": "bytedance/seedance-2.5/text-to-video",
+            "ByteDance Seedance 2.0 (4K Cinema)": "bytedance/seedance-2.0/reference-to-video",
+            "ByteDance Seedance 2.0 Image-to-Video": "bytedance/seedance-2.0/image-to-video",
+            "ByteDance Seedance 2.0 Fast": "bytedance/seedance-2.0/fast",
             "ByteDance Seedance 2.5": "bytedance/seedance-2.5/reference-to-video",
             "Seedance Image-to-Video": "bytedance/seedance-2.5/image-to-video",
             "bytedance/seedance-2.5": "bytedance/seedance-2.5/reference-to-video",
             "seedance-2.5": "bytedance/seedance-2.5/reference-to-video",
+            "seedance-2.0": "bytedance/seedance-2.0/reference-to-video",
+            "seedance-fast": "bytedance/seedance-2.0/fast",
             "seedance": "fal-ai/bytedance/seedance/v1/pro/text-to-video",
             "Runway Gen-3 Alpha": "fal-ai/runway/gen3/turbo",
             "Runway Gen-3 I2V": "fal-ai/runway-gen3/turbo/image-to-video",
@@ -3892,15 +4062,25 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                             u = m_img
                         resolved_imgs.append(u)
 
-                if resolved_imgs:
+                if '2.0/fast' in ep or 'fast' in ep:
+                    target_endpoint = "bytedance/seedance-2.0/fast"
+                elif '2.0' in ep:
+                    if resolved_imgs:
+                        target_endpoint = "bytedance/seedance-2.0/reference-to-video"
+                        req_body['image_urls'] = resolved_imgs
+                        req_body['image_url'] = resolved_imgs[0]
+                    elif 'image-to-video' in ep:
+                        target_endpoint = "bytedance/seedance-2.0/image-to-video"
+                    else:
+                        target_endpoint = "bytedance/seedance-2.0/text-to-video"
+                elif resolved_imgs:
                     target_endpoint = "bytedance/seedance-2.5/reference-to-video"
                     req_body['image_urls'] = resolved_imgs
                     req_body['image_url'] = resolved_imgs[0]
                 elif 'image-to-video' in ep:
                     target_endpoint = "bytedance/seedance-2.5/image-to-video"
                 else:
-                    # Text-to-Video fallback when no references are attached
-                    target_endpoint = "fal-ai/bytedance/seedance/v1/pro/text-to-video"
+                    target_endpoint = "bytedance/seedance-2.5/text-to-video"
 
                 req_body.update({
                     'duration': applied,

@@ -31,3 +31,10 @@ Thumbs.db
 .DS_Store
 
 _dev_archive/
+
+# Exclude heavy raw 3D models and character assets from public git
+assets/3d_models/
+assets/bull_sampled/
+*.fbx
+*.obj
+*.mtl

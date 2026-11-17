@@ -29,7 +29,7 @@ from mathutils import Vector, Euler
 bl_info = {
     "name": "Cindy AI Director — Virtual Staging & Camera Motion Suite",
     "author": "Google DeepMind / Antigravity Team",
-    "version": (5, 0, 0),
+    "version": (5, 3, 0),
     "blender": (4, 2, 0),
     "location": "View3D > Sidebar > Cindy Director",
     "description": "Effortless scene building, actor blocking, camera framing, and infinite compound motion suite",

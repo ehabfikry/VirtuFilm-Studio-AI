@@ -5298,6 +5298,13 @@ html_content = f'''<!DOCTYPE html>
         icon: 'fa-waveform-lines text-rose-400',
         badge: 'أصوات سينمائية',
         testable: false
+      }},
+      tripo: {{
+        name: 'Tripo3D AI API Key',
+        desc: 'توليد وتصميم المجسمات ثلاثية الأبعاد والهياكل العظمية والحركة (3D Rigging & Animation)',
+        icon: 'fa-cube text-teal-400',
+        badge: 'مجسمات وريج 3D',
+        testable: true
       }}
     }};
 
@@ -5646,7 +5653,7 @@ function triggerMediaUpload(ctx = 'chat') {{
       const file = e.target.files[0];
       if (!file) return;
 
-      const isVideo = file.type.startsWith('video/') || /\.(mp4|webm|mov|mkv)$/i.test(file.name);
+      const isVideo = file.type.startsWith('video/') || /\\.(mp4|webm|mov|mkv)$/i.test(file.name);
       const prevBox = document.getElementById('chat-attachment-preview');
       const thumbBox = document.getElementById('chat-attach-thumb-box');
       const nameEl = document.getElementById('chat-attach-name');

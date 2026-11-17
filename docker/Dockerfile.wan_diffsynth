@@ -1,0 +1,37 @@
+# ==============================================================================
+# Cindy-AI-Director: Specialized Wan2.1 / DiffSynth Image
+# Optimized for: taco-group/PISCO, Doubiiu/MotionCanvas, bytedance/DreamID-V
+# ==============================================================================
+
+FROM runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04
+
+LABEL project="Cindy-AI-Director"
+LABEL subproject="Wan2.1-DiffSynth-Suite"
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+ENV HF_HUB_ENABLE_HF_TRANSFER=1
+ENV DIFFSYNTH_DOWNLOAD_SOURCE=huggingface
+ENV DIFFSYNTH_MODEL_BASE_PATH=/workspace/models
+
+WORKDIR /workspace
+
+# Install core system & python deps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg libsm6 libxext6 libgl1-mesa-glx git wget curl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir \
+    hf_transfer huggingface_hub==0.25.2 \
+    diffusers==0.30.3 transformers==4.44.2 accelerate==0.34.2 \
+    safetensors einops sentencepiece protobuf ftfy decord \
+    opencv-python-headless imageio imageio-ffmpeg pandas modelscope peft datasets
+
+# Pre-clone PISCO and DiffSynth repositories to eliminate git wait time
+RUN git clone --depth 1 https://github.com/taco-group/PISCO.git /workspace/PISCO && \
+    git clone --depth 1 https://github.com/Doubiiu/MotionCanvas.git /workspace/MotionCanvas
+
+RUN mkdir -p /workspace/models /workspace/out
+
+EXPOSE 8000
+CMD ["bash"]

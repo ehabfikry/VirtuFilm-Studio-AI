@@ -28,7 +28,9 @@ secrets = {
     "groq_api_key": "",
     "gemini_api_key": "",
     "local_comfyui_url": "http://127.0.0.1:8188",
-    "local_ollama_url": "http://127.0.0.1:11434"
+    "local_ollama_url": "http://127.0.0.1:11434",
+    "runpod_api_key": "",
+    "tripo_api_key": read_key("Tripo.txt") or read_key("Tripo api.txt") or ""
 }
 
 with open(secrets_file, 'w', encoding='utf-8') as f:

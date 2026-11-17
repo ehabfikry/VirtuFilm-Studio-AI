@@ -1,23 +1,42 @@
-PROPRIETARY AND CONFIDENTIAL COMMERCIAL LICENSE
-Copyright (c) 2026 Ehab Fikry (المخرج إيهاب فكري). All Rights Reserved.
+GNU AFFERO GENERAL PUBLIC LICENSE
+Version 3, 19 November 2007
 
-This software, source code, workflow pipelines, neural bindings, and documentation
-("VirtuFilm Studio AI" / "Cindy Virtual Director") are the exclusive proprietary property
-of Ehab Fikry.
+Copyright (C) 2026 Ehab Fikry (المخرج إيهاب فكري)
+All Architectural Rights & Directorial Vision Reserved.
+Engineered with Google DeepMind Antigravity.
 
-1. NO PERMISSION OR GRANT OF RIGHTS:
-No license, whether express, implied, or by estoppel, is granted to any person, company,
-or entity to use, run, modify, compile, decompile, disassemble, reverse engineer, distribute,
-sublicense, lease, or create derivative works from this software or any portion thereof.
+Everyone is permitted to copy and distribute verbatim copies
+of this license document, but changing it is not allowed.
 
-2. CONFIDENTIALITY AND TRADE SECRETS:
-All architecture design, prompt composition engines, multimodal decoders, and integration
-blueprints contained herein constitute confidential commercial trade secrets. Any unauthorized
-access, viewing, copy, reproduction, publication, or transfer constitutes intellectual property
-infringement and unlawful misappropriation under international copyright law and commercial treaties.
+                            Preamble
 
-3. COMMERCIAL ACQUISITION:
-Rights to utilize, integrate, or commercially deploy this software can only be obtained through
-an executed written commercial acquisition or licensing agreement formally signed by the copyright owner.
+The GNU Affero General Public License is a free, copyleft license for
+software and other kinds of works, specifically designed to ensure
+cooperation with the community in the case of network server software.
 
-For commercial licensing and acquisition inquiries: ehabfikry@gmail.com
+The licenses for most software and other practical works are designed
+to take away your freedom to share and change the works.  By contrast,
+our licenses are intended to guarantee your freedom to share and change
+all versions of a program--to make sure it remains free software for
+all its users.
+
+When we speak of free software, we are referring to freedom, not price.
+Our General Public Licenses are designed to make sure that you have the
+freedom to distribute copies of free software (and charge for them if
+you wish), that you receive source code or can get it if you want it,
+that you can change the software or use pieces of it in new free
+programs, and that you know you can do these things.
+
+If you modify the Program, your modified version must prominently offer all
+users interacting with it remotely through a computer network (if your version
+supports such interaction) an opportunity to receive the Corresponding Source
+of your version by providing access to the Corresponding Source from a network
+server at no charge.
+
+COMMERCIAL HOSTING & SAAS RESERVATION:
+Any deployment of this software as a multi-tenant cloud service, paid commercial SaaS,
+or proprietary commercial platform without attribution to Director Ehab Fikry requires
+a separate commercial agreement. Indie filmmakers, researchers, artists, and independent
+developers are free to build, extend, and produce creative works without royalties.
+
+For commercial inquiries: ehabfikry@gmail.com

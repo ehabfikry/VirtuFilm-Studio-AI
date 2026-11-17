@@ -1,17 +1,16 @@
 {
   "system": "VirtuFilm Studio AI (Cindy AI Director)",
   "version": "8.0-Protected",
-  "inventor_and_owner": "Ehab Fikry (المخرج إيهاب فكري)",
-  "patent_reference": "CAD-IP-2026-001",
+  "creator_and_director": "Ehab Fikry (المخرج إيهاب فكري)",
+  "engineering_and_ai": "Antigravity (Google DeepMind)",
   "legal_frameworks": [
-    "WIPO Berne Convention (181 Member States - $0 Automatic Protection)",
-    "Egyptian IP Law No. 82 of 2002 (ITIDA & Supreme Council of Culture)",
+    "WIPO Berne Convention (181 Member States - Automatic Author Protection)",
     "Cryptographic SHA-256 Prior-Art & Git Timestamp Ledger"
   ],
-  "generated_at_utc": "2026-11-14T00:35:29Z",
-  "master_sha256": "d9921dbf3741fe2492bc6c75c4370dd59f836e7ce8ca161f595404a95723b869",
-  "tracked_files_count": 16,
-  "total_protected_bytes": 2030802,
+  "generated_at_utc": "2026-11-17T10:21:56Z",
+  "master_sha256": "722426784f178872dc430926e377efc7b7317cbdf778c2cc80544f2ee30dac4b",
+  "tracked_files_count": 14,
+  "total_protected_bytes": 2080493,
   "security_controls": {
     "localhost_isolation": "127.0.0.1 Only (Strict Host & Origin Guard)",
     "zero_leak_vault": "Local cindy_secrets.json (Excluded from Git & Static HTTP)",
@@ -19,24 +18,24 @@
   },
   "files": {
     "index.html": {
-      "sha256": "547a9ff4a6462556c9d39e28c73fcdbbab215489ffa710e87492ccf96b244cea",
-      "size_bytes": 1391859,
-      "modified_utc": "2026-11-14T00:34:06Z"
+      "sha256": "80cbd73e8b75bf0eb6eb159e5ede4fd5d826e242074ab682fb07d2981f38681d",
+      "size_bytes": 1473185,
+      "modified_utc": "2026-11-17T09:51:29Z"
     },
     "cindy_server.py": {
-      "sha256": "778094172682dd668fea7c86897efa7847dbd6f4cac4dd0bdf71c69e6467d78a",
-      "size_bytes": 297751,
-      "modified_utc": "2026-11-14T00:33:52Z"
+      "sha256": "56732e6c87b832663542bdb1346eb65dbebab58482bc45ac7d054f09438d3523",
+      "size_bytes": 308972,
+      "modified_utc": "2026-11-17T09:19:53Z"
     },
     "cindy_previs_engine.py": {
-      "sha256": "bfbeb7e8bcb4448ea4fe874dd0151eba29e518d4fc0ae5d03600f791ba37139d",
-      "size_bytes": 55959,
-      "modified_utc": "2026-11-11T17:14:54Z"
+      "sha256": "14af1a4fb973e251dcc7718f1449b1bf0e89756dcf36064c645a78f6f46016d0",
+      "size_bytes": 56829,
+      "modified_utc": "2026-11-16T02:36:32Z"
     },
     "cindy_blender_bridge.py": {
-      "sha256": "d3b6066212824c399dfe8a61597ded21e4a1a6ae6c80bc498459e3138ad77a05",
+      "sha256": "894ad6092113d78d078889db62fe3b118314c9b723f008e41a1d4aa1e49d8422",
       "size_bytes": 55826,
-      "modified_utc": "2026-11-11T17:14:54Z"
+      "modified_utc": "2026-11-16T16:59:39Z"
     },
     "comfyui_client.py": {
       "sha256": "8df12bfb64a2f299a1714b3abab5af8c8155d0c2e9c2f64071aab527bbe19a56",
@@ -49,14 +48,14 @@
       "modified_utc": "2026-11-13T03:05:39Z"
     },
     "cindy_pricing.py": {
-      "sha256": "1ea878376897381d4435875367f0ce31ff80572dbb21f7d636342b8916e5f73f",
-      "size_bytes": 27647,
-      "modified_utc": "2026-11-11T17:14:54Z"
+      "sha256": "53eaa4610e53e5fcd9024064401b2ec2b8c54927d7c1afae6965ec3f18e68539",
+      "size_bytes": 34554,
+      "modified_utc": "2026-11-16T19:31:15Z"
     },
     "cindy_radar.py": {
-      "sha256": "f231766c9ba83dad26197a2329acfe401067698aac86bfb11395469e6119baef",
-      "size_bytes": 21103,
-      "modified_utc": "2026-11-13T14:37:27Z"
+      "sha256": "5aaefe3942bd9fd2b8ea6d94a4b1a895040e82fbce9faa7a9e3bb1f6bd7f1114",
+      "size_bytes": 29196,
+      "modified_utc": "2026-11-17T08:51:08Z"
     },
     "cindy_reframe_engine.py": {
       "sha256": "f09d9914189f9f329e766256aae76fe366de61e648b19132f42202f9126f07bb",
@@ -79,24 +78,14 @@
       "modified_utc": "2026-11-13T05:34:38Z"
     },
     "LICENSE": {
-      "sha256": "94e65c8c8842a530976c3b06aa0a17b045a5a55019b52183d38aa1b45cf1cd3f",
-      "size_bytes": 1359,
-      "modified_utc": "2026-11-10T17:19:42Z"
+      "sha256": "2cd47db57bb008f83facfe407db144da9922d0e2ba9278a45b721b065eb4b0a4",
+      "size_bytes": 2065,
+      "modified_utc": "2026-11-17T09:47:23Z"
     },
     "IP_LEGAL_SPECIFICATION.md": {
-      "sha256": "6cc73329f31a1d505bb180876b5d925a5b6b7254f5ed312fa5ee4a16e95fde90",
-      "size_bytes": 12162,
-      "modified_utc": "2026-11-08T11:59:23Z"
-    },
-    "EGYPT_IP_FILING_DOSSIER.html": {
-      "sha256": "b86bde210ebaca58380b7abefd2aeacd8115271cdc3d221cdcc250c1ad3b811d",
-      "size_bytes": 24808,
-      "modified_utc": "2026-11-08T12:31:54Z"
-    },
-    "PATENT_FILING_DOCKET.html": {
-      "sha256": "b0024a9dbcd85774c3ef7c2ed6b2c20db9449b60ffa873d5def2697df1f56e0e",
-      "size_bytes": 27968,
-      "modified_utc": "2026-11-08T12:18:22Z"
+      "sha256": "1b7ce3f31caff89c44626632fcc521664a3360be9da8f5c87b2c62c549f10eee",
+      "size_bytes": 5506,
+      "modified_utc": "2026-11-17T10:21:29Z"
     }
   }
 }

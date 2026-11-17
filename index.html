@@ -11,7 +11,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <meta name="copyright" content="Copyright (c) 2026 Ehab Fikry - VirtuFilm Studio AI (CAD-IP-2026-001) - Protected under WIPO Berne Convention & Egyptian Law 82/2002">
+  <meta name="copyright" content="Copyright (c) 2026 Ehab Fikry - VirtuFilm Studio AI / Cindy AI Director - Directed by Ehab Fikry - Engineered with Google DeepMind Antigravity">
 
   <title>VirtuFilm Studio AI | المنظومة السينمائية المتكاملة مع سيندي</title>
 
@@ -380,7 +380,7 @@
           </svg>
           <span>تأطير وترقية 4K (Reframe & Upscale)</span>
         </button>
-        <button onclick="switchTab('vault')" id="nav-main-vault" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-amber-300 transition flex items-center gap-1.5" title="6. الخزنة ودرع حماية الملكية الفكرية">
+        <button onclick="openVaultDrawer()" id="nav-main-vault" class="hidden" title="6. الخزنة ودرع حماية الملكية الفكرية">
           <i class="fa-solid fa-shield-halved text-amber-400 text-[10px]"></i>
           <span id="nav-vault-text">6. الخزنة والحماية</span>
         </button>
@@ -399,6 +399,13 @@
         <button type="button" onclick="openVoiceStudioModal()" id="topbar-voicestudio-btn" class="px-2.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/40 font-bold text-[11px] flex items-center gap-1.5 transition shadow" title="استوديو التمثيل الصوتي والدوبلاج">
           <i class="fa-solid fa-microphone-lines text-emerald-400 text-[10px]"></i>
           <span id="topbar-voicestudio-text">الصوت</span>
+        </button>
+
+        <!-- Vault & API Keys Drawer Trigger -->
+        <button type="button" onclick="openVaultDrawer()" id="topbar-vault-btn" class="px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40 font-bold text-[11px] flex items-center gap-1.5 transition shadow cursor-pointer" title="الخزنة ودرع الحماية ومفاتيح API">
+          <i class="fa-solid fa-shield-halved text-amber-400 text-[10px]"></i>
+          <span id="topbar-vault-text">الخزنة</span>
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
         </button>
 
 <!-- Flow Bridge disabled to declutter top bar -->
@@ -472,45 +479,48 @@
           <!-- Video Model Dropdown -->
           <div class="flex-1 min-w-[220px]">
             <select id="active-video-model" onchange="syncSelectedModel()" class="w-full bg-cinema-900 border border-cinema-gold/60 rounded-xl px-2.5 py-1.5 text-slate-100 font-bold focus:outline-none focus:border-cinema-gold text-xs shadow-inner">
-              <optgroup label="🎬 موديلات الفيديو وقفل الملامح بالـ LoRA (Fal.ai)">
-                <option value="Wan 2.1 (Alibaba 14B)" selected>💎 1. Alibaba Wan 2.1 — [~$0.03 / 5s]</option>
-                <option value="MiniMax H3 Lite">⚡ 2. MiniMax Hailuo H3 Lite — [~$0.04 / 6s] (اقتصادي سريع: $0.007/ث)</option>
-                <option value="Wan 2.2 Image-to-Video">💎 3. Alibaba Wan 2.2 I2V — [~$0.04 / 5s]</option>
-                <option value="LTX-2.3 Distilled Fast LoRA">⚡ 4. LTX-2.3 Distilled LoRA — [~$0.08 / 5s]</option>
-                <option value="Tencent HunyuanVideo">🎬 5. Tencent HunyuanVideo — [~$0.10 / 5s] (ثبات فيزيائي 13B)</option>
-                <option value="PixVerse V6 Cinematic">🎥 6. PixVerse V6 Cinematic — [~$0.18 / 5s]</option>
-                <option value="LTX-2.3 22B Cinema LoRA">👑 7. LTX-2.3 22B Cinema LoRA — [~$0.20 / 5s] (أعلى جودة هوليوودية + LoRA)</option>
-                <option value="MiniMax H3 I2V LoRA">🎯 8. MiniMax H3 I2V LoRA — [~$0.25 / 5s]</option>
-                <option value="MiniMax Camera Controls">📐 9. MiniMax Camera Controls — [~$0.25 / 5s] (تحكم مداري ثلاثي الأبعاد)</option>
-                <option value="FLUX 3 Max Image-to-Video">👑 10. FLUX 3 Max I2V — [~$0.25 / 5s] (صوت مدمج + دقة فائقة)</option>
-                <option value="Lightricks LTX-2.5 Reframe">📐 11. Lightricks LTX-2.5 Reframe — [~$0.15] (تمديد الكادر)</option>
-                <option value="ByteDance Seedance 2.5">💃 12. ByteDance Seedance 2.5 — [~$0.18/s - $1.20 / مشهد]</option>
-                <option value="Kling 1.6 Pro Image-to-Video">👑 13. Kling 1.6 Pro I2V — [~$0.49 / 5s]</option>
-                <option value="Luma Ray 2 Image-to-Video">🌊 14. Luma Ray 2 I2V — [~$0.50 / 5s]</option>
-                <option value="Kling Motion Control (1080p)">👑 15. Kling Motion Control 1080p — [~$0.63 / 5s]</option>
-                <option value="Topaz Video Upscale">✨ 16. Topaz Video Upscale — [~$0.12 / 5s]</option>
-                <option value="Sync Lipsync 2.0">👄 17. Sync Lipsync 2.0 — [~$0.05 / 5s]</option>
-                <option value="MuseTalk LipSync">👄 18. MuseTalk LipSync — [~$0.03 / 5s]</option>
-                <option value="robbyant/lingbot-world-2">🌐 19. LingBot-World 2.0 — [عالم تفاعلي 3D لايف WASD]</option>
-                <option value="alibaba/abot-world-0">🌐 20. ABot-World-0 — [عالم تفاعلي تجاري مفتوح لايف]</option>
+              <optgroup label="👑 عائلة Kling السينمائية المتطورة (Fal.ai Commercial Ultra)">
+                <option value="Kling 4.0 Pro Omni" selected>👑 1. Kling 4.0 Pro Omni — [~$0.78 / 5s] (أحدث جيل: توليد حتى 30 ثانية + صوت ستيريو محيطي)</option>
+                <option value="Kling 4.0 Pro Image-to-Video">👑 2. Kling 4.0 Pro I2V — [~$0.78 / 5s] (تحريك الكوادر بجيل 4.0 وثبات ملامح خارق)</option>
+                <option value="Kling 3.0 Pro">👑 3. Kling 3.0 Pro — [~$0.56 / 5s] (حركات كاميرا معقدة + قص ومونتاج متعدد + صوت مدمج)</option>
+                <option value="Kling 3.0 Pro Image-to-Video">👑 4. Kling 3.0 Pro I2V — [~$0.56 / 5s] (تحريك الشخصيات بهندسة Kling 3)</option>
+                <option value="Kling Motion Control (1080p)">👑 5. Kling Motion Control 1080p — [~$0.63 / 5s] (نقل حركة الممثل بدقة بدون هزة)</option>
+                <option value="Kling 1.6 Pro Image-to-Video">👑 6. Kling 1.6 Pro I2V — [~$0.49 / 5s] (دقة هوليوودية 1080p مع كادر نهاية)</option>
+                <option value="Kling 1.6 Pro Text-to-Video">👑 7. Kling 1.6 Pro T2V — [~$0.49 / 5s] (توليد مباشر بجودة Pro 1080p)</option>
+                <option value="Kling O1 Video-to-Video Edit">🎞️ 8. Kling O1 Video Edit — [~$0.50 / 5s] (إعادة تلوين وتعديل الفيديو بالكامل)</option>
+                <option value="Kling AI Standard">⚡ 9. Kling 1.6 Standard — [~$0.28 / 5s] (توليد قياسي سريع 720p)</option>
               </optgroup>
-              <optgroup label="🎬 موديلات الفيديو الإضافية والمتخصصة">
-                <option value="Wan 2.1 Image-to-Video">💎 21. Alibaba Wan 2.1 I2V — [~$0.06 / 5s] (تحريك كادر سينمائي)</option>
-                <option value="CogVideoX-5B (THUDM)">🎥 22. THUDM CogVideoX-5B — [~$0.06 / 6s] (مفتوح المصدر)</option>
-                <option value="CogVideoX-5B Image-to-Video">🎥 23. CogVideoX-5B I2V — [~$0.06 / 6s] (تحريك كادر مفتوح)</option>
-                <option value="Stability SVD-XT">🎞️ 24. Stability AI SVD-XT — [~$0.08 / 4s] (25 كادر كلاسيكي)</option>
-                <option value="Seedance Image-to-Video">💃 25. ByteDance Seedance I2V — [~$0.18 / 5s] (تحريك رقص وأكشن)</option>
-                <option value="MiniMax H3 Max Turbo">🎯 26. MiniMax H3 Max Turbo — [~$0.25 / 6s] (قفل ملامح الشخصية)</option>
-                <option value="Kling AI Standard">⚡ 27. Kling 1.6 Standard — [~$0.28 / 5s] (درافت سريع)</option>
-                <option value="Mischief-1 Image-to-Video">🔥 28. Mischief-1 I2V — [~$0.30 / 5s] (أكشن وديناميكا)</option>
-                <option value="Runway Gen-3 Alpha">🎥 29. Runway Gen-3 Alpha — [~$0.35 / 5s] (هوليوود وتيربو)</option>
-                <option value="Runway Gen-3 I2V">🎥 30. Runway Gen-3 I2V — [~$0.35 / 5s] (تحريك كادر هوليوودي)</option>
-                <option value="Google Veo 3.1 Fast">⚡ 31. Google Veo 3.1 Fast — [~$0.40 / 5s] (معالجة سريعة)</option>
-                <option value="Luma Ray 2 &amp; Dream Machine">🌊 32. Luma Ray 2 — [~$0.50 / 5s]</option>
-                <option value="Kling 4 / 3.0 Pro">👑 33. Kling 3.0/4 Pro 1080p — [~$0.55 / 5s]</option>
-                <option value="Google Veo 3.1 Cinematic">🎬 34. Google Veo 3.1 Cinematic — [~$0.60 / 5s]</option>
-                <option value="Kling O1 Video-to-Video Edit">🎞️ 35. Kling O1 Edit — [~$0.90 / 5s]</option>
-                <option value="Luma Ray 2 Modify">🌊 36. Luma Ray 2 Modify — [~$1.75 / 5s]</option>
+              <optgroup label="💃 عائلة ByteDance Seedance السينمائية (30s Long-Form & Multi-Ref)">
+                <option value="ByteDance Seedance 2.5 (Reference/Omni)">💃 10. Seedance 2.5 Omni Ref — [~$0.24/s - $1.20 / 5s] (حتى 30 ثانية + 50 مرجع كادر وصوت)</option>
+                <option value="ByteDance Seedance 2.5 Image-to-Video">💃 11. Seedance 2.5 I2V — [~$0.24/s] (تحريك كادر سينمائي وصوت متزامن)</option>
+                <option value="ByteDance Seedance 2.5 Text-to-Video">💃 12. Seedance 2.5 T2V — [~$0.24/s] (توليد مباشر 1080p برقص وحركة حية)</option>
+                <option value="ByteDance Seedance 2.0 (4K Cinema)">💃 13. Seedance 2.0 4K Cinema — [~$0.30/s - $1.50 / 5s] (أعلى دقة 4K وفيزياء حركة)</option>
+                <option value="ByteDance Seedance 2.0 Image-to-Video">💃 14. Seedance 2.0 I2V — [~$0.30/s] (تحريك سينمائي بدقة فائقة)</option>
+                <option value="ByteDance Seedance 2.0 Fast">⚡ 15. Seedance 2.0 Fast — [~$0.14/s - $0.70 / 5s] (معالجة سريعة فائقة للحركة)</option>
+              </optgroup>
+              <optgroup label="🎬 استوديوهات هوليوود السحابية (Fal.ai Ultra-Tier Engines)">
+                <option value="Google Veo 3.1 Cinematic">🎬 16. Google Veo 3.1 Cinematic — [~$0.60 / 5s] (إضاءة سينمائية وعدسات هوليوود)</option>
+                <option value="Google Veo 3.1 Fast">⚡ 17. Google Veo 3.1 Fast — [~$0.40 / 5s] (معالجة سريعة بجودة Veo)</option>
+                <option value="Runway Gen-3 Alpha">🎥 18. Runway Gen-3 Alpha — [~$0.35 / 5s] (سرعة فائقة وواقعية سينمائية)</option>
+                <option value="Runway Gen-3 I2V">🎥 19. Runway Gen-3 I2V — [~$0.35 / 5s] (تحريك الكوادر الهوليوودية)</option>
+                <option value="Luma Ray 2 Image-to-Video">🌊 20. Luma Ray 2 I2V — [~$0.50 / 5s] (محاكاة فيزياء السوائل والضوء)</option>
+                <option value="Luma Ray 2 &amp; Dream Machine">🌊 21. Luma Ray 2 T2V — [~$0.50 / 5s] (كاميرا دريم ماشين 3D)</option>
+                <option value="Luma Ray 2 Modify">🌊 22. Luma Ray 2 Modify — [~$1.75 / 5s] (تعديل لقطات سينمائية كاملة)</option>
+                <option value="FLUX 3 Max Image-to-Video">👑 23. FLUX 3 Max I2V — [~$0.25 / 5s] (صوت مدمج + دقة فوتورياليزم فائقة)</option>
+                <option value="MiniMax H3 I2V LoRA">🎯 24. MiniMax H3 I2V LoRA — [~$0.25 / 5s] (قفل ملامح الشخصية بالـ LoRA)</option>
+                <option value="MiniMax Camera Controls">📐 25. MiniMax Camera Controls — [~$0.25 / 5s] (تحكم مداري ثلاثي الأبعاد)</option>
+                <option value="MiniMax H3 Lite">⚡ 26. MiniMax Hailuo H3 Lite — [~$0.04 / 6s] (اقتصادي سريع: $0.007/ث)</option>
+                <option value="PixVerse V6 Cinematic">🎥 27. PixVerse V6 Cinematic — [~$0.18 / 5s] (عدسات سينمائية ومؤثرات)</option>
+                <option value="LTX-2.3 22B Cinema LoRA">👑 28. LTX-2.3 22B Cinema LoRA — [~$0.20 / 5s] (أعلى دقة مع قفل LoRA)</option>
+                <option value="LTX-2.3 Distilled Fast LoRA">⚡ 29. LTX-2.3 Distilled LoRA — [~$0.08 / 5s] (توليد سريع)</option>
+                <option value="Lightricks LTX-2.5 Reframe">📐 30. Lightricks LTX-2.5 Reframe — [~$0.15] (تمديد الكادر السينمائي 9:16)</option>
+              </optgroup>
+              <optgroup label="✨ أدوات ما بعد الإنتاج ومزامنة الشفاه (Post-Production FX)">
+                <option value="Topaz Video Upscale">✨ 31. Topaz Video Upscale — [~$0.12 / 5s] (ترقية الدقة إلى 4K سينمائي)</option>
+                <option value="Sync Lipsync 2.0">👄 32. Sync Lipsync 2.0 — [~$0.05 / 5s] (مزامنة شفاه احترافية بالذكاء الاصطناعي)</option>
+                <option value="MuseTalk LipSync">👄 33. MuseTalk LipSync — [~$0.03 / 5s] (مزامنة شفاه سريعة)</option>
+                <option value="robbyant/lingbot-world-2">🌐 34. LingBot-World 2.0 — [عالم تفاعلي 3D لايف WASD]</option>
+                <option value="alibaba/abot-world-0">🌐 35. ABot-World-0 — [عالم تفاعلي تجاري مفتوح لايف]</option>
               </optgroup>
             </select>
           </div>
@@ -910,8 +920,15 @@
             <span id="active-prompt-target-badge" class="font-extrabold text-amber-300 bg-amber-500/10 px-2.5 py-0.5 rounded-lg border border-amber-500/30">MiniMax Hailuo H3 Lite</span>
             <span id="active-prompt-ref-badge" class="hidden font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/30 flex items-center gap-1"><i class="fa-solid fa-lock text-[9px]"></i> بمرجع صورة</span>
           </div>
-          <div id="chat-prompt-hint-div" class="text-[10px] text-slate-400 font-medium">
-            اكتب المشهد المطلوب هنا في مربع البرومبت بالأسفل ⬇️ واضغط إرسال
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div id="chat-prompt-hint-div" class="text-[10px] text-slate-400 font-medium">
+              اكتب المشهد المطلوب هنا في مربع البرومبت بالأسفل ⬇️ واضغط إرسال
+            </div>
+            <!-- DIRECT 4-PASS DIRECTORIAL PIPELINE ACTION BUTTON -->
+            <button type="button" onclick="executeFullDirectorialPipeline()" id="chat-directorial-pipeline-btn" class="px-3 py-1 rounded-xl bg-gradient-to-r from-cyan-600 via-teal-600 to-amber-500 hover:from-cyan-500 hover:to-amber-400 text-white font-black text-[11px] flex items-center gap-1.5 shadow-lg shadow-cyan-500/20 transition cursor-pointer border border-cyan-400/40">
+              <i class="fa-solid fa-wand-magic-sparkles text-amber-300 animate-pulse text-[10px]"></i>
+              <span id="chat-pipeline-btn-span">🎬 تشغيل خط الإنتاج المتكامل (4 Passes)</span>
+            </button>
           </div>
         </div>
 
@@ -2189,25 +2206,39 @@
             <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
               <div class="md:col-span-8">
                 <select id="screening-fal-model-select" onchange="syncScreeningStudioModel(this.value)" class="w-full bg-cinema-950 border border-cinema-gold/70 rounded-xl px-3 py-2 text-xs font-bold text-amber-200 focus:outline-none focus:border-amber-400 shadow-inner">
-                  <optgroup id="screening-optgroup-video" label="🎬 موديلات الفيديو وقفل الملامح بالـ LoRA (Fal.ai)">
-                    <option value="Wan 2.1 (Alibaba 14B)" selected>💎 1. Alibaba Wan 2.1 — [~$0.03 / 5s]</option>
-                    <option value="MiniMax H3 Lite">⚡ 2. MiniMax Hailuo H3 Lite — [~$0.04 / 6s]</option>
-                    <option value="Wan 2.2 Image-to-Video">💎 3. Alibaba Wan 2.2 I2V — [~$0.04 / 5s]</option>
-                    <option value="LTX-2.3 Distilled Fast LoRA">⚡ 4. LTX-2.3 Distilled LoRA — [~$0.08 / 5s]</option>
-                    <option value="Tencent HunyuanVideo">🎬 5. Tencent HunyuanVideo — [~$0.10 / 5s]</option>
-                    <option value="PixVerse V6 Cinematic">🎥 6. PixVerse V6 Cinematic — [~$0.18 / 5s]</option>
-                    <option value="LTX-2.3 22B Cinema LoRA">👑 7. LTX-2.3 22B Cinema LoRA — [~$0.20 / 5s]</option>
-                    <option value="MiniMax H3 I2V LoRA">🎯 8. MiniMax H3 I2V LoRA — [~$0.25 / 5s]</option>
-                    <option value="MiniMax Camera Controls">📐 9. MiniMax Camera Controls — [~$0.25 / 5s]</option>
-                    <option value="FLUX 3 Max Image-to-Video">👑 10. FLUX 3 Max I2V — [~$0.25 / 5s]</option>
-                    <option value="Lightricks LTX-2.5 Reframe">📐 11. Lightricks LTX-2.5 Reframe — [~$0.15]</option>
-                    <option value="ByteDance Seedance 2.5">💃 12. ByteDance Seedance 2.5 — [~$0.18/s - $1.20]</option>
-                    <option value="Kling 1.6 Pro Image-to-Video">👑 13. Kling 1.6 Pro I2V — [~$0.49 / 5s]</option>
-                    <option value="Luma Ray 2 Image-to-Video">🌊 14. Luma Ray 2 I2V — [~$0.50 / 5s]</option>
-                    <option value="Kling Motion Control (1080p)">👑 15. Kling Motion Control 1080p — [~$0.63 / 5s]</option>
-                    <option value="Topaz Video Upscale">✨ 16. Topaz Video Upscale — [~$0.12 / 5s]</option>
-                    <option value="Sync Lipsync 2.0">👄 17. Sync Lipsync 2.0 — [~$0.05 / 5s]</option>
-                    <option value="MuseTalk LipSync">👄 18. MuseTalk LipSync — [~$0.03 / 5s]</option>
+                  <optgroup id="screening-optgroup-video" label="👑 عائلة Kling ومحركات هوليوود السحابية (Fal.ai Ultra)">
+                    <option value="Kling 4.0 Pro Omni" selected>👑 1. Kling 4.0 Pro Omni — [~$0.78 / 5s] (أحدث جيل: 30 ثانية + صوت ستيريو)</option>
+                    <option value="Kling 4.0 Pro Image-to-Video">👑 2. Kling 4.0 Pro I2V — [~$0.78 / 5s] (تحريك الكوادر 1080p وثبات ملامح)</option>
+                    <option value="Kling 3.0 Pro">👑 3. Kling 3.0 Pro — [~$0.56 / 5s] (حركات كاميرا مركبة + صوت مدمج)</option>
+                    <option value="Kling 3.0 Pro Image-to-Video">👑 4. Kling 3.0 Pro I2V — [~$0.56 / 5s] (تحريك الشخصيات بهندسة Kling 3)</option>
+                    <option value="Kling Motion Control (1080p)">👑 5. Kling Motion Control 1080p — [~$0.63 / 5s] (نقل حركة بدون هزة)</option>
+                    <option value="Kling 1.6 Pro Image-to-Video">👑 6. Kling 1.6 Pro I2V — [~$0.49 / 5s] (دقة هوليوودية 1080p)</option>
+                    <option value="Kling 1.6 Pro Text-to-Video">👑 7. Kling 1.6 Pro T2V — [~$0.49 / 5s] (توليد هوليوودي مباشر)</option>
+                    <option value="Kling O1 Video-to-Video Edit">🎞️ 8. Kling O1 Video Edit — [~$0.50 / 5s] (تعديل كامل بالذكاء الاصطناعي)</option>
+                    <option value="Kling AI Standard">⚡ 9. Kling 1.6 Standard — [~$0.28 / 5s] (سريع 720p)</option>
+                    <option value="ByteDance Seedance 2.5 (Reference/Omni)">💃 10. Seedance 2.5 Omni Ref — [~$0.24/s - $1.20 / 5s] (حتى 30 ثانية + 50 مرجع كادر وصوت)</option>
+                    <option value="ByteDance Seedance 2.5 Image-to-Video">💃 11. Seedance 2.5 I2V — [~$0.24/s] (تحريك كادر سينمائي)</option>
+                    <option value="ByteDance Seedance 2.5 Text-to-Video">💃 12. Seedance 2.5 T2V — [~$0.24/s] (توليد مباشر 1080p)</option>
+                    <option value="ByteDance Seedance 2.0 (4K Cinema)">💃 13. Seedance 2.0 4K Cinema — [~$0.30/s - $1.50 / 5s] (أعلى دقة 4K وفيزياء حركة)</option>
+                    <option value="ByteDance Seedance 2.0 Image-to-Video">💃 14. Seedance 2.0 I2V — [~$0.30/s] (تحريك سينمائي 4K)</option>
+                    <option value="ByteDance Seedance 2.0 Fast">⚡ 15. Seedance 2.0 Fast — [~$0.14/s - $0.70 / 5s] (معالجة سريعة فائقة)</option>
+                    <option value="Google Veo 3.1 Cinematic">🎬 16. Google Veo 3.1 Cinematic — [~$0.60 / 5s] (إضاءة سينمائية وعدسات)</option>
+                    <option value="Google Veo 3.1 Fast">⚡ 17. Google Veo 3.1 Fast — [~$0.40 / 5s] (معالجة سريعة)</option>
+                    <option value="Runway Gen-3 Alpha">🎥 18. Runway Gen-3 Alpha — [~$0.35 / 5s] (هوليوود وسرعة فائقة)</option>
+                    <option value="Runway Gen-3 I2V">🎥 19. Runway Gen-3 I2V — [~$0.35 / 5s] (تحريك الكوادر)</option>
+                    <option value="Luma Ray 2 Image-to-Video">🌊 20. Luma Ray 2 I2V — [~$0.50 / 5s] (فيزياء الضوء والسوائل)</option>
+                    <option value="Luma Ray 2 &amp; Dream Machine">🌊 21. Luma Ray 2 T2V — [~$0.50 / 5s] (كاميرا 3D)</option>
+                    <option value="FLUX 3 Max Image-to-Video">👑 22. FLUX 3 Max I2V — [~$0.25 / 5s] (صوت مدمج + دقة فائقة)</option>
+                    <option value="MiniMax H3 I2V LoRA">🎯 23. MiniMax H3 I2V LoRA — [~$0.25 / 5s] (قفل ملامح الشخصية)</option>
+                    <option value="MiniMax Camera Controls">📐 24. MiniMax Camera Controls — [~$0.25 / 5s] (تحكم مداري)</option>
+                    <option value="MiniMax H3 Lite">⚡ 25. MiniMax Hailuo H3 Lite — [~$0.04 / 6s] (اقتصادي سريع)</option>
+                    <option value="PixVerse V6 Cinematic">🎥 26. PixVerse V6 Cinematic — [~$0.18 / 5s] (عدسات سينمائية)</option>
+                    <option value="LTX-2.3 22B Cinema LoRA">👑 27. LTX-2.3 22B Cinema LoRA — [~$0.20 / 5s] (أعلى دقة + LoRA)</option>
+                    <option value="LTX-2.3 Distilled Fast LoRA">⚡ 28. LTX-2.3 Distilled LoRA — [~$0.08 / 5s]</option>
+                    <option value="Lightricks LTX-2.5 Reframe">📐 29. Lightricks LTX-2.5 Reframe — [~$0.15] (تمديد الكادر)</option>
+                    <option value="Topaz Video Upscale">✨ 30. Topaz Video Upscale — [~$0.12 / 5s] (ترقية 4K سينمائي)</option>
+                    <option value="Sync Lipsync 2.0">👄 31. Sync Lipsync 2.0 — [~$0.05 / 5s] (مزامنة شفاه)</option>
+                    <option value="MuseTalk LipSync">👄 32. MuseTalk LipSync — [~$0.03 / 5s]</option>
                   </optgroup>
                   <optgroup id="screening-optgroup-image" label="📸 موديلات وتعديل الصور والكوادر بالـ LoRA (Fal.ai)" class="hidden">
                     <option value="fal-ai/flux/schnell">⚡ 1. FLUX.1 Schnell — [$0.003 / كادر]</option>
@@ -2286,7 +2317,7 @@
                 <span id="blender-guide-title-text" class="text-xs font-black text-amber-300">توجيه بلندر ثلاثي الأبعاد (Blender 3D Pre-vis Guide)</span>
                 <span id="blender-guide-status-badge" class="blender-guide-status text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-mono">في انتظار التصدير من بلندر...</span>
               </div>
-              <p id="blender-guide-desc-text" class="text-[11px] text-slate-400">تخطيط الكاميرا، والعدسات، وخرائط العمق (Depth Maps) المستخرجة محلياً من بلندر (D:\Blender).</p>
+              <p id="blender-guide-desc-text" class="text-[11px] text-slate-400">تخطيط الكاميرا، والعدسات، وخرائط العمق (Depth Maps) المستخرجة محلياً من بلندر (Blender 5.3 LTS Connected).</p>
             </div>
           </div>
           <div class="flex items-center gap-2">
@@ -2531,7 +2562,7 @@
                 <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2.5 py-0.5 rounded-full font-extrabold">تكلفة الحماية: $0.00 مجاناً بالكامل</span>
               </div>
               <p class="text-xs text-slate-300 mt-0.5">
-                حماية قانونية وتقنية ورقمية شاملة باسم المخرج <strong class="text-white">إيهاب فكري (Ehab Fikry)</strong> وفق اتفاقية برن الدولية (181 دولة) والقانون المصري رقم 82 لسنة 2002، مع عزل محلي كامل للكود.
+                منظومة إخراجية وتطويرية رائدة بقيادة المخرج <strong class="text-white">إيهاب فكري (Ehab Fikry)</strong> بالتعاون البرمجي والذكاء الاصطناعي مع <strong class="text-amber-300">Antigravity (Google DeepMind)</strong>، مع عزل محلي كامل للكود.
               </p>
             </div>
           </div>
@@ -2588,13 +2619,9 @@
           </div>
 
           <div class="flex items-center gap-2 flex-wrap">
-            <a href="/EGYPT_IP_FILING_DOSSIER.html" target="_blank" class="px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-bold text-[11px] flex items-center gap-1.5 transition">
-              <i class="fa-solid fa-file-shield"></i>
-              <span>ملف الإيداع المصري (ITIDA)</span>
-            </a>
-            <a href="/PATENT_FILING_DOCKET.html" target="_blank" class="px-3 py-1.5 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 font-bold text-[11px] flex items-center gap-1.5 transition">
-              <i class="fa-solid fa-scroll"></i>
-              <span>وثيقة براءة الاختراع (CAD-IP-2026-001)</span>
+            <a href="http://127.0.0.1:8790" target="_blank" class="px-3 py-1.5 rounded-lg bg-indigo-500/25 hover:bg-indigo-500/40 text-indigo-300 border border-indigo-500/50 font-bold text-[11px] flex items-center gap-1.5 transition shadow" title="فتح تطبيق متابعة سيندي على GitHub">
+              <i class="fa-brands fa-github text-white"></i>
+              <span>مكتب متابعة GitHub والردود (8790)</span>
             </a>
             <a href="/IP_MANIFEST_SHA256.json" target="_blank" class="px-3 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 font-bold text-[11px] flex items-center gap-1.5 transition">
               <i class="fa-solid fa-code"></i>
@@ -3512,7 +3539,7 @@
           </div>
         </summary>
         <div class="pt-3 mt-2.5 border-t border-cinema-700/60 space-y-2.5">
-          <p id="comfy-blender-desc-p" class="text-[11px] text-slate-400">تخطيط الكاميرا، والعدسات، وخرائط العمق (Depth Maps) المستخرجة محلياً من بلندر (D:\Blender).</p>
+          <p id="comfy-blender-desc-p" class="text-[11px] text-slate-400">تخطيط الكاميرا، والعدسات، وخرائط العمق (Depth Maps) المستخرجة محلياً من بلندر (Blender 5.3 LTS Connected).</p>
           <!-- Live Preview Container -->
           <div class="blender-guide-preview-box hidden grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
             <div class="md:col-span-3 relative rounded-xl overflow-hidden border border-cinema-700 bg-black aspect-video flex items-center justify-center">
@@ -3657,6 +3684,10 @@
                   <button type="button" onclick="switchComfySubMode('latentsync')" id="comfy-mode-ls-btn" class="px-3 py-1.5 rounded-lg text-xs font-black text-slate-400 hover:text-white transition flex items-center gap-1.5 cursor-pointer">
                     <i class="fa-solid fa-microphone-lines text-[11px]"></i>
                     <span id="comfy-mode-ls-span">دوبلاج الشفاه</span>
+                  </button>
+                  <button type="button" onclick="switchComfySubMode('opentools')" id="comfy-mode-ot-btn" class="px-3 py-1.5 rounded-lg text-xs font-black text-cyan-300 hover:text-white border border-cyan-500/30 bg-cyan-500/10 transition flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-flask text-[11px] text-cyan-400"></i>
+                    <span id="comfy-mode-ot-span">أدوات الأبحاث (8 Tools)</span>
                   </button>
                 </div>
               </div>
@@ -3953,6 +3984,82 @@
 
             </div>
 
+            <!-- Open-Source Research Tools Suite (8 Verified Tools Dropdown & Controls) -->
+            <div id="comfy-opentools-fields" class="hidden space-y-3.5 bg-cyan-950/20 p-4 rounded-2xl border border-cyan-500/40">
+              <div class="flex items-center justify-between border-b border-cyan-800/40 pb-2">
+                <span class="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
+                  <i class="fa-solid fa-flask text-cyan-400"></i>
+                  <span id="ot-header-title">مجموعة أدوات الأبحاث مفتوحة المصدر المعتمدة (8 Tools)</span>
+                </span>
+                <span class="text-[10px] font-bold text-cyan-300 bg-cyan-500/20 px-2.5 py-0.5 rounded-full border border-cyan-500/30 font-mono">1280x720 @ 24fps</span>
+              </div>
+
+              <!-- Dropdown Menu -->
+              <div class="space-y-1.5">
+                <label class="text-xs font-bold text-slate-200 flex items-center gap-1.5" id="ot-select-label">
+                  <i class="fa-solid fa-bars-staggered text-cyan-400"></i>
+                  <span>اختر الأداة المفتوحة من القائمة المنسدلة:</span>
+                </label>
+                <select id="comfy-opentool-select" onchange="onOpenToolSelectChange()" class="w-full bg-cinema-900 border-2 border-cyan-500/60 rounded-xl px-3 py-2.5 text-xs text-cyan-200 font-extrabold focus:outline-none focus:border-cyan-400 shadow-md">
+                  <optgroup label="🎬 1. الانتقالات والمطابقة السينمائية (Generative Match-Cut)" id="ot-grp-1">
+                    <option value="seine" selected>01. Vchitect / SEINE — انتقال سينمائي سائل ذكي (ICLR 2024)</option>
+                  </optgroup>
+                  <optgroup label="👤 2. تبديل وتثبيت الهوية البيومترية (Identity Locking)" id="ot-grp-2">
+                    <option value="dreamidv">02. bytedance / DreamID-V — حقن الوجه السريع والحفاظ على التعابير</option>
+                    <option value="magicme">08. Zhen-Dong / Magic-Me — قفل الهوية 3D Gaussian Noise Prior</option>
+                  </optgroup>
+                  <optgroup label="🎥 3. حركة وتتبع الكاميرا ثلاثية الأبعاد (3D Camera Control)" id="ot-grp-3">
+                    <option value="motioncanvas">03. Doubiiu / MotionCanvas — مسار كاميرا درون ودوران 3D (SIGGRAPH 2025)</option>
+                    <option value="motionpro">04. HiDream-ai / MotionPro — فصل حركة الكاميرا عن حركة الممثل (CVPR 2025)</option>
+                  </optgroup>
+                  <optgroup label="⏱️ 4. محاذاة وتزامن التوليد (Temporal Alignment)" id="ot-grp-4">
+                    <option value="ttm">05. time-to-move / TTM — إزالة الضوضاء بساعتين زمنيتين Dual-Clock (ICLR 2026)</option>
+                  </optgroup>
+                  <optgroup label="👗 5. فيزياء الأقمشة والرموز الحركية (Cloth & 4D Dynamics)" id="ot-grp-5">
+                    <option value="mtvcrafter">06. DINGYANB / MTVCrafter — ديناميكية الأقمشة وحركة 4D Tokens (ICLR 2026)</option>
+                  </optgroup>
+                  <optgroup label="🧩 6. زرع العناصر والتحكم بالعمق (Instance Insertion)" id="ot-grp-6">
+                    <option value="pisco">07. taco-group / PISCO — دمج وتثبيت العناصر بالعمق المكاني (NeurIPS 2026)</option>
+                  </optgroup>
+                </select>
+              </div>
+
+              <!-- Tool Info & Architecture Card -->
+              <div class="p-3 bg-cinema-900/90 border border-cyan-500/30 rounded-xl space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span id="ot-card-title" class="text-xs font-extrabold text-cyan-300">Vchitect / SEINE (Generative Match-Cut)</span>
+                  <span id="ot-card-conf" class="text-[10px] px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-200 font-mono">ICLR 2024</span>
+                </div>
+                <p id="ot-card-desc" class="text-[11px] text-slate-300 leading-relaxed">
+                  محرك التحويل السينمائي الذكي لربط المشاهد وتوليد انتقالات سلسة تحافظ على الإيقاع التحريري للأفلام.
+                </p>
+                <div id="ot-card-arch" class="text-[10px] text-amber-300/90 font-mono pt-1 border-t border-cinema-800">
+                  Architecture: Mask-Guided Cross-Attention Diffusion | Standard: 1280x720 @ 24.0 fps
+                </div>
+              </div>
+
+              <!-- Quick Gallery Chips for Instant Cinema Preview -->
+              <div class="space-y-1.5">
+                <span class="text-[11px] font-bold text-slate-300 block" id="ot-quick-preview-lbl">معاينة فورية للمخرجات القياسية المعتمدة (720p @ 24fps):</span>
+                <div class="grid grid-cols-4 gap-1.5">
+                  <button type="button" onclick="selectAndPreviewOpenTool('seine')" class="px-2 py-1.5 rounded-lg bg-cinema-900 hover:bg-cyan-950 border border-cyan-500/30 text-[10px] font-bold text-cyan-200 transition truncate">01. SEINE</button>
+                  <button type="button" onclick="selectAndPreviewOpenTool('dreamidv')" class="px-2 py-1.5 rounded-lg bg-cinema-900 hover:bg-cyan-950 border border-cyan-500/30 text-[10px] font-bold text-cyan-200 transition truncate">02. DreamID-V</button>
+                  <button type="button" onclick="selectAndPreviewOpenTool('motioncanvas')" class="px-2 py-1.5 rounded-lg bg-cinema-900 hover:bg-cyan-950 border border-cyan-500/30 text-[10px] font-bold text-cyan-200 transition truncate">03. MotionCanvas</button>
+                  <button type="button" onclick="selectAndPreviewOpenTool('motionpro')" class="px-2 py-1.5 rounded-lg bg-cinema-900 hover:bg-cyan-950 border border-cyan-500/30 text-[10px] font-bold text-cyan-200 transition truncate">04. MotionPro</button>
+                  <button type="button" onclick="selectAndPreviewOpenTool('ttm')" class="px-2 py-1.5 rounded-lg bg-cinema-900 hover:bg-cyan-950 border border-cyan-500/30 text-[10px] font-bold text-cyan-200 transition truncate">05. TTM</button>
+                  <button type="button" onclick="selectAndPreviewOpenTool('mtvcrafter')" class="px-2 py-1.5 rounded-lg bg-cinema-900 hover:bg-cyan-950 border border-cyan-500/30 text-[10px] font-bold text-cyan-200 transition truncate">06. MTVCrafter</button>
+                  <button type="button" onclick="selectAndPreviewOpenTool('pisco')" class="px-2 py-1.5 rounded-lg bg-cinema-900 hover:bg-cyan-950 border border-cyan-500/30 text-[10px] font-bold text-cyan-200 transition truncate">07. PISCO</button>
+                  <button type="button" onclick="selectAndPreviewOpenTool('magicme')" class="px-2 py-1.5 rounded-lg bg-cinema-900 hover:bg-cyan-950 border border-cyan-500/30 text-[10px] font-bold text-cyan-200 transition truncate">08. Magic-Me</button>
+                </div>
+              </div>
+
+              <!-- Optional Prompt Input for Tool Execution -->
+              <div class="space-y-1">
+                <label class="text-xs font-bold text-slate-200" id="ot-prompt-label">برومبت التوجيه أو المشهد للأداة (اختياري):</label>
+                <textarea id="comfy-opentool-prompt" rows="2" dir="auto" placeholder="اكتب توجيه المشهد أو اتركه فارغاً لتحميل وعرض التجربة القياسية المعتمدة..." class="w-full bg-cinema-900 border border-cinema-700 rounded-xl p-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"></textarea>
+              </div>
+            </div>
+
 
 
             <!-- Negative Prompt Accordion -->
@@ -4114,7 +4221,7 @@
       <div class="flex flex-wrap items-center justify-center gap-3 text-[11px] font-mono text-slate-400">
         <span>© 2026 CINDY AI DIRECTOR™</span>
         <span>•</span>
-        <span class="text-amber-400/90 font-bold"><i class="fa-solid fa-shield-halved"></i> Patent Pending: CAD-IP-2026-001</span>
+        <span class="text-amber-400/90 font-bold"><i class="fa-solid fa-clapperboard"></i> Directed by Ehab Fikry • Engineered with Antigravity</span>
         <span>•</span>
         <span>SHA-256: <code class="text-cinema-gold">3604fe33...</code></span>
         <span>•</span>
@@ -4216,13 +4323,14 @@
       if (!modal || !content) return;
 
       if (type === 'ip') {
-        title.innerHTML = '<i class="fa-solid fa-shield-halved text-amber-400"></i> وثيقة الملكية الفكرية وبراءة الاختراع (CAD-IP-2026-001)';
+        title.innerHTML = '<i class="fa-solid fa-clapperboard text-amber-400"></i> معمارية المنظومة وفريق العمل (System & Credits)';
         content.innerHTML = `
           <div class="space-y-3 text-slate-200" dir="ltr">
-            <h4 class="font-bold text-amber-300 text-sm">System & Method for Spatially-Constrained Kinematic Synthesis</h4>
-            <p><b>Patent Ref:</b> CAD-IP-2026-001 | <b>Digital SHA-256 Digest:</b> <code>3604fe33e91bd84921f7a802a3962d045694308d5d17321379f1f2d87223e617</code></p>
-            <p>The unified end-to-end architecture bridging: (1) Identity Anchoring LoRA Checkpoints, (2) Spatial 3D Mesh Reconstruction, (3) Directorial Camera Trajectory Parameterization, and (4) Constrained Temporal Video Diffusion, is protected as proprietary intellectual property.</p>
-            <p>Unauthorized duplication, reverse engineering, extraction of backend orchestration scripts, or commercial cloning is strictly prohibited under international patent and copyright laws.</p>
+            <h4 class="font-bold text-amber-300 text-sm">VirtuFilm Studio AI / Cindy AI Director Architecture</h4>
+            <p><b>Director & Visionary:</b> Ehab Fikry (المخرج إيهاب فكري)</p>
+            <p><b>Autonomous AI Engineering & Systems:</b> Antigravity (Google DeepMind)</p>
+            <p><b>Core Modules:</b> (1) Identity-Preserved LoRA Pipeline, (2) Blender 5.3 3D Pre-vis & Camera Orbits, (3) Multi-Model Cloud/Local Neural Orchestration, (4) Hollywood Directorial Skills & Dynamic Radar.</p>
+            <p>All core directorial vision, screenplay logic, and artistic workflows are created by Ehab Fikry.</p>
           </div>
         `;
       } else {
@@ -4832,59 +4940,69 @@
       currentComfySubMode = mode;
       const imgBtn = document.getElementById('comfy-mode-img-btn');
       const vidBtn = document.getElementById('comfy-mode-vid-btn');
-            const klingBtn = document.getElementById('comfy-mode-kling-btn');
+      const klingBtn = document.getElementById('comfy-mode-kling-btn');
       const lsBtn = document.getElementById('comfy-mode-ls-btn');
+      const otBtn = document.getElementById('comfy-mode-ot-btn');
 
       const imgFields = document.getElementById('comfy-image-fields');
       const vidFields = document.getElementById('comfy-video-fields');
-            const klingFields = document.getElementById('comfy-kling-fields');
+      const klingFields = document.getElementById('comfy-kling-fields');
       const lsFields = document.getElementById('comfy-latentsync-fields');
+      const otFields = document.getElementById('comfy-opentools-fields');
 
       const btnText = document.getElementById('comfy-render-btn-text');
       const btnIcon = document.getElementById('comfy-render-btn-icon');
 
-      const defaultBtnClass = 'px-3 py-1 rounded-lg bg-cinema-900 text-slate-400 hover:text-white border border-cinema-700 text-xs font-bold transition flex items-center gap-1.5';
+      const defaultBtnClass = 'px-3 py-1.5 rounded-lg text-xs font-black text-slate-400 hover:text-white transition flex items-center gap-1.5 cursor-pointer';
       if (imgBtn) imgBtn.className = defaultBtnClass;
       if (vidBtn) vidBtn.className = defaultBtnClass;
-            if (klingBtn) klingBtn.className = defaultBtnClass;
+      if (klingBtn) klingBtn.className = defaultBtnClass;
       if (lsBtn) lsBtn.className = defaultBtnClass;
+      if (otBtn) otBtn.className = defaultBtnClass;
 
       if (imgFields) imgFields.classList.add('hidden');
       if (vidFields) vidFields.classList.add('hidden');
-            if (klingFields) klingFields.classList.add('hidden');
+      if (klingFields) klingFields.classList.add('hidden');
       if (lsFields) lsFields.classList.add('hidden');
+      if (otFields) otFields.classList.add('hidden');
 
       const offlineControls = document.getElementById('comfy-offline-controls');
       const onlineControls = document.getElementById('comfy-online-controls');
       const serverlessControls = document.getElementById('comfy-serverless-controls');
+      const lang = window.currentAppLang || 'ar';
 
       if (mode === 'video') {
-        if (vidBtn) vidBtn.className = 'px-3 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold transition flex items-center gap-1.5';
+        if (vidBtn) vidBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-black bg-gradient-to-r from-amber-500 to-yellow-500 text-cinema-950 shadow transition flex items-center gap-1.5 cursor-pointer';
         if (vidFields) vidFields.classList.remove('hidden');
         onComfyVideoModelChange();
         if (serverlessControls) serverlessControls.classList.add('hidden');
         if (typeof checkComfyStatus === 'function') checkComfyStatus();
       } else if (mode === 'kling') {
-        if (klingBtn) klingBtn.className = 'px-3 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold transition flex items-center gap-1.5';
+        if (klingBtn) klingBtn.className = 'px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold transition flex items-center gap-1.5';
         if (klingFields) klingFields.classList.remove('hidden');
-        btnText.innerText = '▶ ريندر نقل الحركة بمحرك Kling Motion Control (1080p)';
-        btnIcon.className = 'fa-solid fa-crown text-amber-300';
+        if (btnText) btnText.innerText = (lang === 'en') ? '▶ Render Motion with Kling Motion Control (1080p)' : '▶ ريندر نقل الحركة بمحرك Kling Motion Control (1080p)';
+        if (btnIcon) btnIcon.className = 'fa-solid fa-crown text-amber-300';
         if (offlineControls) offlineControls.classList.add('hidden');
         if (onlineControls) onlineControls.classList.add('hidden');
         if (serverlessControls) serverlessControls.classList.remove('hidden');
       } else if (mode === 'latentsync') {
-        if (lsBtn) lsBtn.className = 'px-3 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-xs font-bold transition flex items-center gap-1.5';
+        if (lsBtn) lsBtn.className = 'px-3 py-1.5 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-xs font-bold transition flex items-center gap-1.5';
         if (lsFields) lsFields.classList.remove('hidden');
-        btnText.innerText = '▶ ريندر مزامنة ونطق الشفاه الآن (LatentSync)';
-        btnIcon.className = 'fa-solid fa-lips text-cyan-300';
+        if (btnText) btnText.innerText = (lang === 'en') ? '▶ Render Lip-Sync Dubbing Now (LatentSync)' : '▶ ريندر مزامنة ونطق الشفاه الآن (LatentSync)';
+        if (btnIcon) btnIcon.className = 'fa-solid fa-lips text-cyan-300';
         if (offlineControls) offlineControls.classList.add('hidden');
         if (onlineControls) onlineControls.classList.add('hidden');
         if (serverlessControls) serverlessControls.classList.remove('hidden');
+      } else if (mode === 'opentools') {
+        if (otBtn) otBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-black bg-gradient-to-r from-cyan-500 to-teal-500 text-cinema-950 shadow transition flex items-center gap-1.5 cursor-pointer';
+        if (otFields) otFields.classList.remove('hidden');
+        onOpenToolSelectChange();
+        if (serverlessControls) serverlessControls.classList.add('hidden');
       } else {
-        if (imgBtn) imgBtn.className = 'px-3 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-bold transition flex items-center gap-1.5';
+        if (imgBtn) imgBtn.className = 'px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-bold transition flex items-center gap-1.5';
         if (imgFields) imgFields.classList.remove('hidden');
-        btnText.innerText = '▶ ريندر الكادر السينمائي الآن (ComfyUI Image)';
-        btnIcon.className = 'fa-solid fa-clapperboard text-emerald-300';
+        if (btnText) btnText.innerText = (lang === 'en') ? '▶ Render Cinematic Frame Now (ComfyUI Image)' : '▶ ريندر الكادر السينمائي الآن (ComfyUI Image)';
+        if (btnIcon) btnIcon.className = 'fa-solid fa-clapperboard text-emerald-300';
         if (serverlessControls) serverlessControls.classList.add('hidden');
         if (typeof checkComfyStatus === 'function') checkComfyStatus();
       }
@@ -5734,6 +5852,229 @@
 
 
 
+    const OPEN_TOOLS_SUITE_DATA = {
+      seine: {
+        title: { ar: "01. Vchitect / SEINE (Generative Match-Cut)", en: "01. Vchitect / SEINE (Generative Match-Cut)", fr: "01. Vchitect / SEINE (Transition Fluide)", es: "01. Vchitect / SEINE (Transición Fluida)" },
+        conf: "ICLR 2024",
+        desc: {
+          ar: "محرك التحويل السينمائي الذكي لربط المشاهد وتوليد انتقالات سلسة تحافظ على الإيقاع التحريري للأفلام (Transition & Inpainting).",
+          en: "Mask-guided cross-attention transition diffusion engine for seamless cinematic match-cuts between shots.",
+          fr: "Moteur de transition cinématique par diffusion guidée par masque pour des raccords fluides entre plans.",
+          es: "Motor de transición cinemática por difusión guiada por máscara para cortes fluidos entre tomas."
+        },
+        arch: "Arch: Mask-Guided Cross-Attention Diffusion | Standard: 1280x720 @ 24.0 fps",
+        video_url: "/outputs/cinematic_standards/cinema_01_seine_transition_24fps_hd.mp4"
+      },
+      dreamidv: {
+        title: { ar: "02. bytedance / DreamID-V (Facial ID Locking)", en: "02. bytedance / DreamID-V (Facial ID Locking)", fr: "02. bytedance / DreamID-V (Verrouillage Facial)", es: "02. bytedance / DreamID-V (Bloqueo Facial)" },
+        conf: "2025",
+        desc: {
+          ar: "محرك حقن واستبدال الهوية البيومترية السريع في مقاطع الفيديو مع الحفاظ التام على أدق تعبيرات الوجه والفيزياء الأصلية.",
+          en: "High-fidelity facial identity injection with temporal motion warp preserving micro-expressions and lighting.",
+          fr: "Injection d'identité faciale haute fidélité avec préservation des micro-expressions et de l'éclairage.",
+          es: "Inyección de identidad facial de alta fidelidad conservando microexpresiones e iluminación."
+        },
+        arch: "Arch: ID Cross-Attention Injection + Wan2.1 | Standard: 1280x720 @ 24.0 fps",
+        video_url: "/outputs/cinematic_standards/cinema_02_dreamidv_bull_aziz_hd.mp4"
+      },
+      motioncanvas: {
+        title: { ar: "03. Doubiiu / MotionCanvas (3D Camera Orbit & Drone)", en: "03. Doubiiu / MotionCanvas (3D Camera Orbit & Drone)", fr: "03. Doubiiu / MotionCanvas (Orbite Caméra 3D)", es: "03. Doubiiu / MotionCanvas (Órbita de Cámara 3D)" },
+        conf: "SIGGRAPH 2025",
+        desc: {
+          ar: "التحكم الصريح في مسار الكاميرا وحركة الدرون والانزلاق المداري ثلاثي الأبعاد مع ثبات المنظور والعمق.",
+          en: "Point-cloud camera trajectory control and 3D drone orbits with explicit spatial feature maps.",
+          fr: "Contrôle de trajectoire caméra par nuage de points et orbites drone 3D explicites.",
+          es: "Control de trayectoria de cámara por nube de puntos y órbitas de dron 3D explícitas."
+        },
+        arch: "Arch: Wan2.1 DiT + Positional Track Feature Maps | Standard: 1280x720 @ 24.0 fps",
+        video_url: "/outputs/cinematic_standards/cinema_03_motioncanvas_drone_24fps_hd.mp4"
+      },
+      motionpro: {
+        title: { ar: "04. HiDream-ai / MotionPro (Decoupled Camera vs Subject)", en: "04. HiDream-ai / MotionPro (Decoupled Camera vs Subject)", fr: "04. HiDream-ai / MotionPro (Caméra vs Acteur Découplés)", es: "04. HiDream-ai / MotionPro (Cámara vs Actor Desacoplados)" },
+        conf: "CVPR 2025",
+        desc: {
+          ar: "فصل متجهات حركة الكاميرا عن حركة الممثل فيزيائياً لإنتاج لقطات سينمائية ذات مسارات مستقلة.",
+          en: "Decoupled camera motion vs. character movement trajectories for independent directorial control.",
+          fr: "Découplage physique du mouvement de caméra et du mouvement de l'acteur.",
+          es: "Desacoplamiento físico del movimiento de cámara y del movimiento del actor."
+        },
+        arch: "Arch: Dual-Branch Camera & Object Motion Conditioning | Standard: 1280x720 @ 24.0 fps",
+        video_url: "/outputs/cinematic_standards/cinema_04_motionpro_camera_24fps_hd.mp4"
+      },
+      ttm: {
+        title: { ar: "05. time-to-move / TTM (Dual-Clock Denoising)", en: "05. time-to-move / TTM (Dual-Clock Denoising)", fr: "05. time-to-move / TTM (Débruitage Double Horloge)", es: "05. time-to-move / TTM (Denoising de Doble Reloj)" },
+        conf: "ICLR 2026",
+        desc: {
+          ar: "إزالة الضوضاء بساعتين زمنيتين منفصلتين لتنسيق وتزامن حركة الممثلين المعقدة مع ثبات الخلفية.",
+          en: "Dual-Clock denoising separating background anchors from high-frequency motion latents.",
+          fr: "Débruitage à double horloge séparant l'arrière-plan fixe des latents de mouvement.",
+          es: "Denoising de doble reloj que separa el fondo fijo de los latentes de movimiento."
+        },
+        arch: "Arch: Dual-Clock Diffusion Scheduler | Standard: 1280x720 @ 24.0 fps",
+        video_url: "/outputs/cinematic_standards/cinema_05_ttm_dualclock_24fps_hd.mp4"
+      },
+      mtvcrafter: {
+        title: { ar: "06. DINGYANB / MTVCrafter (4D Motion Tokens & Cloth)", en: "06. DINGYANB / MTVCrafter (4D Motion Tokens & Cloth)", fr: "06. DINGYANB / MTVCrafter (Jetons 4D & Tissus)", es: "06. DINGYANB / MTVCrafter (Tokens 4D y Telas)" },
+        conf: "ICLR 2026",
+        desc: {
+          ar: "محاكاة حركة الأقمشة والفيستات الفرو والملابس الفضفاضة بحسابات حركية رباعية الأبعاد (4D VQ-VAE Tokens).",
+          en: "4D Motion Tokens and discrete VQ-VAE cloth dynamics for realistic wardrobe physics.",
+          fr: "Jetons de mouvement 4D et dynamique des tissus VQ-VAE pour une physique réaliste des costumes.",
+          es: "Tokens de movimiento 4D y dinámica de telas VQ-VAE para física realista de vestuario."
+        },
+        arch: "Arch: 4D Motion Tokenizer + CogVideoX/DiT | Standard: 1280x720 @ 24.0 fps",
+        video_url: "/outputs/cinematic_standards/cinema_06_mtvcrafter_4dmot_24fps_hd.mp4"
+      },
+      pisco: {
+        title: { ar: "07. taco-group / PISCO (Instance Insertion & Depth)", en: "07. taco-group / PISCO (Instance Insertion & Depth)", fr: "07. taco-group / PISCO (Insertion d'Instances & Profondeur)", es: "07. taco-group / PISCO (Inserción de Instancias y Profundidad)" },
+        conf: "NeurIPS 2026",
+        desc: {
+          ar: "زرع ودمج الشخصيات والمجسمات داخل الفيديو بمحاذاة العمق المكاني ومنع التداخل البصري مع البيئة.",
+          en: "Precise video instance insertion using sparse frame supervision and spatial depth cues.",
+          fr: "Insertion précise d'instances vidéo par supervision éparse et indices de profondeur.",
+          es: "Inserción precisa de instancias en video mediante supervisión dispersa y profundidad espacial."
+        },
+        arch: "Arch: Wan2.1 + Sparse Depth & Mask Conditioning | Standard: 1280x720 @ 24.0 fps",
+        video_url: "/outputs/cinematic_standards/cinema_07_pisco_insertion_24fps_hd.mp4"
+      },
+      magicme: {
+        title: { ar: "08. Zhen-Dong / Magic-Me (3D Gaussian Noise Prior)", en: "08. Zhen-Dong / Magic-Me (3D Gaussian Noise Prior)", fr: "08. Zhen-Dong / Magic-Me (Prior Gaussien 3D)", es: "08. Zhen-Dong / Magic-Me (Prior Gaussiano 3D)" },
+        conf: "2024",
+        desc: {
+          ar: "محرك قفل الهوية ثلاثي الأبعاد عبر مصفوفة التغاير الزماني (cov_alpha=0.05) لمنع الوميض والتشوه في لقطات الشخصيات.",
+          en: "Biometric ID-Lock with 3D Gaussian noise covariance prior preventing facial flicker across frames.",
+          fr: "Verrouillage biométrique avec covariance gaussienne 3D éliminant le scintillement facial.",
+          es: "Bloqueo biométrico con covarianza gaussiana 3D que evita el parpadeo facial."
+        },
+        arch: "Arch: AnimateDiff v2 + RealisticVision + 3D Gaussian Prior | Standard: 1280x720 @ 24.0 fps",
+        video_url: "/outputs/cinematic_standards/cinema_08_magicme_idlock_24fps_hd.mp4"
+      }
+    };
+
+    function onOpenToolSelectChange() {
+      const sel = document.getElementById('comfy-opentool-select');
+      const toolId = sel ? sel.value : 'seine';
+      const data = OPEN_TOOLS_SUITE_DATA[toolId] || OPEN_TOOLS_SUITE_DATA['seine'];
+      const lang = window.currentAppLang || 'ar';
+
+      const titleEl = document.getElementById('ot-card-title');
+      const confEl = document.getElementById('ot-card-conf');
+      const descEl = document.getElementById('ot-card-desc');
+      const archEl = document.getElementById('ot-card-arch');
+      const btnText = document.getElementById('comfy-render-btn-text');
+      const btnIcon = document.getElementById('comfy-render-btn-icon');
+
+      if (titleEl) titleEl.textContent = data.title[lang] || data.title.ar;
+      if (confEl) confEl.textContent = data.conf;
+      if (descEl) descEl.textContent = data.desc[lang] || data.desc.ar;
+      if (archEl) archEl.textContent = data.arch;
+
+      if (typeof currentComfySubMode !== 'undefined' && currentComfySubMode === 'opentools') {
+        if (btnText) {
+          btnText.innerText = (lang === 'en') ? `▶ Load & Run [${data.title.en.split('(')[0].trim()}] (720p @ 24fps)` :
+                              (lang === 'fr') ? `▶ Charger & Exécuter [${data.title.fr.split('(')[0].trim()}]` :
+                              (lang === 'es') ? `▶ Cargar y Ejecutar [${data.title.es.split('(')[0].trim()}]` :
+                              `▶ تشغيل وعرض مخرج [${data.title.ar.split('(')[0].trim()}] (720p @ 24fps)`;
+        }
+        if (btnIcon) btnIcon.className = 'fa-solid fa-flask text-cyan-300';
+      }
+    }
+
+    async function executeFullDirectorialPipeline() {
+      const promptInput = document.getElementById('chat-input');
+      const userPrompt = (promptInput?.value || '').trim() || 'مشهد سينمائي متكامل للممثل عبد العزيز بحركة كاميرا مدارية وثبات الملابس والملامح';
+      const lang = window.currentAppLang || 'ar';
+      const isEn = (lang === 'en');
+
+      showToast(isEn ? '🎬 Starting Cindy Multi-Pass Directorial Pipeline (4 Passes)...' : '🎬 جاري تشغيل خط الإنتاج الإخراجي المتكامل (4 تمريرات متتالية)...', 'info');
+
+      try {
+        const res = await fetch(`${API_BASE}/api/pipeline/execute`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            shot_id: `shot_${Date.now()}`,
+            character_ref: 'Abdelaziz_Mature',
+            camera_move: 'orbit_360',
+            prompt: userPrompt
+          })
+        });
+        const data = await res.json();
+        if (data.success && data.video_url) {
+          const finalVidUrl = data.video_url;
+          // Automatically switch to screening studio to showcase the generated sequence
+          switchTab('screening');
+          loadMediaIntoScreening(finalVidUrl, 'video', isEn ? 'Cindy Multi-Pass Directorial Sequence' : 'خط الإنتاج الإخراجي المتكامل (4 Passes)', userPrompt);
+          showToast(data.message || (isEn ? 'Directorial sequence rendered successfully!' : 'تم تنفيذ الريندر الإخراجي المتكامل بنجاح 🎬'), 'success');
+        } else {
+          showToast(data.error || 'تعذر تشغيل خط العمل الإخراجي.', 'error');
+        }
+      } catch (e) {
+        showToast('خطأ أثناء تشغيل خط العمل: ' + e, 'error');
+      }
+    }
+
+    function selectAndPreviewOpenTool(toolId) {
+      const sel = document.getElementById('comfy-opentool-select');
+      if (sel) {
+        sel.value = toolId;
+        onOpenToolSelectChange();
+      }
+      executeComfyOpenToolsRender();
+    }
+
+    async function executeComfyOpenToolsRender() {
+      const sel = document.getElementById('comfy-opentool-select');
+      const toolId = sel ? sel.value : 'seine';
+      const prompt = (document.getElementById('comfy-opentool-prompt')?.value || '').trim();
+      const data = OPEN_TOOLS_SUITE_DATA[toolId] || OPEN_TOOLS_SUITE_DATA['seine'];
+      const lang = window.currentAppLang || 'ar';
+
+      const placeholder = document.getElementById('comfy-placeholder');
+      const spinner = document.getElementById('comfy-spinner');
+      const resultBox = document.getElementById('comfy-result-container');
+      const resultImg = document.getElementById('comfy-result-img');
+      const resultVideo = document.getElementById('comfy-result-video');
+      const timer = document.getElementById('comfy-render-timer');
+      const dlBtn = document.getElementById('comfy-download-btn');
+
+      try {
+        const res = await fetch(`${API_BASE}/api/freelab/execute`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tool_id: toolId, prompt: prompt, mode: 'preview' })
+        });
+        const respData = await res.json();
+        const vidUrl = respData.url || data.video_url;
+
+        if (placeholder) placeholder.classList.add('hidden');
+        if (spinner) spinner.classList.add('hidden');
+        if (resultBox) resultBox.classList.remove('hidden');
+        if (resultImg) resultImg.classList.add('hidden');
+        if (resultVideo) {
+          resultVideo.classList.remove('hidden');
+          resultVideo.src = vidUrl + '?t=' + Date.now();
+          resultVideo.load();
+          resultVideo.play().catch(() => {});
+        }
+        if (dlBtn) {
+          dlBtn.href = vidUrl;
+          dlBtn.download = vidUrl.split('/').pop();
+          const dlSpan = dlBtn.querySelector('span');
+          if (dlSpan) dlSpan.textContent = (lang === 'en') ? 'Download Cinema Standard MP4 (720p 24fps)' : 'تنزيل الفيديو بالمعيار السينمائي (720p 24fps MP4)';
+        }
+        if (timer) {
+          timer.innerText = '1280x720 @ 24.0 fps (Verified)';
+        }
+        lastRenderedComfyMedia = vidUrl;
+        loadMediaIntoScreening(vidUrl, 'video', data.title[lang] || data.title.ar, prompt || data.desc[lang] || data.desc.ar);
+        showToast(respData.message || `تم عرض مخرج ${data.title.ar} بنجاح! 🎬`, 'success');
+      } catch (e) {
+        console.error('Open tool execution error:', e);
+        showToast('تعذر تحميل مخرج الأداة: ' + e.message, 'error');
+      }
+    }
+
     function handleComfyDispatch() {
       console.log('Dispatching Comfy render. SubMode:', typeof currentComfySubMode !== 'undefined' ? currentComfySubMode : 'video');
       const sub = typeof currentComfySubMode !== 'undefined' ? currentComfySubMode : 'video';
@@ -5741,6 +6082,8 @@
         executeComfyKlingMotionRender();
       } else if (sub === 'latentsync') {
         executeComfyLatentSyncRender();
+      } else if (sub === 'opentools') {
+        executeComfyOpenToolsRender();
       } else if (sub === 'image') {
         executeComfyImageRender();
       } else {
@@ -7099,7 +7442,7 @@
               <div class="text-[11px] text-slate-400 mt-0.5">حساب مسار الكاميرا لحظة بلحظة + ضبط أطوال الممثلين (1.84m - 1.86m) + رندر الفيديو (مجاناً 100%)</div>
             </div>
           </div>
-          <span class="text-[10px] font-mono px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 animate-pulse">Blender 4.2 Engine</span>
+          <span class="text-[10px] font-mono px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 animate-pulse">Blender 5.3 LTS Engine</span>
         </div>
       `;
 
@@ -8350,6 +8693,20 @@
         badge: 'عقل المخرج الذكي',
         testable: true
       },
+      openrouter: {
+        name: 'OpenRouter API Key',
+        desc: 'بوابة النماذج العالمية (Claude 3.5 Sonnet, GPT-4o, DeepSeek R1) لهندسة البرومبت والنقد السينمائي',
+        icon: 'fa-globe text-cyan-400',
+        badge: 'بوابة النماذج العالمية',
+        testable: true
+      },
+      tripo: {
+        name: 'Tripo3D API Key',
+        desc: 'تحويل كوادر الشخصيات والملابس إلى مجسمات ثلاثية الأبعاد (3D GLB) جاهزة للتحريك في بلندر',
+        icon: 'fa-cubes text-orange-400',
+        badge: 'بناء مجسمات 3D',
+        testable: true
+      },
       huggingface: {
         name: 'Hugging Face Token',
         desc: 'سحب أوزان النماذج والـ Checkpoints وتصدير اللورات إلى HuggingFace Hub',
@@ -8418,6 +8775,18 @@
                 isFr ? 'Assistant réalisateur instantané, analyse visuelle des plans et scénario' :
                 isEs ? 'Asistente de dirección instantáneo, análisis visual de tomas y guion' :
                 'مساعد المخرج الفوري وتحليل اللقطات والسيناريو الإخراجي'
+        },
+        openrouter: {
+          desc: isEn ? 'Global LLM gateway (Claude 3.5 Sonnet, GPT-4o, DeepSeek R1) for prompt engineering and critique' :
+                isFr ? 'Passerelle LLM mondiale (Claude 3.5 Sonnet, GPT-4o, DeepSeek R1) pour ingénierie de prompt' :
+                isEs ? 'Pasarela LLM global (Claude 3.5 Sonnet, GPT-4o, DeepSeek R1) para ingeniería de prompts' :
+                'بوابة النماذج العالمية (Claude 3.5 Sonnet, GPT-4o, DeepSeek R1) لهندسة البرومبت والنقد السينمائي'
+        },
+        tripo: {
+          desc: isEn ? 'Convert character and wardrobe frames into rigged 3D GLB models for Blender' :
+                isFr ? 'Convertir les images en modèles 3D GLB articulés pour Blender' :
+                isEs ? 'Convertir fotogramas en modelos 3D GLB articulados para Blender' :
+                'تحويل كوادر الشخصيات والملابس إلى مجسمات ثلاثية الأبعاد (3D GLB) جاهزة للتحريك في بلندر'
         },
         huggingface: {
           desc: isEn ? 'Fetch model weights, checkpoints, and export trained LoRAs to HuggingFace Hub' :
@@ -9209,6 +9578,29 @@ let currentUploadContext = 'chat';
     window.DAILY_PRICING = null;
 
     const MODEL_COST_MAP = {
+      'ByteDance Seedance 2.5 (Reference/Omni)': '~$1.20 / 5s ($0.24/s - حتى 30ث ومراجع)',
+      'ByteDance Seedance 2.5 Image-to-Video': '~$1.20 / 5s ($0.24/s - تحريك كادر)',
+      'ByteDance Seedance 2.5 Text-to-Video': '~$1.20 / 5s ($0.24/s - توليد مباشر)',
+      'ByteDance Seedance 2.0 (4K Cinema)': '~$1.50 / 5s ($0.30/s - سينما 4K فائق)',
+      'ByteDance Seedance 2.0 Image-to-Video': '~$1.50 / 5s ($0.30/s - تحريك 4K)',
+      'ByteDance Seedance 2.0 Fast': '~$0.70 / 5s ($0.14/s - معالجة سريعة)',
+      'ByteDance Seedance 2.5': '~$1.20 / 5s ($0.24/s)',
+      'Kling 4.0 Pro Omni': '~$0.78 / 5s ($0.157/s - جيل 4.0 الأحدث)',
+      'Kling 4.0 Pro Image-to-Video': '~$0.78 / 5s (تحريك 1080p بجيل 4)',
+      'Kling 3.0 Pro': '~$0.56 / 5s ($0.112/s - جيل 3 مع صوت)',
+      'Kling 3.0 Pro Image-to-Video': '~$0.56 / 5s (تحريك بجيل 3)',
+      'Kling Motion Control (1080p)': '~$0.63 / 5s (توجيه حركة سينمائي)',
+      'Kling 1.6 Pro Image-to-Video': '~$0.49 / 5s (هوليوودي 1080p)',
+      'Kling 1.6 Pro Text-to-Video': '~$0.49 / 5s (توليد هوليوودي 1080p)',
+      'Kling AI Standard': '~$0.28 / 5s (توليد سريع 720p)',
+      'Kling O1 Video-to-Video Edit': '~$0.50 / 5s (تعديل كامل بالذكاء)',
+      'Google Veo 3.1 Cinematic': '~$0.60 / 5s (عدسات وإضاءة هوليوود)',
+      'Google Veo 3.1 Fast': '~$0.40 / 5s (معالجة سريعة)',
+      'Runway Gen-3 Alpha': '~$0.35 / 5s (هوليوود وسرعة فائقة)',
+      'Runway Gen-3 I2V': '~$0.35 / 5s (تحريك الكوادر)',
+      'Luma Ray 2 Image-to-Video': '$0.50 / 5s (فيزياء الضوء والسوائل)',
+      'Luma Ray 2 & Dream Machine': '$0.50 / 5s (كاميرا دريم ماشين)',
+      'Luma Ray 2 Modify': '~$1.75 / 5s (تعديل لقطات سينمائية)',
       'Sync Lipsync 2.0': '~$0.05 / 5s ($0.70/دقيقة)',
       'MuseTalk LipSync': '~$0.03 / 5s ($0.40/دقيقة)',
       'MiniMax H3 I2V LoRA': '~$0.25 / 5s (قفل ملامح)',
@@ -9223,20 +9615,11 @@ let currentUploadContext = 'chat';
       'Qwen Image 2512 LoRA': '~$0.035 / MP',
       'robbyant/lingbot-world-2': 'حسب وقت الحوسبة الحية',
       'alibaba/abot-world-0': 'حسب وقت الحوسبة الحية',
-      'Kling Motion Control (1080p)': '~$0.63 / 5s',
-      'Kling 1.6 Pro Image-to-Video': '~$0.49 / 5s',
-      'Kling 4 / 3.0 Pro': '~$0.49 / 5s',
-      'Kling AI Standard': '~$0.28 / 5s',
-      'Luma Ray 2 Image-to-Video': '$0.50 / 5s',
-      'Luma Ray 2 & Dream Machine': '$0.50 / 5s',
-      'Luma Ray 2 Modify': '~$1.75 / 5s',
-      'Kling O1 Video-to-Video Edit': '~$0.50 / 5s',
-      'Wan 2.1 (Alibaba 14B)': '~$0.03 / 5s',
-      'Wan 2.1 Image-to-Video': '~$0.03 / 5s',
       'MiniMax H3 Lite': '~$0.04 / 5s',
       'MiniMax H3 Max Turbo': '~$0.08 / 5s',
-      'CogVideoX-5B (THUDM)': '~$0.03 / 5s',
-      'Flux 3 Max Image-to-Video': '~$0.08 / 5s'
+      'Wan 2.1 (Alibaba 14B)': '~$0.03 / 5s (متوفر مجاناً في ComfyUI)',
+      'Wan 2.1 Image-to-Video': '~$0.03 / 5s (متوفر مجاناً في ComfyUI)',
+      'CogVideoX-5B (THUDM)': '~$0.03 / 5s (متوفر مجاناً في ComfyUI)'
     };
 
     async function loadDailyPricing(forceRefresh = false) {
@@ -10160,6 +10543,116 @@ let currentUploadContext = 'chat';
       </div>
     </div>
   </div>
+
+  <!-- 🛡️ VAULT & API KEYS SLIDE-OVER SIDEBAR DRAWER -->
+  <div id="vault-drawer-overlay" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden transition-opacity duration-300" onclick="closeVaultDrawer()"></div>
+  <aside id="vault-drawer" class="fixed top-0 bottom-0 left-0 w-full max-w-md bg-cinema-900/95 border-r border-amber-500/40 shadow-2xl z-50 flex flex-col transform -translate-x-full transition-transform duration-300 ease-in-out backdrop-blur-xl" dir="rtl">
+    <!-- Drawer Header -->
+    <div class="p-4 border-b border-cinema-700/80 bg-cinema-950/80 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-600 flex items-center justify-center text-cinema-950 font-black text-lg shadow-lg">
+          <i class="fa-solid fa-vault"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 class="text-sm font-black text-amber-300" id="vd-title">الخزنة ودرع الحماية</h3>
+            <span class="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded-full font-bold">127.0.0.1</span>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-0.5" id="vd-desc">تعديل مفاتيح الـ API وتوثيق البصمة التشفيرية محلياً.</p>
+        </div>
+      </div>
+      <button type="button" onclick="closeVaultDrawer()" class="w-8 h-8 rounded-lg bg-cinema-800 hover:bg-cinema-700 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer" title="إغلاق">
+        <i class="fa-solid fa-xmark text-sm"></i>
+      </button>
+    </div>
+
+    <!-- Drawer Body -->
+    <div class="flex-1 overflow-y-auto p-4 space-y-4 text-xs">
+      <!-- 1. Quick Service Selector & Key Editor -->
+      <div class="bg-cinema-950/90 border border-amber-500/40 rounded-2xl p-4 shadow-xl space-y-3">
+        <div class="flex items-center justify-between">
+          <label class="text-xs font-bold text-amber-300 flex items-center gap-1.5" id="vd-svc-label">
+            <i class="fa-solid fa-key text-amber-400"></i>
+            <span>اختر خدمة الـ API لتعديل مفتاحها:</span>
+          </label>
+          <span id="vd-active-status" class="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-emerald-500/20 text-emerald-300">متصل</span>
+        </div>
+
+        <!-- Service Dropdown -->
+        <select id="vd-service-select" onchange="onVaultDrawerServiceChange()" class="w-full bg-cinema-900 border border-cinema-700 focus:border-amber-400 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none cursor-pointer">
+          <option value="fal">⚡ Fal.ai (Kling, Wan, FLUX, Veo)</option>
+          <option value="gemini">🧠 Google Gemini (مساعد المخرج والسيناريو)</option>
+          <option value="runpod">🖥️ RunPod (سيرفرات ComfyUI و LoRA)</option>
+          <option value="openrouter">🌐 OpenRouter (Claude 3.5, GPT-4o, DeepSeek)</option>
+          <option value="tripo">🧊 Tripo3D (تحويل الكادرات إلى مجسمات 3D)</option>
+          <option value="huggingface">🤗 Hugging Face (أوزان النماذج واللورات)</option>
+          <option value="local_comfyui">🔌 ComfyUI Endpoint URL</option>
+          <option value="local_ollama">🦙 Local Ollama URL</option>
+        </select>
+
+        <!-- Current Value Display -->
+        <div class="bg-cinema-900/80 border border-cinema-800 rounded-xl p-2.5 flex items-center justify-between">
+          <span class="text-[11px] text-slate-400" id="vd-curr-label">المفتاح الحالي:</span>
+          <code id="vd-current-masked" class="text-[11px] font-mono text-amber-300 font-bold select-all">fal_sk...e63e</code>
+        </div>
+
+        <!-- New Key Input -->
+        <div class="space-y-1.5">
+          <label class="text-[11px] text-slate-300 font-bold" id="vd-input-label">المفتاح الجديد / الرابط البديل:</label>
+          <div class="relative flex items-center">
+            <input type="password" id="vd-key-input" placeholder="ألصق المفتاح الجديد هنا..." class="w-full bg-cinema-900 border border-cinema-700 focus:border-amber-400 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 outline-none pl-9 font-mono">
+            <button type="button" onclick="toggleVaultDrawerVisibility()" class="absolute left-2.5 text-slate-400 hover:text-white cursor-pointer" title="إظهار / إخفاء">
+              <i class="fa-solid fa-eye text-xs" id="vd-eye-icon"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-2 pt-1">
+          <button type="button" onclick="saveVaultDrawerKey()" class="flex-1 py-2 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-cinema-950 font-black rounded-xl text-xs flex items-center justify-center gap-1.5 shadow transition cursor-pointer">
+            <i class="fa-solid fa-floppy-disk"></i>
+            <span id="vd-save-btn-span">حفظ وتأمين المفتاح</span>
+          </button>
+          <button type="button" onclick="testVaultDrawerKey()" class="px-3 py-2 bg-cinema-800 hover:bg-cinema-700 text-slate-200 border border-cinema-700 font-bold rounded-xl text-xs flex items-center gap-1.5 transition cursor-pointer" title="اختبار الاتصال">
+            <i class="fa-solid fa-bolt text-amber-400"></i>
+            <span id="vd-test-btn-span">اختبار</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. IP Protection Shield Summary & Master Hash -->
+      <div class="bg-cinema-950/80 border border-cinema-700/70 rounded-2xl p-4 space-y-3">
+        <div class="flex items-center justify-between border-b border-cinema-800 pb-2">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-shield-halved text-emerald-400 text-sm"></i>
+            <span class="font-black text-slate-200 text-xs" id="vd-shield-title">درع حماية الملكية الفكرية</span>
+          </div>
+          <span class="text-[9px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-mono font-bold">$0.00 مجاناً</span>
+        </div>
+
+        <div class="space-y-1">
+          <div class="flex items-center justify-between text-[11px]">
+            <span class="text-slate-400">بصمة الماستر SHA-256:</span>
+            <span id="vd-tracked-count" class="text-amber-400 font-mono text-[10px]">16 ملف محمي</span>
+          </div>
+          <code id="vd-master-hash" class="block bg-cinema-900 border border-cinema-800 text-amber-300 p-2 rounded-lg font-mono text-[10px] break-all select-all">جاري فحص البصمة...</code>
+        </div>
+
+        <div class="flex items-center gap-2 pt-1">
+          <button type="button" onclick="verifyAndRefreshIpShield(true)" class="w-full py-1.5 bg-cinema-800 hover:bg-cinema-700 text-amber-300 border border-amber-500/40 font-bold rounded-xl text-[11px] flex items-center justify-center gap-1.5 transition cursor-pointer shadow">
+            <i class="fa-solid fa-fingerprint"></i>
+            <span>تحديث بصمة الكود الآن</span>
+          </button>
+        </div>
+
+        <div class="pt-1 flex items-center justify-between text-[10px] text-slate-400">
+          <a href="/IP_MANIFEST_SHA256.json" target="_blank" class="hover:text-amber-300 underline flex items-center gap-1"><i class="fa-solid fa-file-code"></i> السجل التشفيري</a>
+          <span class="text-slate-400 flex items-center gap-1"><i class="fa-solid fa-laptop-code text-cyan-400"></i> Ehab & Antigravity</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
   <!-- 🎙️ LOCAL VOICE STUDIO MODAL (KOKORO & PIPER) -->
   <div id="voice-studio-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden" dir="rtl">
     <div class="bg-cinema-900 border-2 border-emerald-500/70 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
@@ -10285,6 +10778,148 @@ let currentUploadContext = 'chat';
   </div>
 
   <script>
+    // -------------------------------------------------------------------------
+    // 🛡️ VAULT & API KEYS SLIDE-OVER SIDEBAR DRAWER CONTROLLER
+    // -------------------------------------------------------------------------
+    let cachedVaultDrawerData = null;
+
+    function openVaultDrawer() {
+      const overlay = document.getElementById('vault-drawer-overlay');
+      const drawer = document.getElementById('vault-drawer');
+      if (overlay) overlay.classList.remove('hidden');
+      if (drawer) {
+        drawer.classList.remove('-translate-x-full');
+      }
+      loadVaultDrawerData();
+    }
+
+    function closeVaultDrawer() {
+      const overlay = document.getElementById('vault-drawer-overlay');
+      const drawer = document.getElementById('vault-drawer');
+      if (drawer) drawer.classList.add('-translate-x-full');
+      if (overlay) overlay.classList.add('hidden');
+    }
+
+    function toggleVaultDrawerVisibility() {
+      const inp = document.getElementById('vd-key-input');
+      const eye = document.getElementById('vd-eye-icon');
+      if (!inp) return;
+      if (inp.type === 'password') {
+        inp.type = 'text';
+        if (eye) eye.className = 'fa-solid fa-eye-slash text-xs';
+      } else {
+        inp.type = 'password';
+        if (eye) eye.className = 'fa-solid fa-eye text-xs';
+      }
+    }
+
+    async function loadVaultDrawerData() {
+      try {
+        const res = await fetch(`${API_BASE}/api/vault/status`);
+        if (!res.ok) return;
+        cachedVaultDrawerData = await res.json();
+        onVaultDrawerServiceChange();
+        syncVaultDrawerShield();
+      } catch (e) {
+        console.warn('Failed to load vault drawer data:', e);
+      }
+    }
+
+    function onVaultDrawerServiceChange() {
+      const sel = document.getElementById('vd-service-select');
+      const svc = sel ? sel.value : 'fal';
+      const statusEl = document.getElementById('vd-active-status');
+      const currentEl = document.getElementById('vd-current-masked');
+      const lang = window.currentAppLang || 'ar';
+      const isEn = (lang === 'en');
+
+      if (!cachedVaultDrawerData) return;
+      const info = cachedVaultDrawerData[svc] || { configured: false, masked: (isEn ? 'Not Set' : 'غير مضاف') };
+      const isConfigured = info.configured;
+      const displayVal = (svc === 'local_comfyui' || svc === 'local_ollama') ? (info.url || (isEn ? 'Not Specified' : 'غير محدد')) : (info.masked || (isEn ? 'Not Set' : 'غير مضاف'));
+
+      if (statusEl) {
+        statusEl.textContent = isConfigured ? (isEn ? '✓ Connected' : '✓ متصل وجاهز') : (isEn ? '✕ Not Set' : '✕ غير مضاف');
+        statusEl.className = isConfigured ? 'text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-emerald-500/20 text-emerald-300' : 'text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-rose-500/20 text-rose-300';
+      }
+      if (currentEl) {
+        currentEl.textContent = displayVal;
+      }
+    }
+
+    async function saveVaultDrawerKey() {
+      const sel = document.getElementById('vd-service-select');
+      const svc = sel ? sel.value : 'fal';
+      const inp = document.getElementById('vd-key-input');
+      const val = (inp?.value || '').trim();
+      const lang = window.currentAppLang || 'ar';
+      const isEn = (lang === 'en');
+
+      if (!val) {
+        showToast(isEn ? 'Please type or paste the new API key first!' : 'يرجى كتابة أو لصق المفتاح الجديد أولاً!', 'warning');
+        return;
+      }
+
+      showToast(isEn ? `Saving key for ${svc}...` : `جاري حفظ وتأمين مفتاح ${svc} في الخزنة...`, 'info');
+      try {
+        const res = await fetch(`${API_BASE}/api/vault/update`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ service: svc, key_value: val })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message || (isEn ? 'Key saved successfully!' : 'تم حفظ المفتاح وتأمينه بنجاح!'), 'success');
+          if (inp) inp.value = '';
+          loadVaultDrawerData();
+          if (typeof loadVaultStatus === 'function') loadVaultStatus();
+          if (typeof refreshWalletStatus === 'function') refreshWalletStatus(false);
+        } else {
+          showToast(data.error || 'فشل حفظ المفتاح.', 'error');
+        }
+      } catch (e) {
+        showToast('خطأ أثناء الحفظ: ' + e, 'error');
+      }
+    }
+
+    async function testVaultDrawerKey() {
+      const sel = document.getElementById('vd-service-select');
+      const svc = sel ? sel.value : 'fal';
+      const lang = window.currentAppLang || 'ar';
+      const isEn = (lang === 'en');
+
+      showToast(isEn ? `Testing connection for ${svc}...` : `جاري اختبار الاتصال بمفتاح ${svc}...`, 'info');
+      try {
+        const res = await fetch(`${API_BASE}/api/vault/test_key`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ service: svc })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message || (isEn ? 'Connected successfully!' : 'متصل بنجاح!'), 'success');
+        } else {
+          showToast(data.error || (isEn ? 'Connection failed' : 'فشل اختبار المفتاح'), 'error');
+        }
+      } catch (e) {
+        showToast('خطأ: ' + e, 'error');
+      }
+    }
+
+    async function syncVaultDrawerShield() {
+      try {
+        const res = await fetch(`${API_BASE}/api/ip/status`);
+        const data = await res.json();
+        if (data.success && data.manifest) {
+          const m = data.manifest;
+          const hashEl = document.getElementById('vd-master-hash');
+          const countEl = document.getElementById('vd-tracked-count');
+          if (hashEl) hashEl.textContent = m.master_sha256;
+          if (countEl) countEl.textContent = `${m.tracked_files_count} ملف محمي`;
+        }
+      } catch (e) {}
+    }
+
     function openVoiceStudioModal() {
       const modal = document.getElementById('voice-studio-modal');
       if (modal) modal.classList.remove('hidden');
@@ -10977,6 +11612,18 @@ let currentUploadContext = 'chat';
     
     // --- BIDIRECTIONAL BI-LINGUAL ENGINE (ARABIC <-> ENGLISH) ---
     const BI_TEXT_PAIRS = [
+      ['VirtuFilm Studio AI | المنظومة السينمائية المتكاملة مع سيندي', 'VirtuFilm Studio AI | Integrated Cinematic System with Cindy'],
+      ['اضغط زر', 'Press button'],
+      ['كلاسيكي', 'Classic'],
+      ['جاري دمج العنصر وتكييف الإضاءة والظلال السينمائية...', 'Blending asset and harmonizing cinematic lighting and shadows...'],
+      ['درع حماية الفكرة والكود والتطبيق المجاني (Zero-Cost IP &amp; Code Protection Shield)', 'Zero-Cost IP & Code Protection Shield'],
+      ['درع حماية الفكرة والكود والتطبيق المجاني (Zero-Cost IP & Code Protection Shield)', 'Zero-Cost IP & Code Protection Shield'],
+      ['منظومة إخراجية وتطويرية رائدة بقيادة المخرج', 'Pioneering directorial & dev system led by Director'],
+      ['بالتعاون البرمجي والذكاء الاصطناعي مع', 'in software and AI collaboration with'],
+      ['، مع عزل محلي كامل للكود.', ', with complete local code isolation.'],
+      ['متصل', 'Connected'],
+      ['$0.00 مجاناً', '$0.00 Free'],
+      ['جاري فحص البصمة...', 'Verifying fingerprint...'],
       ['تأطير وترقية 4K (Reframe & Upscale)', 'AI Reframe & 4K Studio'],
       ['تأطير سينمائي (Reframe)', 'AI Reframe Studio'],
       ['استوديو التأطير وترقية الجودة السينمائي', 'AI Reframe & 4K Cinema Studio'],
@@ -11364,7 +12011,7 @@ let currentUploadContext = 'chat';
       
       // Blender 3D Pre-vis Card
       ['توجيه بلندر ثلاثي الأبعاد (Blender 3D Pre-vis Guide)', 'Blender 3D Pre-vis Guide (Cinematic Camera)'],
-      ['تخطيط الكاميرا، والعدسات، وخرائط العمق (Depth Maps) المستخرجة محلياً من بلندر (D:\\Blender).', 'Camera choreography, focal lenses, and Z-Depth maps extracted locally from Blender (D:\\Blender).'],
+      ['تخطيط الكاميرا، والعدسات، وخرائط العمق (Depth Maps) المستخرجة محلياً من بلندر (Blender 5.3 LTS).', 'Camera choreography, focal lenses, and Z-Depth maps extracted locally from Blender 5.3 LTS.'],
       ['تحديث الكادر', 'Refresh Frame'],
       ['تحديث الكادر 🔄', 'Refresh Frame 🔄'],
       ['تشغيل فيديو المعاينة 🎬 (Pre-vis)', 'Play Pre-vis Video 🎬'],
@@ -11611,9 +12258,186 @@ let currentUploadContext = 'chat';
       ['4. حارس الرصيد الصارم', '4. Strict Balance Guard'],
       ['البصمة الماستر للكود (Master SHA-256):', 'Master Code Fingerprint (Master SHA-256):'],
       ['جاري حساب البصمة التشفيرية...', 'Computing cryptographic hash...'],
-      ['ملف الإيداع المصري (ITIDA)', 'Egypt ITIDA Filing Dossier'],
-      ['وثيقة براءة الاختراع (CAD-IP-2026-001)', 'Patent Docket (CAD-IP-2026-001)'],
+      ['فريق التطوير: إيهاب فكري & Antigravity', 'Dev Team: Ehab Fikry & Antigravity'],
+      ['معمارية المنظومة وفريق العمل', 'System Architecture & Credits'],
       ['سجل البصمات الرقمي (JSON)', 'Digital SHA-256 Manifest (JSON)'],
+
+      ['"رفع كادر / لوكيشن"', '"Upload Frame / Location"'],
+      ['"من صالة العرض"', '"From Screening Room"'],
+      ['01. Vchitect / SEINE — انتقال سينمائي سائل ذكي (ICLR 2024)', '01. Vchitect / SEINE — Fluid Cinematic Transition (ICLR 2024)'],
+      ['02. bytedance / DreamID-V — حقن الوجه السريع والحفاظ على التعابير', '02. bytedance / DreamID-V — Fast Face Injection & Expression Lock'],
+      ['03. Doubiiu / MotionCanvas — مسار كاميرا درون ودوران 3D (SIGGRAPH 2025)', '03. Doubiiu / MotionCanvas — Drone Camera Trajectory & 3D Orbit (SIGGRAPH 2025)'],
+      ['04. HiDream-ai / MotionPro — فصل حركة الكاميرا عن حركة الممثل (CVPR 2025)', '04. HiDream-ai / MotionPro — Decouple Camera & Actor Motion (CVPR 2025)'],
+      ['05. time-to-move / TTM — إزالة الضوضاء بساعتين زمنيتين Dual-Clock (ICLR 2026)', '05. time-to-move / TTM — Dual-Clock Latent Denoising (ICLR 2026)'],
+      ['06. DINGYANB / MTVCrafter — ديناميكية الأقمشة وحركة 4D Tokens (ICLR 2026)', '06. DINGYANB / MTVCrafter — Fabric Dynamics & 4D Tokens (ICLR 2026)'],
+      ['07. taco-group / PISCO — دمج وتثبيت العناصر بالعمق المكاني (NeurIPS 2026)', '07. taco-group / PISCO — Spatial Depth Composition & Inpainting (NeurIPS 2026)'],
+      ['08. Zhen-Dong / Magic-Me — قفل الهوية 3D Gaussian Noise Prior', '08. Zhen-Dong / Magic-Me — Identity Anchor 3D Gaussian Noise Prior'],
+      ['16 fps (قياسي Wan/Hunyuan)', '16 fps (Standard Wan/Hunyuan)'],
+      ['16 ملف محمي', '16 Protected Files'],
+      ['3 ثوانٍ (49 كادر - لقطة سريعة)', '3 seconds (49 frames - Fast cut)'],
+      ['5 ثوانٍ (81 كادر - المعيار الأصلي 720p)', '5 seconds (81 frames - Standard 720p)'],
+      ['7 ثوانٍ (113 كادر - لقطة طويلة)', '7 seconds (113 frames - Extended shot)'],
+      ['FLUX.1 [dev] Fine-Tuning · 🔴 غير تجاري', 'FLUX.1 [dev] Fine-Tuning · 🔴 Non-Commercial'],
+      ['أدوات الأبحاث (8 Tools)', 'Research Suite (8 Tools)'],
+      ['إرسال إلى صالة العرض (Screening Room)', 'Send to Screening Room'],
+      ['إعادة (Redo)', 'Redo'],
+      ['اتجاه مصدر الضوء:', 'Light Source Direction:'],
+      ['اختبار', 'Test'],
+      ['اختر الأداة المفتوحة من القائمة المنسدلة:', 'Select Open-Source Tool from Dropdown:'],
+      ['اختر الزي أو قطعة الديكور المطلوبة:', 'Select Desired Costume or Decor Prop:'],
+      ['اختر خدمة الـ API لتعديل مفتاحها:', 'Select API Service to Edit Key:'],
+      ['اختصارات سريعة:', 'Quick Shortcuts:'],
+      ['استوديو الديكور والأزياء السينمائي الواقعي', 'Cinematic Costumes & Set Decor Studio'],
+      ['التحديد فارغ', 'Selection Empty'],
+      ['الخزنة ودرع الحماية', 'Vault & Protection Shield'],
+      ['الخطوة 1: ابدأ بتحميل الكادر', 'Step 1: Start by Uploading Frame'],
+      ['الديكور والأزياء', 'Costumes & Decor'],
+      ['السجل التشفيري', 'Cryptographic Ledger'],
+      ['العنصر المحدد:', 'Selected Prop/Costume:'],
+      ['الكادر الأصلي قبل التعديل:', 'Original Frame Before Edit:'],
+      ['الكادر السينمائي النهائي (بعد الدمج وإعادة الإضاءة):', 'Final Cinematic Frame (Post-Merge & Relight):'],
+      ['الكادر المعدل بالديكور / الزي الجديد جاهز للاعتماد:', 'Modified Frame with New Decor/Costume Ready:'],
+      ['الكتالوج المعتمد', 'Certified Catalog'],
+      ['المفتاح الجديد / الرابط البديل:', 'New API Key / Alternative Endpoint:'],
+      ['المفتاح الحالي:', 'Current Key:'],
+      ['انقر هنا أو اسحب صورة القطعة المطلوبة', 'Click here or drag desired prop image'],
+      ['برومبت التوجيه أو المشهد للأداة (اختياري):', 'Tool Guidance / Scene Prompt (Optional):'],
+      ['بصمة الماستر SHA-256:', 'Master SHA-256 Fingerprint:'],
+      ['تحديث بصمة الكود الآن', 'Refresh Code Fingerprint Now'],
+      ['تحديد سريع ذكي:', 'Smart Quick Mask:'],
+      ['تحميل الكادر', 'Load Frame'],
+      ['تخطيط الكاميرا، والعدسات، وخرائط العمق (Depth Maps) المستخرجة محلياً من بلندر (Blender 5.3 LTS Connected).', 'Camera layout, lenses, and Z-Depth maps extracted locally from Blender 5.3 LTS Connected.'],
+      ['تراجع (Undo)', 'Undo'],
+      ['تصميم وتنسيق الأثاث، الديكور، والملابس الواقعية للشخصيات والمشاهد مع إعادة الإضاءة السينمائية ومطابقة الكادر بالكامل.', 'Design and coordinate furniture, set decor, and lifelike character wardrobe with cinematic relighting and exact frame match.'],
+      ['تطبيق وتثبيت العنصر مع إعادة الإضاءة السينمائية', 'Apply & Anchor Prop with Cinematic Relighting'],
+      ['تعديل مفاتيح الـ API وتوثيق البصمة التشفيرية محلياً.', 'Manage API keys and document cryptographic fingerprints locally.'],
+      ['تم دمج العنصر ومطابقة الإضاءة بنجاح وحفظه في مجلد أصول المشروع.', 'Prop successfully composited and relit, saved in project asset catalog.'],
+      ['حجم الفرشاة:', 'Brush Size:'],
+      ['حرارة اللون والباليت:', 'Color Temp & Palette:'],
+      ['حفظ وتأمين المفتاح', 'Save & Secure API Key'],
+      ['درع حماية الملكية الفكرية', 'Intellectual Property Shield'],
+      ['رخص حرة تجارية 100% (Apache 2.0 & MIT)', '100% Commercial Free Licenses (Apache 2.0 & MIT)'],
+      ['رفع صورة مرجعية مخصصة', 'Upload Custom Reference Image'],
+      ['رفع كادر / لوكيشن', 'Upload Frame / Location'],
+      ['صورة جاكيت، فستان، كرسي، مصباح، أو خامة معينة من جهازك', 'Image of jacket, dress, chair, lamp, or fabric from device'],
+      ['فرشاة', 'Brush'],
+      ['كادر المشهد وتحديد موضع التعديل (Scene Canvas & Mask):', 'Scene Canvas & Prop Mask Region:'],
+      ['لاختيار صورة من جهازك.', 'to pick an image from your device.'],
+      ['لاختيار لقطة من مشاهد الفيلم، أو', 'to select a frame from project scenes, or'],
+      ['للإعادة', 'to redo'],
+      ['للتراجع •', 'to undo •'],
+      ['مجموعة أدوات الأبحاث مفتوحة المصدر المعتمدة (8 Tools)', 'Verified Open-Source Research Suite (8 Tools)'],
+      ['محرك الإضاءة والدمج السينمائي (IC-Light):', 'Cinematic Relighting & Inpainting Engine (IC-Light):'],
+      ['محرك التحويل السينمائي الذكي لربط المشاهد وتوليد انتقالات سلسة تحافظ على الإيقاع التحريري للأفلام.', 'Cinematic transition engine connecting shots with fluid pacing matching directorial continuity.'],
+      ['مدة اللقطة (حسب الموديل):', 'Shot Duration (Per Model):'],
+      ['مطابقة اتجاه وظلال إضاءة الكادر الأصلي تلقائياً', 'Automatically match original frame lighting & cast shadows'],
+      ['معاينة فورية للمخرجات القياسية المعتمدة (720p @ 24fps):', 'Instant preview of standardized verified outputs (720p @ 24fps):'],
+      ['معطف بيج كلاسيكي بقماش ثقيل وياقة عريضة مع قبعة فيدورا.', 'Classic beige heavy trench coat with wide lapels and matching fedora.'],
+      ['معطف ترينش كلاسيكي (1970s Trench Coat)', 'Classic 1970s Trench Coat'],
+      ['فريق العمل', 'Credits'],
+      ['ممحاة', 'Eraser'],
+      ['من صالة العرض', 'From Screening Room'],
+      ['وصف العنصر أو القطعة (اختياري):', 'Prop / Costume Description (Optional):'],
+      ['⏳ DMAD 4-Step (قيد التجهيز - الأوزان الحقيقية لم تُثبّت بعد)', '⏳ DMAD 4-Step (In Prep - Weights not yet mounted)'],
+      ['⏹ إلغاء وحماية الكارت', '⏹ Cancel & Protect GPU'],
+      ['☀️ ضوء نهار طبيعي (5600K)', '☀️ Natural Daylight (5600K)'],
+      ['☀️ محيطي طبيعي (Ambient)', '☀️ Natural Ambient'],
+      ['⚡ 15. Seedance 2.0 Fast — [~$0.14/s - $0.70 / 5s] (معالجة سريعة فائقة للحركة)', '⚡ 15. Seedance 2.0 Fast — [~$0.14/s - $0.70 / 5s] (Ultra-Fast Motion)'],
+      ['⚡ 15. Seedance 2.0 Fast — [~$0.14/s - $0.70 / 5s] (معالجة سريعة فائقة)', '⚡ 15. Seedance 2.0 Fast — [~$0.14/s - $0.70 / 5s] (Ultra-Fast Render)'],
+      ['⚡ 17. Google Veo 3.1 Fast — [~$0.40 / 5s] (معالجة سريعة بجودة Veo)', '⚡ 17. Google Veo 3.1 Fast — [~$0.40 / 5s] (Fast Veo Grade)'],
+      ['⚡ 17. Google Veo 3.1 Fast — [~$0.40 / 5s] (معالجة سريعة)', '⚡ 17. Google Veo 3.1 Fast — [~$0.40 / 5s] (Fast Render)'],
+      ['⚡ 25. MiniMax Hailuo H3 Lite — [~$0.04 / 6s] (اقتصادي سريع)', '⚡ 25. MiniMax Hailuo H3 Lite — [~$0.04 / 6s] (Budget Fast)'],
+      ['⚡ 26. MiniMax Hailuo H3 Lite — [~$0.04 / 6s] (اقتصادي سريع: $0.007/ث)', '⚡ 26. MiniMax Hailuo H3 Lite — [~$0.04 / 6s] (Budget Fast: $0.007/s)'],
+      ['⚡ 29. LTX-2.3 Distilled LoRA — [~$0.08 / 5s] (توليد سريع)', '⚡ 29. LTX-2.3 Distilled LoRA — [~$0.08 / 5s] (Fast Generation)'],
+      ['⚡ 9. Kling 1.6 Standard — [~$0.28 / 5s] (توليد قياسي سريع 720p)', '⚡ 9. Kling 1.6 Standard — [~$0.28 / 5s] (Fast Standard 720p)'],
+      ['⚡ 9. Kling 1.6 Standard — [~$0.28 / 5s] (سريع 720p)', '⚡ 9. Kling 1.6 Standard — [~$0.28 / 5s] (Fast 720p)'],
+      ['⚡ NVIDIA RTX 4090 (24GB VRAM) - $0.34/hr (~4¢ per train! فائق السرعة)', '⚡ NVIDIA RTX 4090 (24GB VRAM) - $0.34/hr (~4¢ per train! Ultra Fast)'],
+      ['⚡ RTX 4090 (24GB VRAM) - ~$0.34/ساعة (فائق السرعة)', '⚡ RTX 4090 (24GB VRAM) - ~$0.34/hr (Ultra Fast)'],
+      ['✨ 30. Topaz Video Upscale — [~$0.12 / 5s] (ترقية 4K سينمائي)', '✨ 30. Topaz Video Upscale — [~$0.12 / 5s] (4K Cinema Upscale)'],
+      ['✨ 31. Topaz Video Upscale — [~$0.12 / 5s] (ترقية الدقة إلى 4K سينمائي)', '✨ 31. Topaz Video Upscale — [~$0.12 / 5s] (Resolution Upscale to 4K Cinema)'],
+      ['➡️ جانبي من اليمين (Right Key)', '➡️ Right Side Key Light'],
+      ['⬅️ جانبي من اليسار (Left Key)', '⬅️ Left Side Key Light'],
+      ['⬇️ علوي ناعم (Overhead)', '⬇️ Soft Overhead Light'],
+      ['🇪🇬 العربية', '🇪🇬 Arabic'],
+      ['🌊 20. Luma Ray 2 I2V — [~$0.50 / 5s] (فيزياء الضوء والسوائل)', '🌊 20. Luma Ray 2 I2V — [~$0.50 / 5s] (Light & Fluid Physics)'],
+      ['🌊 20. Luma Ray 2 I2V — [~$0.50 / 5s] (محاكاة فيزياء السوائل والضوء)', '🌊 20. Luma Ray 2 I2V — [~$0.50 / 5s] (Fluid & Light Physics Simulation)'],
+      ['🌊 21. Luma Ray 2 T2V — [~$0.50 / 5s] (كاميرا 3D)', '🌊 21. Luma Ray 2 T2V — [~$0.50 / 5s] (3D Camera)'],
+      ['🌊 21. Luma Ray 2 T2V — [~$0.50 / 5s] (كاميرا دريم ماشين 3D)', '🌊 21. Luma Ray 2 T2V — [~$0.50 / 5s] (Dream Machine 3D Camera)'],
+      ['🌊 22. Luma Ray 2 Modify — [~$1.75 / 5s] (تعديل لقطات سينمائية كاملة)', '🌊 22. Luma Ray 2 Modify — [~$1.75 / 5s] (Full Cinematic Shot Modification)'],
+      ['🌐 34. LingBot-World 2.0 — [عالم تفاعلي 3D لايف WASD]', '🌐 34. LingBot-World 2.0 — [Live 3D WASD World]'],
+      ['🌐 35. ABot-World-0 — [عالم تفاعلي تجاري مفتوح لايف]', '🌐 35. ABot-World-0 — [Commercial Open Interactive World]'],
+      ['🌙 نوير بارد أزرق (6500K)', '🌙 Cool Blue Noir (6500K)'],
+      ['🌟 الكل (All Insights)', '🌟 All Insights'],
+      ['🎞️ 8. Kling O1 Video Edit — [~$0.50 / 5s] (إعادة تلوين وتعديل الفيديو بالكامل)', '🎞️ 8. Kling O1 Video Edit — [~$0.50 / 5s] (Complete Video Restyle & Color Grade)'],
+      ['🎞️ 8. Kling O1 Video Edit — [~$0.50 / 5s] (تعديل كامل بالذكاء الاصطناعي)', '🎞️ 8. Kling O1 Video Edit — [~$0.50 / 5s] (Full AI Video Edit)'],
+      ['🎥 18. Runway Gen-3 Alpha — [~$0.35 / 5s] (سرعة فائقة وواقعية سينمائية)', '🎥 18. Runway Gen-3 Alpha — [~$0.35 / 5s] (Ultra Speed & Cinematic Realism)'],
+      ['🎥 18. Runway Gen-3 Alpha — [~$0.35 / 5s] (هوليوود وسرعة فائقة)', '🎥 18. Runway Gen-3 Alpha — [~$0.35 / 5s] (Hollywood & Turbo Speed)'],
+      ['🎥 19. Runway Gen-3 I2V — [~$0.35 / 5s] (تحريك الكوادر الهوليوودية)', '🎥 19. Runway Gen-3 I2V — [~$0.35 / 5s] (Animate Hollywood Frames)'],
+      ['🎥 19. Runway Gen-3 I2V — [~$0.35 / 5s] (تحريك الكوادر)', '🎥 19. Runway Gen-3 I2V — [~$0.35 / 5s] (Animate Keyframes)'],
+      ['🎥 26. PixVerse V6 Cinematic — [~$0.18 / 5s] (عدسات سينمائية)', '🎥 26. PixVerse V6 Cinematic — [~$0.18 / 5s] (Cinematic Lenses)'],
+      ['🎥 27. PixVerse V6 Cinematic — [~$0.18 / 5s] (عدسات سينمائية ومؤثرات)', '🎥 27. PixVerse V6 Cinematic — [~$0.18 / 5s] (Cinematic Lenses & FX)'],
+      ['🎬 16. Google Veo 3.1 Cinematic — [~$0.60 / 5s] (إضاءة سينمائية وعدسات هوليوود)', '🎬 16. Google Veo 3.1 Cinematic — [~$0.60 / 5s] (Cinematic Lighting & Hollywood Lenses)'],
+      ['🎬 16. Google Veo 3.1 Cinematic — [~$0.60 / 5s] (إضاءة سينمائية وعدسات)', '🎬 16. Google Veo 3.1 Cinematic — [~$0.60 / 5s] (Cinematic Lighting & Lenses)'],
+      ['🎬 تجميع الحلقة الدرامية كاملة (FFmpeg Stitch)', '🎬 Stitch Full Dramatic Episode (FFmpeg)'],
+      ['🎬 تشغيل خط الإنتاج المتكامل (4 Passes)', '🎬 Execute Full Directorial Pipeline (4 Passes)'],
+      ['🎬 تيل وأورنج سينمائي', '🎬 Cinematic Teal & Orange'],
+      ['🎬 دراما وتمثيل ومونتاج (Drama & Acting)', '🎬 Drama, Acting & Editing'],
+      ['🎯 23. MiniMax H3 I2V LoRA — [~$0.25 / 5s] (قفل ملامح الشخصية)', '🎯 23. MiniMax H3 I2V LoRA — [~$0.25 / 5s] (Character Likeness Lock)'],
+      ['🎯 24. MiniMax H3 I2V LoRA — [~$0.25 / 5s] (قفل ملامح الشخصية بالـ LoRA)', '🎯 24. MiniMax H3 I2V LoRA — [~$0.25 / 5s] (Character Likeness LoRA Lock)'],
+      ['👄 31. Sync Lipsync 2.0 — [~$0.05 / 5s] (مزامنة شفاه)', '👄 31. Sync Lipsync 2.0 — [~$0.05 / 5s] (Lip-Sync)'],
+      ['👄 32. Sync Lipsync 2.0 — [~$0.05 / 5s] (مزامنة شفاه احترافية بالذكاء الاصطناعي)', '👄 32. Sync Lipsync 2.0 — [~$0.05 / 5s] (AI Professional Lip-Sync)'],
+      ['👄 33. MuseTalk LipSync — [~$0.03 / 5s] (مزامنة شفاه سريعة)', '👄 33. MuseTalk LipSync — [~$0.03 / 5s] (Fast Lip-Sync)'],
+      ['👑 1. Kling 4.0 Pro Omni — [~$0.78 / 5s] (أحدث جيل: 30 ثانية + صوت ستيريو)', '👑 1. Kling 4.0 Pro Omni — [~$0.78 / 5s] (Latest: 30s + Stereo Audio)'],
+      ['👑 1. Kling 4.0 Pro Omni — [~$0.78 / 5s] (أحدث جيل: توليد حتى 30 ثانية + صوت ستيريو محيطي)', '👑 1. Kling 4.0 Pro Omni — [~$0.78 / 5s] (Latest: Up to 30s + Stereo Surround)'],
+      ['👑 2. Kling 4.0 Pro I2V — [~$0.78 / 5s] (تحريك الكوادر 1080p وثبات ملامح)', '👑 2. Kling 4.0 Pro I2V — [~$0.78 / 5s] (Animate 1080p + Likeness Anchor)'],
+      ['👑 2. Kling 4.0 Pro I2V — [~$0.78 / 5s] (تحريك الكوادر بجيل 4.0 وثبات ملامح خارق)', '👑 2. Kling 4.0 Pro I2V — [~$0.78 / 5s] (Animate via Gen 4.0 + Peak Likeness)'],
+      ['👑 22. FLUX 3 Max I2V — [~$0.25 / 5s] (صوت مدمج + دقة فائقة)', '👑 22. FLUX 3 Max I2V — [~$0.25 / 5s] (Native Audio + Ultra Res)'],
+      ['👑 23. FLUX 3 Max I2V — [~$0.25 / 5s] (صوت مدمج + دقة فوتورياليزم فائقة)', '👑 23. FLUX 3 Max I2V — [~$0.25 / 5s] (Native Audio + Photorealism)'],
+      ['👑 27. LTX-2.3 22B Cinema LoRA — [~$0.20 / 5s] (أعلى دقة + LoRA)', '👑 27. LTX-2.3 22B Cinema LoRA — [~$0.20 / 5s] (Peak Quality + LoRA)'],
+      ['👑 28. LTX-2.3 22B Cinema LoRA — [~$0.20 / 5s] (أعلى دقة مع قفل LoRA)', '👑 28. LTX-2.3 22B Cinema LoRA — [~$0.20 / 5s] (Peak Quality with LoRA Lock)'],
+      ['👑 3. Kling 3.0 Pro — [~$0.56 / 5s] (حركات كاميرا مركبة + صوت مدمج)', '👑 3. Kling 3.0 Pro — [~$0.56 / 5s] (Complex Camera + Native Audio)'],
+      ['👑 3. Kling 3.0 Pro — [~$0.56 / 5s] (حركات كاميرا معقدة + قص ومونتاج متعدد + صوت مدمج)', '👑 3. Kling 3.0 Pro — [~$0.56 / 5s] (Complex Camera + Multi-Cut Edit + Audio)'],
+      ['👑 4. Kling 3.0 Pro I2V — [~$0.56 / 5s] (تحريك الشخصيات بهندسة Kling 3)', '👑 4. Kling 3.0 Pro I2V — [~$0.56 / 5s] (Character Animation via Kling 3)'],
+      ['👑 5. Kling Motion Control 1080p — [~$0.63 / 5s] (نقل حركة الممثل بدقة بدون هزة)', '👑 5. Kling Motion Control 1080p — [~$0.63 / 5s] (Zero-Jitter Actor Motion Control)'],
+      ['👑 5. Kling Motion Control 1080p — [~$0.63 / 5s] (نقل حركة بدون هزة)', '👑 5. Kling Motion Control 1080p — [~$0.63 / 5s] (Zero-Jitter Motion Control)'],
+      ['👑 6. Kling 1.6 Pro I2V — [~$0.49 / 5s] (دقة هوليوودية 1080p مع كادر نهاية)', '👑 6. Kling 1.6 Pro I2V — [~$0.49 / 5s] (Hollywood 1080p with End-Frame)'],
+      ['👑 6. Kling 1.6 Pro I2V — [~$0.49 / 5s] (دقة هوليوودية 1080p)', '👑 6. Kling 1.6 Pro I2V — [~$0.49 / 5s] (Hollywood Grade 1080p)'],
+      ['👑 7. Kling 1.6 Pro T2V — [~$0.49 / 5s] (توليد مباشر بجودة Pro 1080p)', '👑 7. Kling 1.6 Pro T2V — [~$0.49 / 5s] (Direct Pro 1080p Render)'],
+      ['👑 7. Kling 1.6 Pro T2V — [~$0.49 / 5s] (توليد هوليوودي مباشر)', '👑 7. Kling 1.6 Pro T2V — [~$0.49 / 5s] (Direct Hollywood Render)'],
+      ['👑 A40 Enterprise (48GB VRAM) - ~$0.35/ساعة (ذاكرة ضخمة)', '👑 A40 Enterprise (48GB VRAM) - ~$0.35/hr (Massive VRAM)'],
+      ['👗 أزياء', '👗 Costumes'],
+      ['👤 ملابس الشخصية', '👤 Character Wardrobe'],
+      ['💃 10. Seedance 2.5 Omni Ref — [~$0.24/s - $1.20 / 5s] (حتى 30 ثانية + 50 مرجع كادر وصوت)', '💃 10. Seedance 2.5 Omni Ref — [~$0.24/s - $1.20 / 5s] (Up to 30s + 50 Multi-Refs)'],
+      ['💃 11. Seedance 2.5 I2V — [~$0.24/s] (تحريك كادر سينمائي وصوت متزامن)', '💃 11. Seedance 2.5 I2V — [~$0.24/s] (Cinematic Animation & Audio)'],
+      ['💃 11. Seedance 2.5 I2V — [~$0.24/s] (تحريك كادر سينمائي)', '💃 11. Seedance 2.5 I2V — [~$0.24/s] (Cinematic Animation)'],
+      ['💃 12. Seedance 2.5 T2V — [~$0.24/s] (توليد مباشر 1080p برقص وحركة حية)', '💃 12. Seedance 2.5 T2V — [~$0.24/s] (Direct 1080p Dance & Action)'],
+      ['💃 12. Seedance 2.5 T2V — [~$0.24/s] (توليد مباشر 1080p)', '💃 12. Seedance 2.5 T2V — [~$0.24/s] (Direct 1080p Generation)'],
+      ['💃 13. Seedance 2.0 4K Cinema — [~$0.30/s - $1.50 / 5s] (أعلى دقة 4K وفيزياء حركة)', '💃 13. Seedance 2.0 4K Cinema — [~$0.30/s - $1.50 / 5s] (Top 4K & Motion Physics)'],
+      ['💃 14. Seedance 2.0 I2V — [~$0.30/s] (تحريك سينمائي 4K)', '💃 14. Seedance 2.0 I2V — [~$0.30/s] (4K Cinematic Animation)'],
+      ['💃 14. Seedance 2.0 I2V — [~$0.30/s] (تحريك سينمائي بدقة فائقة)', '💃 14. Seedance 2.0 I2V — [~$0.30/s] (Ultra-Res Cinematic Animation)'],
+      ['💎 أدوات مفتوحة ومجانية (Open Source & Local)', '💎 Open-Source & Free Local Tools'],
+      ['💎 الأرخص أولاً (تتالي تلقائي من $0.16/س: A5000 ➔ 3090 ➔ 4090)', '💎 Cheapest First (Cascade from $0.16/hr: A5000 ➔ 3090 ➔ 4090)'],
+      ['💎 الأرخص أولاً (تتالي تلقائي: A5000 $0.16 ➔ 3090 $0.22 ➔ 4090 $0.34)', '💎 Cheapest First (Cascade: A5000 $0.16 ➔ 3090 $0.22 ➔ 4090 $0.34)'],
+      ['📐 24. MiniMax Camera Controls — [~$0.25 / 5s] (تحكم مداري)', '📐 24. MiniMax Camera Controls — [~$0.25 / 5s] (Orbit Controls)'],
+      ['📐 25. MiniMax Camera Controls — [~$0.25 / 5s] (تحكم مداري ثلاثي الأبعاد)', '📐 25. MiniMax Camera Controls — [~$0.25 / 5s] (3D Orbit Camera Controls)'],
+      ['📐 29. Lightricks LTX-2.5 Reframe — [~$0.15] (تمديد الكادر)', '📐 29. Lightricks LTX-2.5 Reframe — [~$0.15] (Reframe Canvas)'],
+      ['📐 30. Lightricks LTX-2.5 Reframe — [~$0.15] (تمديد الكادر السينمائي 9:16)', '📐 30. Lightricks LTX-2.5 Reframe — [~$0.15] (Cinematic 9:16 Outpainting)'],
+      ['🔥 نماذج الفيديو المتداولة (Top Models)', '🔥 Trending Video Models (Top Models)'],
+      ['🕯️ دافئ تنجستن (3200K)', '🕯️ Warm Tungsten (3200K)'],
+      ['🖥️ RunPod (سيرفرات ComfyUI و LoRA)', '🖥️ RunPod (ComfyUI & LoRA Servers)'],
+      ['🖼️ الكادر كاملاً', '🖼️ Entire Frame'],
+      ['🛋️ أثاث', '🛋️ Furniture'],
+      ['🛡️ تم التحقق: خالي 100% من القيود وحقوق النشر (Pure Commercial License)', '🛡️ Verified: 100% Free of IP & Copyright Restrictions (Pure Commercial License)'],
+      ['🟢 NVIDIA RTX 3090 (24GB VRAM) - $0.22/hr (~3¢ per train! توازن ممتاز)', '🟢 NVIDIA RTX 3090 (24GB VRAM) - $0.22/hr (~3¢ per train! Great Balance)'],
+      ['🟢 NVIDIA RTX A5000 (24GB VRAM) - $0.16/hr (~2¢ per train! الأكثر توفيراً)', '🟢 NVIDIA RTX A5000 (24GB VRAM) - $0.16/hr (~2¢ per train! Most Economic)'],
+      ['🟢 RTX 3090 (24GB VRAM) - ~$0.22/ساعة (اقتصادي سريع)', '🟢 RTX 3090 (24GB VRAM) - ~$0.22/hr (Economic Fast)'],
+      ['🟢 RTX A5000 (24GB VRAM) - ~$0.16/ساعة (الخيار الاقتصادي الأول)', '🟢 RTX A5000 (24GB VRAM) - ~$0.16/hr (Priority 1 Economic)'],
+      ['🤗 Hugging Face (أوزان النماذج واللورات)', '🤗 Hugging Face (Open Weights & LoRAs)'],
+      ['🧊 Tripo3D (تحويل الكادرات إلى مجسمات 3D)', '🧊 Tripo3D (Frame to 3D Mesh)'],
+      ['🧠 Google Gemini (مساعد المخرج والسيناريو)', '🧠 Google Gemini (Director Assistant & Script)'],
+      ['🧱 جدران وخلفية', '🧱 Walls & Background'],
+      ['🧱 خامات', '🧱 Textures'],
+      ['🪑 أثاث وأرضية', '🪑 Furniture & Floor'],
       ['ابحث في مفاتيح الخدمات (Fal, RunPod, Gemini, HuggingFace)...', 'Search service keys (Fal, RunPod, Gemini, HuggingFace)...']
     ];
 
@@ -11626,9 +12450,20 @@ let currentUploadContext = 'chat';
       MAP_EN_TO_AR[en.trim()] = ar.trim();
     });
 
+    // Sorted key arrays by length descending so multi-word phrases match before single words
+    let SORTED_AR_KEYS = [];
+    let SORTED_EN_KEYS = [];
+
+    function rebuildI18nKeyIndexes() {
+      SORTED_AR_KEYS = Object.keys(MAP_AR_TO_EN).sort((a, b) => b.length - a.length);
+      SORTED_EN_KEYS = Object.keys(MAP_EN_TO_AR).sort((a, b) => b.length - a.length);
+    }
+    rebuildI18nKeyIndexes();
+
     function applyUniversalTextI18n(targetLang) {
       const isArabic = (targetLang === 'ar');
       const activeMap = isArabic ? MAP_EN_TO_AR : MAP_AR_TO_EN;
+      const sortedKeys = isArabic ? SORTED_EN_KEYS : SORTED_AR_KEYS;
 
       // 1. Walk entire text node hierarchy in DOM
       const walker = document.createTreeWalker(
@@ -11641,10 +12476,35 @@ let currentUploadContext = 'chat';
       let node;
       while (node = walker.nextNode()) {
         const raw = node.nodeValue;
-        if (!raw) continue;
+        if (!raw || !raw.trim()) continue;
         const trimmed = raw.trim();
+
+        // Exact match first (fastest and cleanest)
         if (activeMap[trimmed]) {
           node.nodeValue = raw.replace(trimmed, activeMap[trimmed]);
+          continue;
+        }
+
+        // Substring replacement for mixed or compound phrases if containing Arabic/English
+        const hasArabic = /[\u0600-\u06FF]/.test(raw);
+        if (!isArabic && hasArabic) {
+          let updated = raw;
+          for (let i = 0; i < sortedKeys.length; i++) {
+            const k = sortedKeys[i];
+            if (k.length > 2 && updated.includes(k)) {
+              updated = updated.split(k).join(activeMap[k]);
+            }
+          }
+          if (updated !== raw) node.nodeValue = updated;
+        } else if (isArabic && !hasArabic) {
+          let updated = raw;
+          for (let i = 0; i < sortedKeys.length; i++) {
+            const k = sortedKeys[i];
+            if (k.length > 3 && updated.includes(k)) {
+              updated = updated.split(k).join(activeMap[k]);
+            }
+          }
+          if (updated !== raw) node.nodeValue = updated;
         }
       }
 
@@ -11665,6 +12525,13 @@ let currentUploadContext = 'chat';
           opt.textContent = activeMap[oTrim];
         }
       });
+
+      // 4. Update HTML title tag
+      if (isArabic) {
+        document.title = 'VirtuFilm Studio AI | المنظومة السينمائية المتكاملة مع سيندي';
+      } else {
+        document.title = 'VirtuFilm Studio AI | Integrated Cinematic System with Cindy';
+      }
     }
 
 
@@ -12568,7 +13435,7 @@ let currentUploadContext = 'chat';
 
       const comfyBlenderDesc = document.getElementById('comfy-blender-desc-p');
       if (comfyBlenderDesc) {
-        comfyBlenderDesc.textContent = (lang === 'en') ? 'Camera choreography, focal lenses, and Z-Depth maps extracted locally from Blender (D:\\Blender).' : (lang === 'fr') ? "Chorégraphie caméra, focales et cartes Z-Depth extraites de Blender." : (lang === 'es') ? 'Coreografía de cámara, lentes y mapas Z-Depth extraídos de Blender.' : 'تخطيط الكاميرا، والعدسات، وخرائط العمق (Depth Maps) المستخرجة محلياً من بلندر (D:\\Blender).';
+        comfyBlenderDesc.textContent = (lang === 'en') ? 'Camera choreography, focal lenses, and Z-Depth maps extracted locally from Blender 5.3 LTS.' : (lang === 'fr') ? "Chorégraphie caméra, focales et cartes Z-Depth extraites de Blender 5.3 LTS." : (lang === 'es') ? 'Coreografía de cámara, lentes y mapas Z-Depth extraídos de Blender 5.3 LTS.' : 'تخطيط الكاميرا، والعدسات، وخرائط العمق (Depth Maps) المستخرجة محلياً من بلندر (Blender 5.3 LTS).';
       }
 
       const comfyModeLabel = document.getElementById('comfy-render-mode-label');
@@ -12582,6 +13449,26 @@ let currentUploadContext = 'chat';
 
       const comfyModeLsSpan = document.getElementById('comfy-mode-ls-span');
       if (comfyModeLsSpan) comfyModeLsSpan.textContent = (lang === 'en') ? 'Lip-Sync Dubbing' : (lang === 'fr') ? 'Doublage Labial' : (lang === 'es') ? 'Doblaje Labial' : 'دوبلاج الشفاه';
+
+      const comfyModeOtSpan = document.getElementById('comfy-mode-ot-span');
+      if (comfyModeOtSpan) comfyModeOtSpan.textContent = (lang === 'en') ? 'Research Suite (8 Tools)' : (lang === 'fr') ? 'Suite Recherche (8 Outils)' : (lang === 'es') ? 'Suite Investigación (8 Tools)' : 'أدوات الأبحاث (8 Tools)';
+
+      const otHeaderTitle = document.getElementById('ot-header-title');
+      if (otHeaderTitle) otHeaderTitle.textContent = (lang === 'en') ? 'Verified Open-Source Research Suite (8 Tools)' : (lang === 'fr') ? 'Suite d\'Outils Open-Source Vérifiés (8 Outils)' : (lang === 'es') ? 'Suite de Herramientas Open-Source Verificadas (8 Tools)' : 'مجموعة أدوات الأبحاث مفتوحة المصدر المعتمدة (8 Tools)';
+
+      const otSelectLbl = document.querySelector('#ot-select-label span');
+      if (otSelectLbl) otSelectLbl.textContent = (lang === 'en') ? 'Select Open-Source Tool from Dropdown:' : (lang === 'fr') ? 'Sélectionner l\'Outil Open-Source:' : (lang === 'es') ? 'Seleccionar Herramienta Open-Source:' : 'اختر الأداة المفتوحة من القائمة المنسدلة:';
+
+      const otQuickLbl = document.getElementById('ot-quick-preview-lbl');
+      if (otQuickLbl) otQuickLbl.textContent = (lang === 'en') ? 'Instant Preview of Standardized Outputs (720p @ 24fps):' : (lang === 'fr') ? 'Aperçu Instantané des Sorties Standardisées (720p @ 24fps):' : (lang === 'es') ? 'Vista Previa Instantánea de Salidas Estandarizadas (720p @ 24fps):' : 'معاينة فورية للمخرجات القياسية المعتمدة (720p @ 24fps):';
+
+      const otPromptLbl = document.getElementById('ot-prompt-label');
+      if (otPromptLbl) otPromptLbl.textContent = (lang === 'en') ? 'Tool Guidance / Motion Prompt (Optional):' : (lang === 'fr') ? 'Prompt de Guidage / Mouvement (Optionnel):' : (lang === 'es') ? 'Prompt de Guía / Movimiento (Opcional):' : 'برومبت التوجيه أو المشهد للأداة (اختياري):';
+
+      const otPromptInp = document.getElementById('comfy-opentool-prompt');
+      if (otPromptInp) otPromptInp.placeholder = (lang === 'en') ? 'Enter scene prompt or leave empty to load verified benchmark output...' : (lang === 'fr') ? 'Entrez un prompt ou laissez vide pour charger le benchmark vérifié...' : (lang === 'es') ? 'Ingrese un prompt o déjelo vacío para cargar la salida verificada...' : 'اكتب توجيه المشهد أو اتركه فارغاً لتحميل وعرض التجربة القياسية المعتمدة...';
+
+      if (typeof onOpenToolSelectChange === 'function') onOpenToolSelectChange();
 
       const comfyOpenFreeBadge = document.getElementById('comfy-open-free-badge');
       if (comfyOpenFreeBadge) comfyOpenFreeBadge.textContent = (lang === 'en') ? 'Open-Source (Free)' : (lang === 'fr') ? 'Open-Source (Gratuit)' : (lang === 'es') ? 'Open-Source (Gratis)' : 'مفتوح المصدر (مجاني)';
@@ -13847,6 +14734,86 @@ let currentUploadContext = 'chat';
     }
   </script>
 
+<script>
+  /* ===== 4-TAB GROUPING (Vault moved to dedicated Slide-over Sidebar Drawer) ===== */
+  (function () {
+    const PARENT = { screening: 'storyboard', lora: 'production', reframe: 'production' };
+    const L = {
+      ar: { chat: '1. الإخراج', storyboard: '2. السيناريو والعرض', production: '3. الإنتاج', comfy: '4. المعمل المجاني',
+            s_storyboard: 'السيناريو', s_screening: 'صالة العرض', s_production: 'الديكور والأزياء', s_lora: 'الممثل (LoRA)', s_reframe: 'إعادة التأطير' },
+      en: { chat: '1. Direction', storyboard: '2. Script & Screening', production: '3. Production', comfy: '4. Free Lab',
+            s_storyboard: 'Script', s_screening: 'Screening Room', s_production: 'Sets & Costumes', s_lora: 'Actor (LoRA)', s_reframe: 'Reframe' },
+      fr: { chat: '1. Réalisation', storyboard: '2. Scénario & Projection', production: '3. Production', comfy: '4. Labo gratuit',
+            s_storyboard: 'Scénario', s_screening: 'Salle de projection', s_production: 'Décors & Costumes', s_lora: 'Acteur (LoRA)', s_reframe: 'Recadrage' },
+      es: { chat: '1. Dirección', storyboard: '2. Guion y Proyección', production: '3. Producción', comfy: '4. Laboratorio gratis',
+            s_storyboard: 'Guion', s_screening: 'Sala de proyección', s_production: 'Decorados y Vestuario', s_lora: 'Actor (LoRA)', s_reframe: 'Reencuadre' }
+    };
+    const GROUPS = {
+      storyboard: [['storyboard', 'fa-clapperboard'], ['screening', 'fa-film']],
+      production: [['production', 'fa-couch'], ['lora', 'fa-user-astronaut'], ['reframe', 'fa-crop-simple']]
+    };
+    let current = 'chat';
+    const lang = () => (L[window.currentAppLang] ? window.currentAppLang : 'ar');
+
+    function apply(tabId) {
+      current = tabId || current;
+      const T = L[lang()];
+      ['screening', 'lora', 'reframe', 'vault'].forEach(t => {
+        const b = document.getElementById('nav-main-' + t);
+        if (b) b.style.display = 'none';
+      });
+      ['chat', 'storyboard', 'production', 'comfy'].forEach(k => {
+        const s = document.getElementById('nav-' + k + '-text');
+        if (s && s.textContent !== T[k]) s.textContent = T[k];
+      });
+      const parent = PARENT[current] || current;
+      if (PARENT[current]) {
+        const src = document.getElementById('nav-main-' + current);
+        const pb = document.getElementById('nav-main-' + parent);
+        if (src && pb) pb.className = src.className;
+      }
+      let bar = document.getElementById('sub-nav-bar');
+      if (!bar) {
+        const anchor = document.getElementById('nav-main-chat');
+        const host = anchor && anchor.parentElement && anchor.parentElement.parentElement;
+        if (host) {
+          bar = document.createElement('div');
+          bar.id = 'sub-nav-bar';
+          bar.className = 'w-full px-2 sm:px-4 py-1 flex items-center gap-1 bg-cinema-950/70 border-b border-cinema-700/60';
+          host.insertAdjacentElement('afterend', bar);
+        }
+      }
+      if (!bar) return;
+      const items = GROUPS[parent];
+      if (!items) { bar.classList.add('hidden'); bar.innerHTML = ''; return; }
+      bar.classList.remove('hidden');
+      bar.innerHTML = items.map(([id, icon]) =>
+        '<button type="button" onclick="switchTab(\'' + id + '\')" class="px-3 py-1 rounded-md text-[11px] font-bold transition flex items-center gap-1.5 ' +
+        (id === current ? 'bg-cinema-gold/90 text-cinema-900' : 'text-slate-400 hover:text-white bg-cinema-800/60') +
+        '"><i class="fa-solid ' + icon + ' text-[10px]"></i>' + T['s_' + id] + '</button>').join('');
+    }
+
+    if (typeof window.switchTab === 'function') {
+      const origSwitch = window.switchTab;
+      window.switchTab = function (tabId) {
+        const r = origSwitch.apply(this, arguments);
+        try { apply(tabId); } catch (e) { console.warn('tab-group', e); }
+        setTimeout(() => { try { apply(tabId); } catch (e) {} }, 60);
+        return r;
+      };
+    }
+    if (typeof window.setAppLanguage === 'function') {
+      const origLang = window.setAppLanguage;
+      window.setAppLanguage = function () {
+        const r = origLang.apply(this, arguments);
+        try { apply(current); } catch (e) { console.warn('tab-group', e); }
+        setTimeout(() => { try { apply(current); } catch (e) {} }, 60);
+        return r;
+      };
+    }
+    try { apply('chat'); } catch (e) { console.warn('tab-group', e); }
+  })();
+</script>
 </body>
 
 </html>

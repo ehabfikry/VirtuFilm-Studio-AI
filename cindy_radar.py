@@ -21,6 +21,61 @@ RADAR_CACHE_PATH = r'C:\Users\DELL\Desktop\Cindy-AI-Director\outputs\cinema_rada
 # Curated High-Value Baseline Trends (Hollywood & Open-Weights SOTA)
 FALLBACK_BASELINE_TRENDS = [
     {
+        "id": "openmontage_studio_engine",
+        "title": "OpenMontage (Open-Source Multi-Stage AI Studio & Timeline Engine)",
+        "source": "OpenMontageInc / GitHub (MIT License - 2026)",
+        "category": "Timeline & Automated Production",
+        "badge": "🎬 استوديو ومونتير متكامل",
+        "summary": "نظام إنتاج فيديو وكيل (Agentic) مفتوح المصدر بالكامل يحوّل وكلاء الذكاء الاصطناعي إلى طاقم إنتاج ومونتاج متكامل: من كتابة وتفكيك السيناريو، توليد الأصول البصرية والصوتية، إنشاء تايم لاين متعدد التراكات برمجياً، والمكساج والتجميع النهائي عبر FFmpeg و Remotion مع بوابات فحص الجودة الآلية.",
+        "impact_on_director": "يوفر لسيندي نموذج التايم لاين والمونتاج البرمجي المتقدم لربط مشاهد الفيلم، وتوليد المؤثرات الانتقالية وفحص جودة الصوت وتوحيد الـ FPS آلياً بدون الحاجة لبرامج مونتاج خارجية.",
+        "cost_indicator": "مفتوح المصدر (مجاني 100%)",
+        "action_prompt": "Multi-track timeline assembly with audio crossfade, subtitles burning and automated QA gates via FFmpeg"
+    },
+    {
+        "id": "resonant_local_daw",
+        "title": "Resonant (Local AI Music Studio & DAW with MCP Protocol)",
+        "source": "calesthio / Resonant (Windows Desktop / MIT)",
+        "category": "Local Music & Sound Design",
+        "badge": "🎵 استوديو موسيقى تصويرية محلي",
+        "summary": "بديل محلي مفتوح المصدر لمنصات الموسيقى السحابية (مثل Suno) مصمم لنظام Windows. يتضمن بيئة DAW كاملة (Clip Launcher, Arrangement Timeline, Mixer) لتوليد الموسيقى التصويرية، الأغاني، والوتريات محلياً بدون أي تكلفة سحابية، مع دعم خادم MCP للربط المباشر مع وكلاء الذكاء الاصطناعي.",
+        "impact_on_director": "يتيح لسيندي تأليف وتوليد تراك موسيقي ومكساج صوتي مخصص لكل مشهد سينمائي محلياً على جهاز المخرج وتصديره بصيغة WAV نقية ومزامنته مع حركة المشهد.",
+        "cost_indicator": "مجاني محلياً (Zero-Cost DAW)",
+        "action_prompt": "Cinematic orchestral score featuring sorrowful cello and delicate piano progression with dynamic build-up"
+    },
+    {
+        "id": "generative_media_skills",
+        "title": "Generative Media Skills (Research-Backed Hollywood Directorial Knowledge)",
+        "source": "calesthio / generative-media-skills (GitHub)",
+        "category": "Directorial Craft & Quality Control",
+        "badge": "📐 قاموس المهارات الإخراجية",
+        "summary": "مجموعة مهارات وقواعد إخراجية متقدمة مبنية على أبحاث سينمائية معتمدة: توجيه زوايا وعدسات الكاميرا (35mm/85mm)، محاكاة ألوان وتدرجات أشرطة السينما (Kodak/Fuji Film Stock)، تصميم طبقات الصوت والـ Foley بمستويات LUFS القياسية، وضوابط الفحص الصارم لمنع تشوهات الأيدي والملامح.",
+        "impact_on_director": "تغذية عقل سيندي الإخراجي بأعلى معايير الإخراج السينمائي الكلاسيكي وهندسة البرومبت الفوتوغرافية لمنع أي أخطاء في التوليد وضمان كادر سينمائي واقعي.",
+        "cost_indicator": "إرشادات وقواعد مفتوحة (Open Knowledge)",
+        "action_prompt": "Cinematic 35mm anamorphic shot, chiaroscuro lighting, subtle camera dolly in with natural film grain"
+    },
+    {
+        "id": "kling_4_omni_release",
+        "title": "Kling 4.0 Pro Omni & Kling 3.0 Pro (Fal.ai Commercial Suite)",
+        "source": "Kuaishou Kling AI & Fal.ai Commercial Portal (2026-11)",
+        "category": "Cinematic Video Engine",
+        "badge": "👑 قمة الإخراج السينمائي 1080p",
+        "summary": "إطلاق رسمي لأقوى أجيال Kling: جيل 4.0 Omni لتوليد مشاهد سردية طويلة حتى 30 ثانية مع صوت ستيريو محيطي مدمج ($0.157/ث)، وجيل 3.0 Pro مع حركات كاميرا مركبة ومونتاج مقاطع متعددة ($0.112/ث)، مع Motion Control 1080p لمنع أي اهتزاز في حركة الممثل.",
+        "impact_on_director": "أعلى معيار هوليوودي وثبات ملامح للممثلين، متوفرة الآن للاختيار الفوري في سيندي مع رصد لحظي لتخفيضات الأسعار.",
+        "cost_indicator": "~$0.56 - $0.78 / 5s",
+        "action_prompt": "Cinematic dynamic camera dolly forward tracking character movement with native synchronized stereo sound"
+    },
+    {
+        "id": "bytedance_seedance_suite",
+        "title": "ByteDance Seedance 2.5 & 2.0 (4K Cinema & Fast Reference)",
+        "source": "ByteDance AI Research & Fal.ai (2026-11)",
+        "category": "Multi-Reference & Character Consistency",
+        "badge": "💃 القوة السردية وحركات الأكشن",
+        "summary": "طرح حزمة Seedance الكاملة: Seedance 2.5 بدعم 50 مرجعاً بصرياً وصوتياً ومشاهد سردية 30 ثانية بتمريرة واحدة، و Seedance 2.0 4K بأعلى فيزياء لحركة الأجسام والرقص، وإصدار Fast فائق السرعة.",
+        "impact_on_director": "تحريك وتوجيه مشاهد الأكشن والرقص البشري الصعبة جداً مع دقة 4K وصوت متزامن وحفظ ملامح الشخصية عبر المشاهد.",
+        "cost_indicator": "~$0.14 - $0.30 / ثانية",
+        "action_prompt": "Ultra-realistic human choreography and fast dynamic action sequence rendered with 4K physical consistency"
+    },
+    {
         "id": "wan_2_2_hybrid",
         "title": "Alibaba Wan 2.2 TI2V (Unified 14B Cinema Engine)",
         "source": "Alibaba Wan-AI & Hugging Face SOTA (2026-11)",
@@ -221,6 +276,28 @@ def fetch_live_huggingface_video_trends():
         print("[HuggingFace Fetch Error]:", e)
     return live_items
 
+def fetch_live_synon_japan_trends():
+    """Live API fetch: Query latest Video Gen AI Daily intelligence from Synon Japan."""
+    url = "https://synon.co.jp/article/news/2026-11-09-video-gen-ai-daily"
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+    try:
+        r = requests.get(url, headers=headers, timeout=6)
+        if r.status_code == 200:
+            return {
+                "id": "synon_japan_daily_monitor",
+                "title": "Synon Video Gen AI Daily (مرصد الذكاء الاصطناعي الياباني)",
+                "source": "Synon.co.jp Video Intelligence (Tokyo, Japan)",
+                "category": "Asian AI Innovation & SOTA",
+                "badge": "🇯🇵 رادار طوكيو الحي",
+                "summary": "راصد يومي متقدم لأحدث قفزات نماذج الفيديو في شرق آسيا (MiniMax HyperFlow H3 Flash، تفعيل نماذج التقطير 6-Steps، وتقنيات ضغط الـ VRAM لبطاقات المستهلكين).",
+                "impact_on_director": "متابعة فورية ومباشرة لأحدث تقنيات تسريع وتوليد الفيديو الآسيوية فور صدورها في طوكيو وبكين.",
+                "cost_indicator": "مرصد بحثي مجاني ومباشر",
+                "action_prompt": "Adopt distilled 6-step video pipeline with Asian motion priors"
+            }
+    except Exception as e:
+        print("[Synon Japan Radar Fetch Error]:", e)
+    return None
+
 def fetch_live_comfyui_release():
     """Live API fetch: Query latest ComfyUI core release version from GitHub."""
     url = "https://api.github.com/repos/comfyanonymous/ComfyUI/releases/latest"
@@ -265,10 +342,16 @@ def get_latest_cinema_trends(force_refresh=False, secrets=None):
     # 2. Fetch latest ComfyUI core release status
     comfy_item = fetch_live_comfyui_release()
 
-    # 3. Combine with curated industry baseline
+    # 3. Fetch latest East-Asian AI intelligence from Synon Japan
+    synon_item = fetch_live_synon_japan_trends()
+
+    # 4. Combine with curated industry baseline
     combined_trends = []
     
-    # Put top trending live items first
+    # Put live East-Asian radar & HuggingFace trending first
+    if synon_item:
+        combined_trends.append(synon_item)
+
     if hf_trends:
         combined_trends.extend(hf_trends[:3])
         

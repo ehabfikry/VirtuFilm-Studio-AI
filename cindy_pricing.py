@@ -28,6 +28,10 @@ CACHE_PATH = r'C:\Users\DELL\Desktop\Cindy-AI-Director\daily_pricing_cache.json'
 FAL_PRICING_ENDPOINTS = [
     # Video Models
     'fal-ai/kling-video/v3/standard/motion-control',
+    'fal-ai/kling-video/v3/pro/text-to-video',
+    'fal-ai/kling-video/v3/pro/image-to-video',
+    'fal-ai/kling-video/v4/pro/text-to-video',
+    'fal-ai/kling-video/v4/pro/image-to-video',
     'fal-ai/kling-video/v1.6/pro/image-to-video',
     'fal-ai/kling-video/v1.6/pro/text-to-video',
     'fal-ai/kling-video/v1.6/standard/image-to-video',
@@ -43,6 +47,12 @@ FAL_PRICING_ENDPOINTS = [
     'minimax/h3/image-to-video/lora',
     'fal-ai/minimax/video-01',
     'fal-ai/minimax-video',
+    'bytedance/seedance-2.5/reference-to-video',
+    'bytedance/seedance-2.5/image-to-video',
+    'bytedance/seedance-2.5/text-to-video',
+    'bytedance/seedance-2.0/reference-to-video',
+    'bytedance/seedance-2.0/image-to-video',
+    'bytedance/seedance-2.0/fast',
     'fal-ai/bytedance/seedance/v1/pro/text-to-video',
     'fal-ai/pixverse/v6',
     'fal-ai/topaz/upscale-video',
@@ -137,14 +147,74 @@ MODEL_METADATA = {
         'shot_label': 'شوت 5 ثوانٍ',
         'recommendation': 'خيارات عدسات أنامورفيك وتأطير سينمائي احترافي وتحكم كامل بالحركة'
     },
-    'fal-ai/bytedance/seedance/v1/pro/text-to-video': {
-        'name': 'ByteDance Seedance 2.5',
+    'bytedance/seedance-2.5/reference-to-video': {
+        'name': 'ByteDance Seedance 2.5 (Reference/Omni)',
         'category': 'video_multiref',
-        'badge': 'حتى 30 ثانية ومراجع',
+        'badge': '💃 القوة السردية 30ث (50 مرجع)',
+        'type': 'Multi-Ref Video',
+        'calc_shot': lambda p: 1.20 if (not p or p <= 0.05) else round(p * 5, 2),
+        'shot_label': 'شوت 5 ثوانٍ (حتى 30ث)',
+        'benchmark_cost': 1.20,
+        'recommendation': 'يدعم حتى 50 مرجع كادر وصوت، توليد مشهد سردي حتى 30 ثانية في تمريرة واحدة'
+    },
+    'bytedance/seedance-2.5/image-to-video': {
+        'name': 'ByteDance Seedance 2.5 (Image-to-Video)',
+        'category': 'video_i2v',
+        'badge': '💃 تحريك كادر سينمائي',
+        'type': 'Image-to-Video',
+        'calc_shot': lambda p: 1.20 if (not p or p <= 0.05) else round(p * 5, 2),
+        'shot_label': 'شوت 5 ثوانٍ',
+        'benchmark_cost': 1.20,
+        'recommendation': 'تحريك الكوادر السينمائية بفيزياء حركة حية وتوليد صوت متزامن'
+    },
+    'bytedance/seedance-2.5/text-to-video': {
+        'name': 'ByteDance Seedance 2.5 (Text-to-Video)',
+        'category': 'video_t2v',
+        'badge': '💃 توليد سردي من النص',
+        'type': 'Text-to-Video',
+        'calc_shot': lambda p: 1.20 if (not p or p <= 0.05) else round(p * 5, 2),
+        'shot_label': 'شوت 5 ثوانٍ',
+        'benchmark_cost': 1.20,
+        'recommendation': 'توليد حركات رقص وأكشن بشرية فائقة التعقيد من الوصف النصي'
+    },
+    'bytedance/seedance-2.0/reference-to-video': {
+        'name': 'ByteDance Seedance 2.0 (4K Cinema)',
+        'category': 'video_multiref',
+        'badge': '💃 سينما 4K فائق ومراجع',
+        'type': 'Multi-Ref Video',
+        'calc_shot': lambda p: 1.50 if (not p or p <= 0.05) else round(p * 5, 2),
+        'shot_label': 'شوت 5 ثوانٍ',
+        'benchmark_cost': 1.50,
+        'recommendation': 'دقة 4K نقية مع تحكم سينمائي عالي بمواقع الشخصيات والكاميرا'
+    },
+    'bytedance/seedance-2.0/image-to-video': {
+        'name': 'ByteDance Seedance 2.0 (Image-to-Video)',
+        'category': 'video_i2v',
+        'badge': '💃 تحريك كادر 4K',
+        'type': 'Image-to-Video',
+        'calc_shot': lambda p: 1.50 if (not p or p <= 0.05) else round(p * 5, 2),
+        'shot_label': 'شوت 5 ثوانٍ',
+        'benchmark_cost': 1.50,
+        'recommendation': 'تحريك الصور بدقة فائقة وتفاصيل خامات سينمائية واقعية'
+    },
+    'bytedance/seedance-2.0/fast': {
+        'name': 'ByteDance Seedance 2.0 Fast',
+        'category': 'video_t2v',
+        'badge': '⚡ حركة سريعة فائقة',
+        'type': 'Text-to-Video',
+        'calc_shot': lambda p: 0.70 if (not p or p <= 0.05) else round(p * 5, 2),
+        'shot_label': 'شوت 5 ثوانٍ',
+        'benchmark_cost': 0.70,
+        'recommendation': 'توليد سريع جداً للحركات المعقدة والرقص بنصف وقت المعالجة'
+    },
+    'fal-ai/bytedance/seedance/v1/pro/text-to-video': {
+        'name': 'ByteDance Seedance v1 Pro',
+        'category': 'video_multiref',
+        'badge': 'مستقر ومراجع',
         'type': 'Multi-Ref Video',
         'calc_shot': lambda p: round(p * 5, 2) if p else 0.90,
         'shot_label': 'شوت 5 ثوانٍ (حتى 30ث)',
-        'recommendation': 'يدعم مراجع متعددة (صور + فيديو + صوت) وتوليد مقاطع طويلة حتى 30 ثانية'
+        'recommendation': 'الجيل الأول المستقر من محرك Seedance'
     },
     'fal-ai/kling-video/v1.6/pro/image-to-video': {
         'name': 'Kling 1.6 Pro (Image-to-Video)',
@@ -208,6 +278,42 @@ MODEL_METADATA = {
         'calc_shot': lambda p: round(p * 5, 2) if p else 0.63,
         'shot_label': 'شوت 5 ثوانٍ',
         'recommendation': 'الأفضل عالمياً في نقل الأداء التمثيلي الجسدي وثبات الوجه من فيديو مرجعي'
+    },
+    'fal-ai/kling-video/v3/pro/text-to-video': {
+        'name': 'Kling 3.0 Pro (Text-to-Video & Native Audio)',
+        'category': 'video_t2v',
+        'badge': '👑 جيل Kling 3.0 Pro',
+        'type': 'Text-to-Video',
+        'calc_shot': lambda p: round(p * 5, 2) if p else 0.56,
+        'shot_label': 'شوت 5 ثوانٍ',
+        'recommendation': 'جيل Kling 3.0 بمحاكاة حركة الكاميرا والقص المتعدد والصوت المدمج ($0.112/ث)'
+    },
+    'fal-ai/kling-video/v3/pro/image-to-video': {
+        'name': 'Kling 3.0 Pro (Image-to-Video)',
+        'category': 'video_i2v',
+        'badge': '👑 جيل Kling 3.0 Pro I2V',
+        'type': 'Image-to-Video',
+        'calc_shot': lambda p: round(p * 5, 2) if p else 0.56,
+        'shot_label': 'شوت 5 ثوانٍ',
+        'recommendation': 'تحريك كوادر الممثلين بهندسة Kling 3 مع ثبات ملامح الوجه وتزامن الشفاه'
+    },
+    'fal-ai/kling-video/v4/pro/text-to-video': {
+        'name': 'Kling 4.0 Pro Omni (Long-Form & Stereo Audio)',
+        'category': 'video_t2v',
+        'badge': '👑 جيل Kling 4.0 الأحدث',
+        'type': 'Text-to-Video',
+        'calc_shot': lambda p: round(p * 5, 2) if (p and p > 0.01) else (round(p * 4500, 2) if (p and p <= 0.01) else 0.78),
+        'shot_label': 'شوت 5 ثوانٍ',
+        'recommendation': 'جيل Kling 4.0 Omni لتوليد لقطات طويلة تصل لـ 30 ثانية مع صوت ستيريو بدقة 1080p ($0.157/ث)'
+    },
+    'fal-ai/kling-video/v4/pro/image-to-video': {
+        'name': 'Kling 4.0 Pro (Image-to-Video Omni)',
+        'category': 'video_i2v',
+        'badge': '👑 جيل Kling 4.0 I2V',
+        'type': 'Image-to-Video',
+        'calc_shot': lambda p: round(p * 5, 2) if (p and p > 0.01) else (round(p * 4500, 2) if (p and p <= 0.01) else 0.78),
+        'shot_label': 'شوت 5 ثوانٍ',
+        'recommendation': 'تحريك الكادر المرجعي بتقنية Omni Reference (حتى 10 كادرات مفتاحية)'
     },
     'fal-ai/kling-video/o1/video-to-video/edit': {
         'name': 'Kling O1 Video Edit',
@@ -384,10 +490,10 @@ def fetch_live_fal_prices():
     headers = {'Authorization': f'Key {fal_key}'}
     pricing_map = {}
     
-    # Query key endpoints individually with small delay to avoid 404 on batch and 429 rate limit
+    # Query key endpoints with high priority first, small delay to avoid 429 rate limit
     for ep in FAL_PRICING_ENDPOINTS:
         try:
-            r = requests.get(f'https://api.fal.ai/v1/models/pricing?endpoint_id={ep}', headers=headers, timeout=5)
+            r = requests.get(f'https://api.fal.ai/v1/models/pricing?endpoint_id={ep}', headers=headers, timeout=2.5)
             if r.status_code == 200:
                 data = r.json()
                 for item in data.get('prices', []):
@@ -399,10 +505,10 @@ def fetch_live_fal_prices():
                         'is_live': True
                     }
             elif r.status_code == 429:
-                time.sleep(0.4)
+                time.sleep(0.5)
         except Exception:
             pass
-        time.sleep(0.08)
+        time.sleep(0.04)
         
     return pricing_map
 
@@ -584,6 +690,18 @@ def build_daily_pricing_report(force_refresh=False):
         calc_fn = meta['calc_shot']
         estimated_shot = calc_fn(unit_p)
         
+        # Calculate discount if live price is lower than benchmark
+        benchmark_shot = meta.get('benchmark_cost')
+        discount_info = None
+        if benchmark_shot and estimated_shot < benchmark_shot:
+            saved_pct = round(((benchmark_shot - estimated_shot) / benchmark_shot) * 100)
+            if saved_pct >= 5:
+                discount_info = {
+                    'original_cost': benchmark_shot,
+                    'discount_pct': saved_pct,
+                    'saved_amount': round(benchmark_shot - estimated_shot, 3)
+                }
+
         models_list.append({
             'endpoint_id': ep,
             'name': meta['name'],
@@ -595,8 +713,23 @@ def build_daily_pricing_report(force_refresh=False):
             'currency': 'USD',
             'estimated_shot_cost': estimated_shot,
             'shot_label': meta['shot_label'],
-            'recommendation': meta['recommendation']
+            'recommendation': meta['recommendation'],
+            'discount': discount_info
         })
+
+    # Collect active discount deals
+    active_discounts = [
+        {
+            'name': m['name'],
+            'endpoint_id': m['endpoint_id'],
+            'current_cost': m['estimated_shot_cost'],
+            'original_cost': m['discount']['original_cost'],
+            'discount_pct': m['discount']['discount_pct'],
+            'shot_label': m['shot_label'],
+            'badge': m['badge']
+        }
+        for m in models_list if m.get('discount')
+    ]
 
     report = {
         'date': today_str,
@@ -604,6 +737,7 @@ def build_daily_pricing_report(force_refresh=False):
         'last_updated_formatted': datetime.datetime.now().strftime('%d-%m-%Y %I:%M %p'),
         'currency': 'USD',
         'fal_models': models_list,
+        'discounts': active_discounts,
         'runpod_gpus': runpod_gpus,
         'llm_engines': llms,
         'summary': {
