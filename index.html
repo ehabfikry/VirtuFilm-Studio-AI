@@ -389,6 +389,12 @@
       <!-- 2. ACTION CONTROLS & WALLET (RIGHT) -->
       <div class="flex items-center gap-2 flex-shrink-0">
 
+                <!-- Local VFX, Assembly & Character Suite -->
+        <button type="button" onclick="openLocalVfxModal()" id="topbar-vfx-btn" class="px-2.5 py-1 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/40 font-bold text-[11px] flex items-center gap-1.5 transition shadow cursor-pointer" title="معمل المونتاج والمؤثرات وتثبيت الشخصيات المحلي">
+          <i class="fa-solid fa-wand-magic-sparkles text-indigo-400 text-[10px]"></i>
+          <span id="topbar-vfx-text">المؤثرات والمونتاج</span>
+        </button>
+
         <!-- Cinema Trends Radar -->
         <button type="button" onclick="openCinemaRadarModal()" id="topbar-radar-btn" class="px-2.5 py-1 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/40 text-[11px] font-bold flex items-center gap-1.5 transition shadow" title="رادار التحديثات والذكاء التنافسي">
           <i class="fa-solid fa-satellite-dish text-cyan-400 text-[10px] animate-pulse"></i>
@@ -14939,6 +14945,31 @@ let currentUploadContext = 'chat';
       loadDirectorPreferences();
     });
 
+
+    // --- LOCAL VFX & PRODUCTION SUITE CONTROLLER ---
+    function openLocalVfxModal() {
+      const modal = document.getElementById('local-vfx-modal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeLocalVfxModal() {
+      const modal = document.getElementById('local-vfx-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function triggerTimelineAssemblyAction() {
+      const trans = document.getElementById('vfx-transition-type')?.value || 'crossfade';
+      const res = document.getElementById('vfx-render-res')?.value || '1080p';
+      closeLocalVfxModal();
+      switchTab('chat');
+      const chatInp = document.getElementById('chat-input');
+      if (chatInp) {
+        chatInp.value = `سيندي، قومي بتجميع مشاهد الفيلم المنتجة في تايم لاين كامل مع انتقال ${trans} وتصدير الماستر بدقة ${res} عبر FFmpeg و OpenMontage.`;
+        chatInp.focus();
+        showToast('تم إرسال أمر تجميع التايم لاين والمونتاج لسيندي بنجاح! 🎬', 'success');
+      }
+    }
+
 </script>
 
   <!-- DIRECTOR IDENTITY & PERSONALIZATION MODAL -->
@@ -15025,6 +15056,168 @@ let currentUploadContext = 'chat';
         </button>
         <button type="button" onclick="closeDirectorIdentityModal()" class="px-4 py-2 bg-cinema-800 hover:bg-cinema-700 text-slate-300 rounded-xl text-xs font-bold transition cursor-pointer">
           إلغاء
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- LOCAL VFX, ASSEMBLY & CHARACTER SUITE MODAL (OpenMontage, Duix, Wunjo, ReActor) -->
+  <div id="local-vfx-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-5 hidden" dir="rtl">
+    <div class="bg-cinema-900 border-2 border-indigo-500/60 rounded-3xl max-w-4xl w-full max-h-[92vh] flex flex-col shadow-2xl text-slate-100 overflow-hidden">
+      
+      <!-- Header -->
+      <div class="p-4 sm:p-5 border-b border-cinema-700/80 bg-cinema-950/90 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white text-xl shadow-lg">
+            <i class="fa-solid fa-film"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-base font-black text-white">معمل المؤثرات والمونتاج وتثبيت الشخصيات المحلي</h3>
+              <span class="text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 px-2 py-0.5 rounded-full font-bold">Local Open Tools</span>
+            </div>
+            <p class="text-xs text-slate-400 mt-0.5">تشغيل فوري للأدوات المفتوحة التي تم فحصها اليوم لخدمة فيلمك محلياً</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeLocalVfxModal()" class="w-8 h-8 rounded-full bg-cinema-800 hover:bg-cinema-700 text-slate-400 hover:text-white flex items-center justify-center text-sm transition cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Body: 4 Actionable Production Modules Grid -->
+      <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 text-xs">
+        
+        <!-- Module 1: OpenMontage Timeline Assembly -->
+        <div class="bg-cinema-950/90 border border-indigo-500/40 rounded-2xl p-4 shadow-xl space-y-3">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center text-base">
+                <i class="fa-solid fa-timeline"></i>
+              </div>
+              <div>
+                <h4 class="text-sm font-bold text-indigo-300">1. تايم لاين المونتاج والتجميع الآلي (OpenMontage & FFmpeg)</h4>
+                <p class="text-[11px] text-slate-400">دمج لقطاتك المنتجة بتسلسل زمني، مع انتقالات Crossfade ناعمة وإضافة الصوت الخلفي</p>
+              </div>
+            </div>
+            <span class="text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded font-bold font-mono">Open Source / MIT</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 pt-1">
+            <div class="bg-cinema-900/80 border border-cinema-800 rounded-xl p-2.5">
+              <span class="text-[10px] text-slate-400 block mb-1">نوع الانتقال السينمائي:</span>
+              <select id="vfx-transition-type" class="w-full bg-cinema-950 border border-cinema-700 rounded-lg px-2 py-1 text-xs text-white outline-none">
+                <option value="crossfade">سينمائي ناعم (Dissolve / Crossfade)</option>
+                <option value="cut">قطع مباشر كلاسيكي (Hard Cut)</option>
+                <option value="fadeblack">تلاشي إلى السواد (Fade to Black)</option>
+              </select>
+            </div>
+            <div class="bg-cinema-900/80 border border-cinema-800 rounded-xl p-2.5">
+              <span class="text-[10px] text-slate-400 block mb-1">دقة وتنسيق الإخراج:</span>
+              <select id="vfx-render-res" class="w-full bg-cinema-950 border border-cinema-700 rounded-lg px-2 py-1 text-xs text-white outline-none">
+                <option value="1080p">1080p Full HD Cinema (16:9)</option>
+                <option value="4k">4K Ultra HD Upscaled</option>
+                <option value="9_16">9:16 Vertical Reel / TikTok</option>
+              </select>
+            </div>
+            <div class="flex items-end">
+              <button type="button" onclick="triggerTimelineAssemblyAction()" class="w-full py-2.5 px-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow transition cursor-pointer">
+                <i class="fa-solid fa-play text-[11px]"></i>
+                <span>تجميع الفيلم وتصدير الماستر</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Module 2: Duix-Avatar Neural Lip-Sync -->
+        <div class="bg-cinema-950/90 border border-emerald-500/40 rounded-2xl p-4 shadow-xl space-y-3">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-base">
+                <i class="fa-solid fa-lips"></i>
+              </div>
+              <div>
+                <h4 class="text-sm font-bold text-emerald-300">2. استوديو الدوبلاج العصبي ومزامنة الشفاه (Duix-Avatar SOTA)</h4>
+                <p class="text-[11px] text-slate-400">تحريك نطق وشفاه الممثل بدقة لمطابقة الحوار الصوتي المسجل أوفلاين</p>
+              </div>
+            </div>
+            <span class="text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded font-bold font-mono">16K+ Stars • Local</span>
+          </div>
+
+          <div class="flex items-center justify-between pt-1 flex-wrap gap-2">
+            <p class="text-[11px] text-slate-300">
+              يمكنك ربط أي لقطة ولدتها سيندي مع الصوت الناتج من استوديو التمثيل الصوتي لمزامنة الشفاه محلياً.
+            </p>
+            <button type="button" onclick="closeLocalVfxModal(); openVoiceStudioModal();" class="px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer">
+              <i class="fa-solid fa-microphone-lines"></i>
+              <span>فتح استوديو الصوت والدوبلاج</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Module 3: ComfyUI ReActor Face Consistency -->
+        <div class="bg-cinema-950/90 border border-amber-500/40 rounded-2xl p-4 shadow-xl space-y-3">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center text-base">
+                <i class="fa-solid fa-masks-theater"></i>
+              </div>
+              <div>
+                <h4 class="text-sm font-bold text-amber-300">3. تثبيت وجه الممثل واستبدال الدوبلير (ComfyUI ReActor & TEIN)</h4>
+                <p class="text-[11px] text-slate-400">قفل ملامح بطل الفيلم بدقة فوتوغرافية عبر CodeFormer لمنع تغير شكله في المشاهد</p>
+              </div>
+            </div>
+            <span class="text-[10px] text-amber-300 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded font-bold font-mono">Character Lock</span>
+          </div>
+
+          <div class="flex items-center justify-between pt-1 flex-wrap gap-2">
+            <p class="text-[11px] text-slate-300">
+              يتم تطبيق عقدة ReActor تلقائياً داخل معمل ComfyUI لتثبيت هوية بطلك على أي كادر أو حركة أكشن.
+            </p>
+            <button type="button" onclick="closeLocalVfxModal(); switchTab('lora');" class="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer">
+              <i class="fa-solid fa-dna"></i>
+              <span>إدارة ملامح وتدريب الممثل</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Module 4: Wunjo Studio Inpainting -->
+        <div class="bg-cinema-950/90 border border-cyan-500/40 rounded-2xl p-4 shadow-xl space-y-3">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center text-base">
+                <i class="fa-solid fa-eraser"></i>
+              </div>
+              <div>
+                <h4 class="text-sm font-bold text-cyan-300">4. مسح العناصر وتنظيف الكادرات المشوهة (Wunjo Studio & Inpaint)</h4>
+                <p class="text-[11px] text-slate-400">إزالة الأجسام غير المرغوبة من الفيديو وملء الخلفية طبيعياً بفرشاة ذكية</p>
+              </div>
+            </div>
+            <span class="text-[10px] text-cyan-300 bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 rounded font-bold font-mono">VFX Clean Plate</span>
+          </div>
+
+          <div class="flex items-center justify-between pt-1 flex-wrap gap-2">
+            <p class="text-[11px] text-slate-300">
+              مدمج في استوديو التأطير (Reframe) لترقية وتنظيف أبعاد الكوادر السينمائية.
+            </p>
+            <button type="button" onclick="closeLocalVfxModal(); switchTab('reframe');" class="px-3 py-1.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer">
+              <i class="fa-solid fa-expand"></i>
+              <span>فتح استوديو التأطير والترقية 4K</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer -->
+      <div class="p-3.5 bg-cinema-950/90 border-t border-cinema-800 flex items-center justify-between text-xs text-slate-400">
+        <span class="flex items-center gap-1.5 text-[11px]">
+          <i class="fa-solid fa-microchip text-indigo-400"></i>
+          <span>جميع هذه الوحدات تعمل محلياً على موارد جهازك لضمان الخصوصية والتوفير الكامل.</span>
+        </span>
+        <button type="button" onclick="closeLocalVfxModal()" class="px-4 py-1.5 rounded-xl bg-cinema-800 hover:bg-cinema-700 text-slate-200 font-bold transition text-xs cursor-pointer">
+          إغلاق المعمل
         </button>
       </div>
 
