@@ -31,17 +31,23 @@ This project does not claim to invent new generative neural architectures from s
 
 ---
 
-## 🚀 Quick Start (Windows)
+## 🚀 Quick Start (Windows, macOS & Linux)
 
+### 🪟 Windows Setup (One-Click)
 ```bash
-# 1. Clone the repository
 git clone https://github.com/ehabfikry/VirtuFilm-Studio-AI.git
 cd VirtuFilm-Studio-AI
-
-# 2. Run Windows Setup
 install_windows.bat
 ```
-Access the local workspace at: **`http://127.0.0.1:8765`**
+
+### 🍎 macOS & Linux Setup (Apple Silicon M1/M2/M3/M4 & Intel)
+```bash
+git clone https://github.com/ehabfikry/VirtuFilm-Studio-AI.git
+cd VirtuFilm-Studio-AI
+chmod +x install_mac_linux.sh
+./install_mac_linux.sh
+```
+The studio will automatically open in your browser at: **`http://127.0.0.1:8765`**
 
 ---
 

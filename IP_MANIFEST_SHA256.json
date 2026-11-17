@@ -7,10 +7,10 @@
     "WIPO Berne Convention (181 Member States - Automatic Author Protection)",
     "Cryptographic SHA-256 Prior-Art & Git Timestamp Ledger"
   ],
-  "generated_at_utc": "2026-11-17T17:07:19Z",
-  "master_sha256": "17d8d23d00c714250496b2ff04069dcb438ec55c3196986c7369e108315f120e",
+  "generated_at_utc": "2026-11-17T17:26:45Z",
+  "master_sha256": "f7d362d2280a44d4f6a8929e835bee4933cb569fcf508946eb9f08b0b790a40a",
   "tracked_files_count": 14,
-  "total_protected_bytes": 2078094,
+  "total_protected_bytes": 2078829,
   "security_controls": {
     "localhost_isolation": "127.0.0.1 Only (Strict Host & Origin Guard)",
     "zero_leak_vault": "Local cindy_secrets.json (Excluded from Git & Static HTTP)",
@@ -20,12 +20,12 @@
     "index.html": {
       "sha256": "8b0813f39fe1fe5f24c09ddfa9a9048cddb3f24444931ba28b434f9f8dc27136",
       "size_bytes": 1473361,
-      "modified_utc": "2026-11-17T17:06:40Z"
+      "modified_utc": "2026-11-17T17:07:40Z"
     },
     "cindy_server.py": {
-      "sha256": "cd8234db96bace8bca71a2449a0c42094759643d648cbe6dd12cfcc09644a36d",
-      "size_bytes": 308982,
-      "modified_utc": "2026-11-17T17:07:06Z"
+      "sha256": "9b944cf6bfc86fb96bf9eaa420b52ecf097066451b2477c9213814822b628e23",
+      "size_bytes": 309678,
+      "modified_utc": "2026-11-17T17:26:12Z"
     },
     "cindy_previs_engine.py": {
       "sha256": "14af1a4fb973e251dcc7718f1449b1bf0e89756dcf36064c645a78f6f46016d0",
@@ -83,9 +83,9 @@
       "modified_utc": "2026-11-17T10:23:58Z"
     },
     "IP_LEGAL_SPECIFICATION.md": {
-      "sha256": "b93711e6f4a13ddef61437c2eb3e5d2964d2cd431ff13ed4d6e49814b9e61347",
-      "size_bytes": 2879,
-      "modified_utc": "2026-11-17T17:06:15Z"
+      "sha256": "48c3f58ab3d59eef3dc8ba5d29fbf07562d03d676137c548d4633e316561ec1b",
+      "size_bytes": 2918,
+      "modified_utc": "2026-11-17T17:07:40Z"
     }
   }
 }

@@ -2740,21 +2740,37 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
 
     def handle_generate_previs(self, payload):
         import subprocess
-        # Search for Blender 5.3+ installed by winget or fallback to custom path
+        # Cross-platform Blender discovery: Windows, macOS (/Applications/Blender.app), and Linux
         possible_blender_paths = [
+            # Windows standard paths
             r"C:\Program Files\Blender Foundation\Blender 5.3\blender.exe",
             r"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe",
             r"C:\Program Files\Blender Foundation\Blender 5.1\blender.exe",
             r"C:\Program Files\Blender Foundation\Blender 5.0\blender.exe",
             r"C:\Program Files\Blender Foundation\Blender 4.3\blender.exe",
             r"C:\Program Files\Blender Foundation\Blender 4.2\blender.exe",
-            r"D:\Blender\blender.exe"
+            r"D:\Blender\blender.exe",
+            # macOS standard paths (Apple Silicon & Intel)
+            "/Applications/Blender.app/Contents/MacOS/Blender",
+            "/Applications/Blender 5.3.app/Contents/MacOS/Blender",
+            os.path.expanduser("~/Applications/Blender.app/Contents/MacOS/Blender"),
+            # Linux standard paths
+            "/usr/bin/blender",
+            "/usr/local/bin/blender",
+            "/snap/bin/blender"
         ]
         blender_exe = None
         for bp in possible_blender_paths:
             if os.path.exists(bp):
                 blender_exe = bp
                 break
+
+        # Fallback to PATH lookup on Linux/macOS
+        if not blender_exe:
+            import shutil
+            which_b = shutil.which("blender")
+            if which_b:
+                blender_exe = which_b
 
         if not blender_exe:
             self.send_error_response(500, "Blender executable not found on system paths.")
