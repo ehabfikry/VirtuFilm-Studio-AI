@@ -45,6 +45,49 @@ Access the local workspace at: **`http://127.0.0.1:8765`**
 
 ---
 
+
+---
+
+## ❓ Frequently Asked Questions (FAQ / أسئلة شائعة وإجابات صريحة)
+
+<details>
+<summary><b>1. Is VirtuFilm Studio AI claiming to invent new AI models or replace tools like ComfyUI / Clapper?</b></summary>
+<br>
+
+**No, absolutely not.**  
+This project is conceived by an independent cinema enthusiast and storyteller. It does not invent new neural algorithms or claim novelty over existing solutions. It is an experimental personal workflow designed to connect proven open technologies (Blender for spatial staging, ComfyUI for local nodes, and community diffusion pipelines) into an accessible interface for testing scene continuity. We deeply respect and stand on the shoulders of the global open-source ecosystem.
+</details>
+
+<details>
+<summary><b>2. How does 3D Pre-visualization work with Blender LTS?</b></summary>
+<br>
+
+Blender is used strictly as a local coordinate calculator (Pre-vis). Instead of burning cloud GPU credits guessing camera trajectories, you can plan your 6-DoF camera moves (Dolly, Crane, Orbit, Track) inside Blender to extract spatial perspective before dispatching prompts to neural video backends.
+</details>
+
+<details>
+<summary><b>3. Are my API keys safe, and does this studio incur hidden cloud charges?</b></summary>
+<br>
+
+**100% Safe (BYOK Standard).**  
+All operations run locally bound to `127.0.0.1`. Your API credentials remain exclusively inside your local `cindy_secrets.json`, which is permanently excluded from version control. The studio will never execute paid external generation calls without your explicit modal confirmation. You can also run 100% free locally using ComfyUI.
+</details>
+
+<details>
+<summary><b>4. Who owns the rights to films and images generated with this studio?</b></summary>
+<br>
+
+**You do (100% Filmmaker Ownership).**  
+Under the AGPL-3.0 license, while the workflow engine is open-source, all original stories, characters, prompts, rendered frames, and final movies produced by you belong entirely to you with zero royalty claims from us.
+</details>
+
+<details>
+<summary><b>5. How can I train actor identity LoRAs economically?</b></summary>
+<br>
+
+By preparing 15–20 clear, diverse reference photos of your performer and running standard LoRA training scripts on an on-demand cloud GPU (like an RTX 4090 on RunPod), a complete character checkpoint typically finishes in 5–6 minutes for approximately **$0.04** total.
+</details>
+
 ## 🛡️ Attribution, Legal Clearance & Disclaimers
 
 * **Independent Non-Commercial Vision:** This repository represents personal creative research by a cinema enthusiast seeking practical solutions for narrative consistency in AI video.

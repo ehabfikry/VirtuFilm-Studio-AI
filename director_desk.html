@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>المساعد الشخصي الذكي لإدارة الردود والأسئلة | Q&A Triage Desk</title>
+  <title>لوحة متابعة مشروع سيندي على GitHub | Live Repo Monitor</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -15,24 +15,28 @@
 <body class="min-h-screen flex flex-col bg-slate-950 text-slate-100">
 
   <!-- Header -->
-  <header class="border-b border-indigo-500/30 bg-slate-900/95 sticky top-0 z-40 px-6 py-3.5 flex items-center justify-between shadow-xl">
+  <header class="border-b border-indigo-500/30 bg-slate-900/95 sticky top-0 z-40 px-6 py-3 flex items-center justify-between shadow-xl">
     <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-indigo-600 flex items-center justify-center text-white text-xl font-black shadow-lg">
-        <i class="fa-solid fa-user-shield"></i>
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xl font-black shadow-lg">
+        <i class="fa-brands fa-github"></i>
       </div>
       <div>
         <div class="flex items-center gap-2">
-          <h1 class="text-base sm:text-lg font-black text-amber-300">مساعد إيهاب فكري الشخصي للردود الفورية</h1>
-          <span class="text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 px-2.5 py-0.5 rounded-full font-bold">Personal Q&A Assistant</span>
+          <h1 class="text-base sm:text-lg font-black text-indigo-300">لوحة المتابعة الحية لمستودع GitHub</h1>
+          <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded-full font-bold">Live Tracker</span>
         </div>
-        <p class="text-xs text-slate-400">مخصص لتبسيط الرد على استفسارات المستخدمين والمطورين بهدوء وتواضع وبدون تعقيد تقني</p>
+        <p class="text-xs text-slate-400">مخصصة للأستاذ <strong class="text-white">إيهاب فكري</strong> لمتابعة التفاعل، الزيارات، والإشعارات لحظة بلحظة</p>
       </div>
     </div>
 
     <div class="flex items-center gap-2">
+      <button onclick="fetchLiveMonitoringData()" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center gap-1.5 transition">
+        <i class="fa-solid fa-rotate" id="refresh-spin-icon"></i>
+        <span>تحديث البيانات الآن</span>
+      </button>
       <a href="https://github.com/ehabfikry/VirtuFilm-Studio-AI" target="_blank" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold border border-slate-700 flex items-center gap-1.5 transition">
-        <i class="fa-brands fa-github text-white"></i>
-        <span>صفحة المشروع على GitHub</span>
+        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+        <span>فتح GitHub</span>
       </a>
     </div>
   </header>
@@ -40,101 +44,117 @@
   <!-- Main Container -->
   <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 space-y-6">
 
-    <!-- Section 1: Ready-Made 1-Click Common Questions & Answers (الأسئلة الشائعة الجاهزة بنقرة واحدة) -->
-    <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 shadow-2xl space-y-3">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-        <h2 class="text-sm font-bold text-amber-300 flex items-center gap-2">
-          <i class="fa-solid fa-bolt text-yellow-400"></i>
-          <span>أسئلة شائعة متوقعة مع ردود جاهزة بنقرة واحدة (انسخ الرد فوراً):</span>
-        </h2>
-        <span class="text-[11px] text-slate-400">وفر وقتك واختر السؤال لنرى رده النموذجي</span>
+    <!-- Live Repo Metrics -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-1">
+        <div class="flex items-center justify-between text-slate-400 font-bold">
+          <span>النجوم (Stars)</span>
+          <i class="fa-solid fa-star text-amber-400 text-base"></i>
+        </div>
+        <p id="stat-stars" class="text-2xl font-black text-amber-300">--</p>
+        <p class="text-[10px] text-slate-500">حفظ المستخدمين للمستودع</p>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">
-        <button onclick="showQuickQA(0)" class="p-3 text-right bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/50 rounded-2xl transition space-y-1">
-          <div class="font-bold text-indigo-300">❓ "هل هذا المشروع يقلد أدوات أخرى مثل Clapper؟"</div>
-          <p class="text-slate-400 text-[11px] line-clamp-2">رد متواضع يوضح أننا نبني ونستفيد من جهود المجتمع المفتوح...</p>
-        </button>
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-1">
+        <div class="flex items-center justify-between text-slate-400 font-bold">
+          <span>المشاركات (Forks)</span>
+          <i class="fa-solid fa-code-fork text-cyan-400 text-base"></i>
+        </div>
+        <p id="stat-forks" class="text-2xl font-black text-cyan-300">--</p>
+        <p class="text-[10px] text-slate-500">نسخ وتطوير المطورين للكود</p>
+      </div>
 
-        <button onclick="showQuickQA(1)" class="p-3 text-right bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/50 rounded-2xl transition space-y-1">
-          <div class="font-bold text-indigo-300">❓ "عندي مشكلة في تشغيل بلندر 5.3 محلياً"</div>
-          <p class="text-slate-400 text-[11px] line-clamp-2">خطوات تقنية واضحة ومباشرة لتوجيه المسار والـ LTS...</p>
-        </button>
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-1">
+        <div class="flex items-center justify-between text-slate-400 font-bold">
+          <span>المتابعين (Watchers)</span>
+          <i class="fa-solid fa-eye text-emerald-400 text-base"></i>
+        </div>
+        <p id="stat-watchers" class="text-2xl font-black text-emerald-300">--</p>
+        <p class="text-[10px] text-slate-500">مشتركون بالإشعارات التلقائية</p>
+      </div>
 
-        <button onclick="showQuickQA(2)" class="p-3 text-right bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/50 rounded-2xl transition space-y-1">
-          <div class="font-bold text-indigo-300">❓ "هل يتم سحب أي مبالغ أو استهلاك للرصيد سراً؟"</div>
-          <p class="text-slate-400 text-[11px] line-clamp-2">تأكيد على معيار BYOK والعزل المحلي التام 100%...</p>
-        </button>
-
-        <button onclick="showQuickQA(3)" class="p-3 text-right bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/50 rounded-2xl transition space-y-1">
-          <div class="font-bold text-indigo-300">❓ "كيف أدرب LoRA للممثلين بأقل تكلفة؟"</div>
-          <p class="text-slate-400 text-[11px] line-clamp-2">شرح عملي بسيط لتكلفة الـ 4 سنت وتثبيت الوجوه...</p>
-        </button>
-
-        <button onclick="showQuickQA(4)" class="p-3 text-right bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/50 rounded-2xl transition space-y-1">
-          <div class="font-bold text-indigo-300">❓ "هل يمكنني استخدام المنظومة لعمل فيلم تجاري؟"</div>
-          <p class="text-slate-400 text-[11px] line-clamp-2">توضيح رخصة AGPL-3.0 وأن ملكية المخرجات للمستخدم 100%...</p>
-        </button>
-
-        <button onclick="showQuickQA(5)" class="p-3 text-right bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/50 rounded-2xl transition space-y-1">
-          <div class="font-bold text-indigo-300">❓ "ما هو الفرق بين Cindy واستخدام ComfyUI مباشرة؟"</div>
-          <p class="text-slate-400 text-[11px] line-clamp-2">توضيح قيمة الرؤية السينمائية والـ 3D Previs وتوفير الجهد...</p>
-        </button>
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-1">
+        <div class="flex items-center justify-between text-slate-400 font-bold">
+          <span>الاستفسارات المفتوحة</span>
+          <i class="fa-solid fa-circle-dot text-rose-400 text-base"></i>
+        </div>
+        <p id="stat-issues" class="text-2xl font-black text-rose-300">--</p>
+        <p class="text-[10px] text-slate-500">تحتاج متابعة أو مراجعة</p>
       </div>
     </div>
 
-    <!-- Section 2: Custom Question & Answer Generator (مساعد توليد رد على أي سؤال غريب أو جديد) -->
+    <!-- Live Feed & Inquiries Section -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-      <!-- Left Input -->
-      <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl space-y-3 text-xs">
-        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-          <h3 class="font-bold text-white flex items-center gap-1.5">
-            <i class="fa-solid fa-pen-to-square text-cyan-400"></i>
-            <span>وردك سؤال جديد من شخص؟ ضعه هنا:</span>
-          </h3>
-          <span class="text-[10px] text-slate-400">بالعربية أو الإنجليزية</span>
+      <!-- Left Column: Open Issues & Discussions List -->
+      <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-inbox text-indigo-400"></i>
+            <h2 class="text-sm font-bold text-white">الاستفسارات والمحادثات الواردة (Issues & Discussions)</h2>
+          </div>
+          <span id="issues-count-badge" class="text-[10px] bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-full font-bold">جاري الفحص...</span>
         </div>
 
-        <div>
-          <label class="block text-slate-400 font-bold mb-1">ماذا يسأل المستخدم؟</label>
-          <textarea id="custom-q-inp" rows="5" placeholder="مثال: المستخدم يسأل: الكود مش راضي يشتغل على لينكس؟ أو يسأل: مين المطور اللي صمم المنظومة؟..." class="w-full bg-slate-950 border border-slate-700 rounded-2xl p-3 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition resize-none"></textarea>
-        </div>
-
-        <div class="space-y-1">
-          <label class="block text-slate-400 font-bold">طبيعة ونبرة الرد:</label>
-          <select id="response-tone-sel" class="w-full bg-slate-950 border border-slate-700 text-slate-200 rounded-xl p-2.5">
-            <option value="polite_humble">هادئ ومتواضع واحترافي (محب للسينما يقدر المجتمع)</option>
-            <option value="technical_precise">تقني ومباشر بالخطوات والأوامر (Technical Steps)</option>
-            <option value="english_official">إنجليزي رسمي لـ GitHub Issues / Discussions</option>
-          </select>
-        </div>
-
-        <button id="gen-btn" onclick="generateSmartAnswer()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-slate-950 font-black text-xs rounded-xl shadow-lg flex items-center justify-center gap-2 transition cursor-pointer">
-          <i class="fa-solid fa-wand-magic-sparkles"></i>
-          <span>اصنع لي الرد المناسب فوراً</span>
-        </button>
-      </div>
-
-      <!-- Right Output -->
-      <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl flex flex-col space-y-3">
-        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-          <h3 class="text-xs font-bold text-white flex items-center gap-1.5">
-            <i class="fa-solid fa-reply text-emerald-400"></i>
-            <span>الرد المقترح لك لتنسخه وتلصقه فوراً:</span>
-          </h3>
-          <button id="copy-btn" onclick="copyAnswerText()" class="px-3 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold flex items-center gap-1.5 transition">
-            <i class="fa-solid fa-copy"></i>
-            <span id="copy-text-label">نسخ الرد بنقرة واحدة</span>
-          </button>
-        </div>
-
-        <div id="answer-display-box" class="flex-1 bg-slate-950 border border-slate-800 rounded-2xl p-4 overflow-y-auto max-h-[460px] text-xs leading-relaxed text-slate-200">
-          <div class="text-center text-slate-500 py-12 space-y-2">
-            <i class="fa-solid fa-comments text-3xl text-slate-700"></i>
-            <p>اختر من الأسئلة الجاهزة في الأعلى، أو اكتب سؤال المستخدم على اليمين واضغط "اصنع لي الرد المناسب فوراً".</p>
+        <div id="issues-list-container" class="space-y-3 max-h-[480px] overflow-y-auto pr-1 text-xs">
+          <div class="text-center text-slate-500 py-16 space-y-2">
+            <i class="fa-solid fa-spinner fa-spin text-2xl text-indigo-400"></i>
+            <p>جاري سحب التفاعلات الحية من GitHub API...</p>
           </div>
         </div>
+      </div>
+
+      <!-- Right Column: Quick Status & Quick Links -->
+      <div class="lg:col-span-5 space-y-4">
+        
+        <!-- Repo Health Card -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl space-y-3 text-xs">
+          <h3 class="font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-shield-halved text-emerald-400"></i>
+            <span>حالة المستودع والجاهزية القانونية</span>
+          </h3>
+          <div class="space-y-2 text-slate-300 text-[11px] leading-relaxed">
+            <div class="flex items-center justify-between p-2 bg-slate-950 rounded-xl border border-slate-800">
+              <span>الرخصة المعتمدة:</span>
+              <span class="font-bold text-emerald-400">GNU AGPL-3.0</span>
+            </div>
+            <div class="flex items-center justify-between p-2 bg-slate-950 rounded-xl border border-slate-800">
+              <span>قسم الأسئلة الشائعة (FAQ):</span>
+              <span class="font-bold text-emerald-400">منشور على صفحة المشروع ✅</span>
+            </div>
+            <div class="flex items-center justify-between p-2 bg-slate-950 rounded-xl border border-slate-800">
+              <span>زر الدعم والرعاية (Sponsor):</span>
+              <span class="font-bold text-emerald-400">متصل بـ Patreon ✅</span>
+            </div>
+            <div class="flex items-center justify-between p-2 bg-slate-950 rounded-xl border border-slate-800">
+              <span>أحدث إصدار رسمي:</span>
+              <span class="font-bold text-amber-300">v1.0.0 (Release)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions Card -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl space-y-3 text-xs">
+          <h3 class="font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-compass text-amber-400"></i>
+            <span>روابط متابعة سريعة بضغطة زر</span>
+          </h3>
+          <div class="grid grid-cols-1 gap-2 text-xs">
+            <a href="https://github.com/ehabfikry/VirtuFilm-Studio-AI/issues" target="_blank" class="p-2.5 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-200 flex items-center justify-between transition">
+              <span class="flex items-center gap-2"><i class="fa-solid fa-circle-dot text-rose-400"></i> صفحة الاستفسارات (Issues)</span>
+              <i class="fa-solid fa-arrow-left text-slate-500 text-[10px]"></i>
+            </a>
+            <a href="https://github.com/ehabfikry/VirtuFilm-Studio-AI/discussions" target="_blank" class="p-2.5 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-200 flex items-center justify-between transition">
+              <span class="flex items-center gap-2"><i class="fa-solid fa-comments text-cyan-400"></i> صفحة المناقشات (Discussions)</span>
+              <i class="fa-solid fa-arrow-left text-slate-500 text-[10px]"></i>
+            </a>
+            <a href="https://github.com/ehabfikry/VirtuFilm-Studio-AI/graphs/traffic" target="_blank" class="p-2.5 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-200 flex items-center justify-between transition">
+              <span class="flex items-center gap-2"><i class="fa-solid fa-chart-line text-emerald-400"></i> إحصائيات الزيارات اليومية (Traffic Insights)</span>
+              <i class="fa-solid fa-arrow-left text-slate-500 text-[10px]"></i>
+            </a>
+          </div>
+        </div>
+
       </div>
 
     </div>
@@ -142,163 +162,81 @@
   </main>
 
   <footer class="border-t border-slate-900 py-3 text-center text-xs text-slate-500">
-    <span>Cindy Q&A Triage Desk • Personal Assistant for Ehab Fikry (Cinema Enthusiast)</span>
+    <span>VirtuFilm Studio AI • Dedicated GitHub Activity Monitor for Ehab Fikry</span>
   </footer>
 
   <script>
-    const READY_QA = [
-      {
-        q: "هل هذا المشروع يقلد أو ينقل أدوات أخرى مثل Clapper أو ComfyUI؟",
-        a: `### مرحباً بك وشكراً على استفسارك وملاحظتك الكريمة! 🎬
-
-بالتأكيد، نحن لا ندّعي أبداً إعادة اختراع العجلة أو تقديم شيء معزول عن جهود المجتمع المفتوح. 
-
-**فلسفة VirtuFilm Studio AI ببساطة هي:**
-* أنا مجرد **محب للسينما وصانع أفكار مستقل** أردت تجميع أفضل ما وصل إليه مجتمع المصادر المفتوحة الرائع (مثل ComfyUI و Blender و Clapper) وتنسيقها في بيئة عمل محلية متصلة تساعد صناع المحتوى والقصص المصورة على التخطيط لكادراتهم وتثبيت ملامح شخصياتهم بأقل تكلفة ممكنة.
-* نحن نكن كل التقدير والاحترام لمطوري تلك الأدوات التي استلهمنا منها الكثير، والمشروع مفتوح المصدر بالكامل (AGPL-3.0) لمشاركة هذه التجربة ومخرجاتها مع الجميع.
-
-أهلاً بأي أفكار أو مساهمات لتطوير التجربة!  
-**إيهاب فكري (محب للسينما وصاحب أفكار)**`
-      },
-      {
-        q: "عندي مشكلة في تشغيل بلندر 5.3 محلياً أو عدم ربط الكاميرا",
-        a: `### أهلاً بك! 👋
-
-شكراً لاهتمامك وتجربة المنظومة. بخصوص ربط **Blender 5.3 LTS**:
-
-1. **مسار التثبيت الافتراضي:** يتوقع الاسكربت وجود بلندر في:
-   \`C:\\Program Files\\Blender Foundation\\Blender 5.3\\blender.exe\`
-2. إذا كان بلندر مثبتاً في مسار مختلف، يمكنك ببساطة تعديل المسار في ملف \`cindy_server.py\` في سطر \`BLENDER_PATH\`، أو تشغيله كـ Portable.
-3. دور بلندر هنا هو **تحديد زوايا الكاميرا ومسارها (Pre-vis)** لتصدير الإحداثيات وتوفير تكاليف التجارب العشوائية قبل توليد الفيديو.
-
-إذا استمرت المشكلة، لا تتردد في ذكر نوع نظام التشغيل وسنساعدك فوراً!  
-**تحياتي، إيهاب فكري**`
-      },
-      {
-        q: "هل يتم سحب أي مبالغ أو استهلاك للرصيد خلسة عبر الـ APIs؟",
-        a: `### مرحباً بك! 👋
-
-نقطة هامة جداً وأحييك على السؤال:
-
-* المنظومة مصممة وفق معيار صارم وهو **BYOK (Bring Your Own Key)**؛ السيرفر محلي تماماً (\`127.0.0.1\`)، ولا يوجد أي كود يقوم بعمليات توليد سحابية مدفوعة بدون ضغطك الصريح على زر التوليد وموافقتك على التكلفة المقدرة أولاً.
-* ملف المفاتيح \`cindy_secrets.json\` مقيد على جهازك الشخصي ومستبعد تماماً من Git.
-* كما يمكنك استخدام **الاستوديو المحلي (Local ComfyUI)** والريندر الداخلي بـ **$0.00** دون الحاجة لأي مفاتيح خارجية.
-
-كل التقدير،  
-**إيهاب فكري**`
-      },
-      {
-        q: "كيف أدرب LoRA للممثلين وتكلفة الـ 4 سنت على RunPod؟",
-        a: `### مرحباً يا فنان! 🎬
-
-طريقة التدريب الاقتصادية التي نستخدمها في أبحاثنا:
-
-1. **الصور المطلوبة:** من 15 إلى 20 صورة للممثل بزوايا مختلفة وإضاءة نقية مع تنوع في تعبيرات الوجه.
-2. **المنصة:** بدلاً من الاشتراكات الشهرية المرتفعة، نستخدم كارت RTX 4090 على RunPod بنظام On-Demand (تكلفته حوالي $0.44 في الساعة).
-3. **التكلفة الفعلية:** جلسة التدريب الواحدة تستغرق من 5 إلى 6 دقائق فقط، مما يجعل التكلفة الإجمالية في حدود **4 سنت ($0.04)** فقط للشخصية الواحدة.
-
-هذا يضمن لك تثبيت ملامح الممثل في لقطات الفيلم المتتالية دون تشوه.  
-**بالتوفيق، إيهاب فكري**`
-      },
-      {
-        q: "هل يمكنني استخدام المنظومة لإنتاج وعرض فيلم تجاري خاص بي؟",
-        a: `### أهلاً وسهلاً بك! 🎥
-
-نعم بكل تأكيد:
-* **حقوق مخرجاتك ملكك 100%:** أي قصة، سيناريو، ستوري بورد، أو مشاهد فيديو تنتجها داخل المنظومة هي ملكك التجاري والإبداعي الخالص دون أي مطالبة بنسب أرباح أو حقوق ملكية منا.
-* **رخصة الكود (AGPL-3.0):** الكود نفسه مفتوح ومجاني للمخرجين وصناع المحتوى والباحثين، والشرط الوحيد للرخصة يمنع الشركات الكبرى من أخذ الكود وبيعه كخدمة سحابية مغلقة (SaaS) دون إذن.
-
-أتمنى لك كل التوفيق في إنتاج فيلمك!  
-**إيهاب فكري**`
-      },
-      {
-        q: "ما هو الفرق بين استخدام Cindy والعمل على ComfyUI مباشرة؟",
-        a: `### تحياتي وشكراً لسؤالك الذكي! 💡
-
-ComfyUI أداة عظيمة ومبهرة وكلنا مدينون لمطوريها، والفرق ببساطة هو:
-* **ComfyUI** يركز على هندسة النودات وتوصيل الأسلاك (Node-based Graph)، وهو أمر رائع للمبرمجين لكنه قد يكون معقداً لصانع القصة أو المخرج.
-* **VirtuFilm Studio (مع Cindy):** يقدم واجهة "مخرج" سهلة (شاشة سيناريو، معاينة كاميرا ثلاثية الأبعاد ببلندر، وحساب زوايا العدسات وتكاليف الميزانية)، ثم يقوم بالخلفية بتشغيل نودات التوليد نيابة عنك.
-
-الهدف هو توفير وقت التوصيل والتركيز على السرد البصري!  
-**مودتي، إيهاب فكري**`
-      }
-    ];
-
-    let currentAnswerText = "";
-
-    function showQuickQA(idx) {
-      const item = READY_QA[idx];
-      if (!item) return;
-      currentAnswerText = item.a;
-      renderAnswer(item.q, item.a);
-    }
-
-    function renderAnswer(question, answer) {
-      const box = document.getElementById('answer-display-box');
-      let html = answer
-        .replace(/```([\s\S]*?)```/g, '<pre class="bg-slate-900 border border-slate-700 rounded-xl p-3 my-2 overflow-x-auto text-emerald-300 font-mono text-[11px]"><code>$1</code></pre>')
-        .replace(/`([^`]+)`/g, '<code class="bg-slate-800 text-amber-300 px-1.5 py-0.5 rounded font-mono">$1</code>')
-        .replace(/^### (.*$)/gim, '<h3 class="text-sm font-black text-amber-300 mt-2 mb-1">$1</h3>')
-        .replace(/^\* (.*$)/gim, '<li class="ml-4 list-disc text-slate-300">$1</li>')
-        .replace(/\\n/g, '<br>');
-
-      box.innerHTML = `
-        <div class="space-y-3">
-          <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-2.5 text-xs text-amber-200">
-            <strong>السؤال:</strong> ${question}
-          </div>
-          <div class="text-xs text-slate-200 leading-relaxed font-sans" dir="auto">${html}</div>
-        </div>
-      `;
-    }
-
-    async function generateSmartAnswer() {
-      const q = document.getElementById('custom-q-inp').value.trim();
-      const tone = document.getElementById('response-tone-sel').value;
-      if (!q) {
-        alert('يرجى كتابة سؤال المستخدم أولاً يا فنان.');
-        return;
-      }
-
-      const btn = document.getElementById('gen-btn');
-      btn.disabled = true;
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>جاري صياغة الرد المتواضع والواضح...</span>';
+    async function fetchLiveMonitoringData() {
+      const icon = document.getElementById('refresh-spin-icon');
+      if (icon) icon.classList.add('fa-spin');
 
       try {
-        const resp = await fetch('/api/desk/triage', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title: "استفسار مستخدم", body: q, category: tone })
-        });
-        const data = await resp.json();
-        if (data.success && data.response) {
-          currentAnswerText = data.response;
-          renderAnswer(q, data.response);
-        } else {
-          alert('تعذر توليد الرد.');
+        // 1. Fetch Repo basic stats via our local proxy or GitHub
+        const resp = await fetch('https://api.github.com/repos/ehabfikry/VirtuFilm-Studio-AI');
+        if (resp.ok) {
+          const data = await resp.json();
+          document.getElementById('stat-stars').textContent = data.stargazers_count || 0;
+          document.getElementById('stat-forks').textContent = data.forks_count || 0;
+          document.getElementById('stat-watchers').textContent = data.subscribers_count || 0;
+          document.getElementById('stat-issues').textContent = data.open_issues_count || 0;
+        }
+
+        // 2. Fetch Open Issues & Inquiries
+        const issuesResp = await fetch('https://api.github.com/repos/ehabfikry/VirtuFilm-Studio-AI/issues?state=all&per_page=10');
+        const container = document.getElementById('issues-list-container');
+        
+        if (issuesResp.ok) {
+          const issues = await issuesResp.json();
+          document.getElementById('issues-count-badge').textContent = `${issues.length} استفسار مسجل`;
+
+          if (issues.length === 0) {
+            container.innerHTML = `
+              <div class="text-center py-12 text-slate-400 space-y-2">
+                <div class="w-12 h-12 mx-auto rounded-full bg-slate-800 flex items-center justify-center text-emerald-400 text-xl">
+                  <i class="fa-solid fa-check"></i>
+                </div>
+                <p class="font-bold text-white text-xs">لا توجد استفسارات جديدة مفتوحة حالياً</p>
+                <p class="text-[11px] text-slate-500">عندما يقوم أي مستخدم أو مطور بفتح Issue أو مناقشة جديدة على صفحة المشروع، ستظهر تفاصيلها هنا فوراً لتتابعها.</p>
+              </div>
+            `;
+          } else {
+            let html = '';
+            issues.forEach(it => {
+              const isOpen = (it.state === 'open');
+              html += `
+                <div class="p-3.5 bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-2xl transition space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold text-white flex items-center gap-1.5">
+                      <i class="fa-solid ${isOpen ? 'fa-circle-dot text-emerald-400' : 'fa-circle-check text-purple-400'}"></i>
+                      <span>#${it.number} ${it.title}</span>
+                    </span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full ${isOpen ? 'bg-emerald-500/20 text-emerald-300' : 'bg-purple-500/20 text-purple-300'} font-bold">
+                      ${isOpen ? 'مفتوح (Open)' : 'مغلق (Closed)'}
+                    </span>
+                  </div>
+                  <p class="text-[11px] text-slate-400 line-clamp-2">${it.body || 'لا يوجد نص إضافي'}</p>
+                  <div class="flex items-center justify-between pt-1 border-t border-slate-900 text-[10px] text-slate-500">
+                    <span>بواسطة: @${it.user.login}</span>
+                    <a href="${it.html_url}" target="_blank" class="text-indigo-400 hover:underline flex items-center gap-1">
+                      <span>عرض على GitHub</span>
+                      <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                  </div>
+                </div>
+              `;
+            });
+            container.innerHTML = html;
+          }
         }
       } catch (err) {
-        alert('خطأ في الاتصال: ' + err.message);
+        console.error('Fetch monitoring err:', err);
       } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> <span>اصنع لي الرد المناسب فوراً</span>';
+        if (icon) icon.classList.remove('fa-spin');
       }
     }
 
-    function copyAnswerText() {
-      if (!currentAnswerText) {
-        alert('اختر أو ولد رداً أولاً لنسخه.');
-        return;
-      }
-      navigator.clipboard.writeText(currentAnswerText).then(() => {
-        const lbl = document.getElementById('copy-text-label');
-        lbl.textContent = 'تم النسخ بنجاح! ✅';
-        setTimeout(() => { lbl.textContent = 'نسخ الرد بنقرة واحدة'; }, 2000);
-      });
-    }
-
-    // Load first question by default
-    showQuickQA(0);
+    // Auto load on start
+    fetchLiveMonitoringData();
   </script>
 </body>
 </html>
