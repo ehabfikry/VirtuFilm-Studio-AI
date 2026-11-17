@@ -170,66 +170,74 @@
       const icon = document.getElementById('refresh-spin-icon');
       if (icon) icon.classList.add('fa-spin');
 
+      const container = document.getElementById('issues-list-container');
+
       try {
-        // 1. Fetch Repo basic stats via our local proxy or GitHub
-        const resp = await fetch('https://api.github.com/repos/ehabfikry/VirtuFilm-Studio-AI');
-        if (resp.ok) {
-          const data = await resp.json();
-          document.getElementById('stat-stars').textContent = data.stargazers_count || 0;
-          document.getElementById('stat-forks').textContent = data.forks_count || 0;
-          document.getElementById('stat-watchers').textContent = data.subscribers_count || 0;
-          document.getElementById('stat-issues').textContent = data.open_issues_count || 0;
+        // Fetch via our reliable local backend proxy to bypass browser CORS / rate limits
+        const resp = await fetch('/api/desk/live_feed');
+        if (!resp.ok) throw new Error('Proxy server error ' + resp.status);
+        
+        const feed = await resp.json();
+        
+        // 1. Update Stats Cards
+        if (feed.stats) {
+          document.getElementById('stat-stars').textContent = feed.stats.stars || 0;
+          document.getElementById('stat-forks').textContent = feed.stats.forks || 0;
+          document.getElementById('stat-watchers').textContent = feed.stats.watchers || 0;
+          document.getElementById('stat-issues').textContent = feed.stats.open_issues || 0;
         }
 
-        // 2. Fetch Open Issues & Inquiries
-        const issuesResp = await fetch('https://api.github.com/repos/ehabfikry/VirtuFilm-Studio-AI/issues?state=all&per_page=10');
-        const container = document.getElementById('issues-list-container');
-        
-        if (issuesResp.ok) {
-          const issues = await issuesResp.json();
-          document.getElementById('issues-count-badge').textContent = `${issues.length} استفسار مسجل`;
+        // 2. Update Issues Feed
+        const issues = feed.issues || [];
+        document.getElementById('issues-count-badge').textContent = `${issues.length} استفسار مسجل`;
 
-          if (issues.length === 0) {
-            container.innerHTML = `
-              <div class="text-center py-12 text-slate-400 space-y-2">
-                <div class="w-12 h-12 mx-auto rounded-full bg-slate-800 flex items-center justify-center text-emerald-400 text-xl">
-                  <i class="fa-solid fa-check"></i>
+        if (issues.length === 0) {
+          container.innerHTML = `
+            <div class="text-center py-12 text-slate-400 space-y-2">
+              <div class="w-12 h-12 mx-auto rounded-full bg-slate-800 flex items-center justify-center text-emerald-400 text-xl">
+                <i class="fa-solid fa-check"></i>
+              </div>
+              <p class="font-bold text-white text-xs">لا توجد استفسارات جديدة مفتوحة حالياً (كل شيء هادئ)</p>
+              <p class="text-[11px] text-slate-500">عندما يقوم أي مستخدم بفتح استفسار أو مناقشة جديدة على GitHub، ستظهر لك بطاقته هنا فوراً.</p>
+            </div>
+          `;
+        } else {
+          let html = '';
+          issues.forEach(it => {
+            const isOpen = (it.state === 'open');
+            html += `
+              <div class="p-3.5 bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-2xl transition space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-white flex items-center gap-1.5">
+                    <i class="fa-solid ${isOpen ? 'fa-circle-dot text-emerald-400' : 'fa-circle-check text-purple-400'}"></i>
+                    <span>#${it.number} ${it.title}</span>
+                  </span>
+                  <span class="text-[10px] px-2 py-0.5 rounded-full ${isOpen ? 'bg-emerald-500/20 text-emerald-300' : 'bg-purple-500/20 text-purple-300'} font-bold">
+                    ${isOpen ? 'مفتوح (Open)' : 'مغلق (Closed)'}
+                  </span>
                 </div>
-                <p class="font-bold text-white text-xs">لا توجد استفسارات جديدة مفتوحة حالياً</p>
-                <p class="text-[11px] text-slate-500">عندما يقوم أي مستخدم أو مطور بفتح Issue أو مناقشة جديدة على صفحة المشروع، ستظهر تفاصيلها هنا فوراً لتتابعها.</p>
+                <p class="text-[11px] text-slate-400 line-clamp-2">${it.body || 'لا يوجد نص إضافي'}</p>
+                <div class="flex items-center justify-between pt-1 border-t border-slate-900 text-[10px] text-slate-500">
+                  <span>بواسطة: @${it.user.login}</span>
+                  <a href="${it.html_url}" target="_blank" class="text-indigo-400 hover:underline flex items-center gap-1">
+                    <span>عرض الرد في GitHub</span>
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                  </a>
+                </div>
               </div>
             `;
-          } else {
-            let html = '';
-            issues.forEach(it => {
-              const isOpen = (it.state === 'open');
-              html += `
-                <div class="p-3.5 bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-2xl transition space-y-2">
-                  <div class="flex items-center justify-between">
-                    <span class="font-bold text-white flex items-center gap-1.5">
-                      <i class="fa-solid ${isOpen ? 'fa-circle-dot text-emerald-400' : 'fa-circle-check text-purple-400'}"></i>
-                      <span>#${it.number} ${it.title}</span>
-                    </span>
-                    <span class="text-[10px] px-2 py-0.5 rounded-full ${isOpen ? 'bg-emerald-500/20 text-emerald-300' : 'bg-purple-500/20 text-purple-300'} font-bold">
-                      ${isOpen ? 'مفتوح (Open)' : 'مغلق (Closed)'}
-                    </span>
-                  </div>
-                  <p class="text-[11px] text-slate-400 line-clamp-2">${it.body || 'لا يوجد نص إضافي'}</p>
-                  <div class="flex items-center justify-between pt-1 border-t border-slate-900 text-[10px] text-slate-500">
-                    <span>بواسطة: @${it.user.login}</span>
-                    <a href="${it.html_url}" target="_blank" class="text-indigo-400 hover:underline flex items-center gap-1">
-                      <span>عرض على GitHub</span>
-                      <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                    </a>
-                  </div>
-                </div>
-              `;
-            });
-            container.innerHTML = html;
-          }
+          });
+          container.innerHTML = html;
         }
       } catch (err) {
         console.error('Fetch monitoring err:', err);
+        container.innerHTML = `
+          <div class="text-center py-8 text-amber-400/80 space-y-1">
+            <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+            <p class="text-xs font-bold">جاري محاولة الاتصال بـ GitHub...</p>
+            <p class="text-[10px] text-slate-500">${err.message}</p>
+          </div>
+        `;
       } finally {
         if (icon) icon.classList.remove('fa-spin');
       }

@@ -35,6 +35,48 @@ def load_secrets():
             return {}
     return {}
 
+def fetch_github_full_feed(repo_slug="ehabfikry/VirtuFilm-Studio-AI"):
+    headers = {"User-Agent": "Cindy-Live-Desk/1.0", "Accept": "application/vnd.github.v3+json"}
+    secrets = load_secrets()
+    gh_token = secrets.get("github_token") or secrets.get("github_pat") or ""
+    if gh_token:
+        headers["Authorization"] = f"Bearer {gh_token}"
+
+    res = {
+        "success": True,
+        "stats": {
+            "stars": 0,
+            "forks": 0,
+            "watchers": 0,
+            "open_issues": 0
+        },
+        "issues": []
+    }
+
+    # 1. Fetch repo stats
+    try:
+        url_repo = f"https://api.github.com/repos/{repo_slug}"
+        req = urllib.request.Request(url_repo, headers=headers)
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            res["stats"]["stars"] = data.get("stargazers_count", 0)
+            res["stats"]["forks"] = data.get("forks_count", 0)
+            res["stats"]["watchers"] = data.get("subscribers_count", 0)
+            res["stats"]["open_issues"] = data.get("open_issues_count", 0)
+    except Exception as e:
+        print("[Feed Stats Warn]:", e)
+
+    # 2. Fetch issues & discussions
+    try:
+        url_issues = f"https://api.github.com/repos/{repo_slug}/issues?state=all&per_page=10"
+        req_i = urllib.request.Request(url_issues, headers=headers)
+        with urllib.request.urlopen(req_i, timeout=5) as resp_i:
+            res["issues"] = json.loads(resp_i.read().decode("utf-8"))
+    except Exception as e:
+        print("[Feed Issues Warn]:", e)
+
+    return res
+
 def fetch_github_repo_stats(repo_slug="ehabfikry/VirtuFilm-Studio-AI"):
     """Fetches public stats from GitHub API without requiring auth, or handles simulated offline mode."""
     url = f"https://api.github.com/repos/{repo_slug}"
@@ -219,6 +261,13 @@ class CommunityDeskHandler(SimpleHTTPRequestHandler):
             self.end_headers()
             stats = fetch_github_repo_stats()
             self.wfile.write(json.dumps({"success": True, "stats": stats}, ensure_ascii=False).encode("utf-8"))
+            return
+        elif parsed.path == "/api/desk/live_feed":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.end_headers()
+            feed_data = fetch_github_full_feed()
+            self.wfile.write(json.dumps(feed_data, ensure_ascii=False).encode("utf-8"))
             return
         super().do_GET()
 
