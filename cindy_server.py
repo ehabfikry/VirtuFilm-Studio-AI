@@ -411,6 +411,27 @@ def get_model_prompt_rules(model_name, mode='video'):
     else:
         return f"CRITICAL MODEL PROMPT RULES FOR {model_name}:\n- Tailor phrasing specifically to {model_name}'s standard format and avoid generic quality clutter."
 
+
+PREFERENCES_FILE = os.path.join(os.path.dirname(__file__), 'outputs', 'user_preferences.json')
+
+def load_user_preferences():
+    if os.path.exists(PREFERENCES_FILE):
+        try:
+            with open(PREFERENCES_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {
+        "director_name": "",
+        "director_title": "مخرج العمل",
+        "custom_call": "يا فندم"
+    }
+
+def save_user_preferences(prefs):
+    os.makedirs(os.path.dirname(PREFERENCES_FILE), exist_ok=True)
+    with open(PREFERENCES_FILE, 'w', encoding='utf-8') as f:
+        json.dump(prefs, f, ensure_ascii=False, indent=2)
+
 def load_secrets():
 
     if os.path.exists(SECRETS_FILE):
@@ -1311,6 +1332,10 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
 
 
 
+        elif self.path == '/api/preferences/get':
+            prefs = load_user_preferences()
+            self.send_json_response(200, {"success": True, "preferences": prefs})
+            return
         elif self.path == '/api/radar/trends' or self.path.startswith('/api/radar/trends'):
             parsed = urllib.parse.urlparse(self.path)
             qs = urllib.parse.parse_qs(parsed.query)
@@ -2092,6 +2117,8 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
         elif self.path == '/api/pricing/refresh':
             self.handle_pricing_daily(force_refresh=True)
 
+        elif self.path == '/api/preferences/save':
+            self.handle_preferences_save(payload)
         elif self.path == '/api/vault/update':
 
             self.handle_vault_update(payload)
@@ -2207,6 +2234,20 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             self.send_error_response(404, "Endpoint not found.")
 
 
+
+    def handle_preferences_save(self, payload):
+        try:
+            prefs = load_user_preferences()
+            if 'director_name' in payload:
+                prefs['director_name'] = str(payload.get('director_name', '')).strip()
+            if 'director_title' in payload:
+                prefs['director_title'] = str(payload.get('director_title', 'مخرج العمل')).strip()
+            if 'custom_call' in payload:
+                prefs['custom_call'] = str(payload.get('custom_call', 'يا فندم')).strip()
+            save_user_preferences(prefs)
+            self.send_json_response(200, {"success": True, "message": "تم حفظ تخصيص المناداة بنجاح!", "preferences": prefs})
+        except Exception as e:
+            self.send_error_response(500, f"Error saving preferences: {str(e)}")
 
     def handle_vault_update(self, payload):
 
@@ -3060,7 +3101,17 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             "NO PREVIOUS SCENE IS LOCKED: Start fresh and listen 100% to what the Director wants right now. Do NOT mention or fall back to any old scene.\n\n"
         )
 
+        pref_user = load_user_preferences()
+        p_name = (pref_user.get('director_name') or '').strip()
+        p_call = (pref_user.get('custom_call') or 'يا فندم').strip()
+        p_title = (pref_user.get('director_title') or 'مخرج العمل').strip()
+        if p_name:
+            user_addr_instruction = f"DIRECTOR PERSONALIZATION: The user's preferred name is '{p_name}' and title is '{p_title}'. Address them respectfully and warmly as '{p_call}' or '{p_title} {p_name}'.\n"
+        else:
+            user_addr_instruction = f"DIRECTOR ADDRESSING: Address the user respectfully and professionally as '{p_call}' (or Director / Filmmaker in English).\n"
+
         sys_inst = (
+            user_addr_instruction +
             "You are Cindy (سيندي), an elite First Assistant Director (1st AD), Director of Photography (DP), "
             "and 3D Pre-vis Architect working directly with The Filmmaker / Director (المخرج / صانع العمل / يا فندم).\n"
             "CRITICAL BEHAVIORAL RULES:\n"

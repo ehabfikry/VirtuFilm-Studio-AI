@@ -401,7 +401,13 @@
           <span id="topbar-voicestudio-text">الصوت</span>
         </button>
 
-        <!-- Vault & API Keys Drawer Trigger -->
+                <!-- Director Identity & Personalization -->
+        <button type="button" onclick="openDirectorIdentityModal()" id="topbar-identity-btn" class="px-2.5 py-1 rounded-lg bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/40 font-bold text-[11px] flex items-center gap-1.5 transition shadow cursor-pointer" title="تخصيص هوية ومناداة المخرج">
+          <i class="fa-solid fa-user-tie text-purple-400 text-[10px]"></i>
+          <span id="topbar-identity-text">المخرج</span>
+        </button>
+
+<!-- Vault & API Keys Drawer Trigger -->
         <button type="button" onclick="openVaultDrawer()" id="topbar-vault-btn" class="px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40 font-bold text-[11px] flex items-center gap-1.5 transition shadow cursor-pointer" title="الخزنة ودرع الحماية ومفاتيح API">
           <i class="fa-solid fa-shield-halved text-amber-400 text-[10px]"></i>
           <span id="topbar-vault-text">الخزنة</span>
@@ -14813,7 +14819,197 @@ let currentUploadContext = 'chat';
     }
     try { apply('chat'); } catch (e) { console.warn('tab-group', e); }
   })();
+
+    // --- DIRECTOR IDENTITY & PERSONALIZATION CONTROLLER ---
+    window.currentDirectorPreferences = { director_name: '', director_title: 'مخرج العمل', custom_call: 'يا فندم' };
+
+    async function loadDirectorPreferences() {
+      try {
+        const res = await fetch(`${API_BASE}/api/preferences/get`);
+        const data = await res.json();
+        if (data.success && data.preferences) {
+          window.currentDirectorPreferences = data.preferences;
+          const nameInput = document.getElementById('pref-director-name');
+          const titleSelect = document.getElementById('pref-director-title');
+          const callInput = document.getElementById('pref-custom-call');
+          if (nameInput) nameInput.value = data.preferences.director_name || '';
+          if (titleSelect) titleSelect.value = data.preferences.director_title || 'المخرج';
+          if (callInput) callInput.value = data.preferences.custom_call || 'يا فندم';
+          selectCallOption(data.preferences.custom_call || 'يا فندم', false);
+          updateDirectorPreview();
+        }
+      } catch (e) {
+        console.warn('Preferences load error:', e);
+      }
+    }
+
+    function openDirectorIdentityModal() {
+      const modal = document.getElementById('director-identity-modal');
+      if (modal) modal.classList.remove('hidden');
+      loadDirectorPreferences();
+    }
+
+    function closeDirectorIdentityModal() {
+      const modal = document.getElementById('director-identity-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function selectCallOption(opt, updatePrev = true) {
+      const callInput = document.getElementById('pref-custom-call');
+      if (callInput) callInput.value = opt;
+      const opts = {
+        'يا فندم': 'call-opt-fndm',
+        'يا مخرجنا': 'call-opt-mokhreg',
+        'يا أستاذ': 'call-opt-ostaz',
+        'Director': 'call-opt-dir'
+      };
+      Object.keys(opts).forEach(k => {
+        const btn = document.getElementById(opts[k]);
+        if (!btn) return;
+        if (k === opt) {
+          btn.className = 'p-2 rounded-xl border border-purple-400 bg-purple-500/20 text-purple-200 font-bold text-center text-xs transition shadow';
+        } else {
+          btn.className = 'p-2 rounded-xl border border-cinema-700 bg-cinema-950 hover:border-purple-400 text-slate-300 font-bold text-center text-xs transition';
+        }
+      });
+      if (updatePrev) updateDirectorPreview();
+    }
+
+    function updateDirectorPreview() {
+      const name = (document.getElementById('pref-director-name')?.value || '').trim();
+      const call = document.getElementById('pref-custom-call')?.value || 'يا فندم';
+      const preview = document.getElementById('pref-preview-msg');
+      if (!preview) return;
+      if (name) {
+        preview.textContent = `"تمام يا ${call} ${name}، زوايا الكاميرا وحركة الشاريو جاهزة للتنفيذ فوراً!"`;
+      } else {
+        preview.textContent = `"أوامرك يا ${call}، أنا جاهزة أضبط زوايا الكاميرا وحركة الشاريو فوراً."`;
+      }
+    }
+
+    async function saveDirectorPreferences() {
+      const name = (document.getElementById('pref-director-name')?.value || '').trim();
+      const title = document.getElementById('pref-director-title')?.value || 'المخرج';
+      const call = document.getElementById('pref-custom-call')?.value || 'يا فندم';
+      try {
+        const res = await fetch(`${API_BASE}/api/preferences/save`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            director_name: name,
+            director_title: title,
+            custom_call: call
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('تم حفظ هوية ومناداة المخرج بنجاح! سيندي ستخاطبك بهذا الأسلوب الآن. 🎬', 'success');
+          closeDirectorIdentityModal();
+        } else {
+          showToast('حدث خطأ أثناء حفظ التفضيلات', 'error');
+        }
+      } catch (err) {
+        showToast('فشل الاتصال بالخادم لحفظ التفضيلات', 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('pref-director-name')?.addEventListener('input', updateDirectorPreview);
+      loadDirectorPreferences();
+    });
+
 </script>
+
+  <!-- DIRECTOR IDENTITY & PERSONALIZATION MODAL -->
+  <div id="director-identity-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-cinema-900 border border-purple-500/50 rounded-2xl max-w-md w-full shadow-2xl overflow-hidden text-slate-100 flex flex-col" dir="rtl">
+      
+      <!-- Modal Header -->
+      <div class="p-4 bg-cinema-950/90 border-b border-cinema-800 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white text-lg shadow-lg">
+            <i class="fa-solid fa-user-gear"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-purple-300">تخصيص هوية المخرج وصانع العمل</h3>
+            <p class="text-[11px] text-slate-400 mt-0.5">كيف تحب أن تخاطبك سيندي أثناء توجيه المشاهد؟</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeDirectorIdentityModal()" class="w-8 h-8 rounded-lg bg-cinema-800 hover:bg-cinema-700 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-4 space-y-4 text-xs">
+        
+        <div class="space-y-1.5">
+          <label class="text-slate-300 font-bold flex items-center gap-1.5">
+            <i class="fa-solid fa-signature text-purple-400"></i>
+            <span>اسمك المفضل (الاسم الكريم):</span>
+          </label>
+          <input type="text" id="pref-director-name" placeholder="مثال: إيهاب فكري / Ehab" class="w-full bg-cinema-950 border border-cinema-700 focus:border-purple-400 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 outline-none">
+          <span class="text-[10px] text-slate-500">اتركه فارغاً إذا كنت تفضل أن تخاطبك سيندي بصيغة وظيفية محايدة.</span>
+        </div>
+
+        <div class="space-y-1.5">
+          <label class="text-slate-300 font-bold flex items-center gap-1.5">
+            <i class="fa-solid fa-clapperboard text-purple-400"></i>
+            <span>الصفة أو اللقب الإخراجي:</span>
+          </label>
+          <select id="pref-director-title" class="w-full bg-cinema-950 border border-cinema-700 focus:border-purple-400 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none cursor-pointer">
+            <option value="المخرج">🎬 المخرج (Director)</option>
+            <option value="صانع العمل">📽️ صانع العمل (Filmmaker / Creator)</option>
+            <option value="محب للسينما">🎞️ محب للسينما (Cinema Enthusiast)</option>
+            <option value="الكاتب والسيناريست">✍️ الكاتب والسيناريست (Writer / Screenwriter)</option>
+            <option value="مدير التصوير">🎥 مدير التصوير (Director of Photography)</option>
+          </select>
+        </div>
+
+        <div class="space-y-1.5">
+          <label class="text-slate-300 font-bold flex items-center gap-1.5">
+            <i class="fa-solid fa-comment-dots text-purple-400"></i>
+            <span>صيغة النداء المفضلة في البلاتوه:</span>
+          </label>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" onclick="selectCallOption('يا فندم')" id="call-opt-fndm" class="p-2 rounded-xl border border-cinema-700 bg-cinema-950 hover:border-purple-400 text-slate-300 font-bold text-center text-xs transition cursor-pointer">
+              يا فندم (محايد رسمي)
+            </button>
+            <button type="button" onclick="selectCallOption('يا مخرجنا')" id="call-opt-mokhreg" class="p-2 rounded-xl border border-cinema-700 bg-cinema-950 hover:border-purple-400 text-slate-300 font-bold text-center text-xs transition cursor-pointer">
+              يا مخرجنا (بلاتوه سينمائي)
+            </button>
+            <button type="button" onclick="selectCallOption('يا أستاذ')" id="call-opt-ostaz" class="p-2 rounded-xl border border-cinema-700 bg-cinema-950 hover:border-purple-400 text-slate-300 font-bold text-center text-xs transition cursor-pointer">
+              يا أستاذ + الاسم
+            </button>
+            <button type="button" onclick="selectCallOption('Director')" id="call-opt-dir" class="p-2 rounded-xl border border-cinema-700 bg-cinema-950 hover:border-purple-400 text-slate-300 font-bold text-center text-xs transition cursor-pointer">
+              Director (English)
+            </button>
+          </div>
+          <input type="hidden" id="pref-custom-call" value="يا فندم">
+        </div>
+
+        <!-- Live Preview Box -->
+        <div class="bg-cinema-950/80 border border-purple-500/30 rounded-xl p-3 space-y-1">
+          <span class="text-[10px] text-purple-400 font-bold">معاينة فورية لطريقة رد سيندي:</span>
+          <p id="pref-preview-msg" class="text-[11px] text-slate-200 italic">"أوامرك يا فندم، أنا جاهزة أضبط زوايا الكاميرا وحركة الشاريو فوراً."</p>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-3 bg-cinema-950/90 border-t border-cinema-800 flex items-center gap-2">
+        <button type="button" onclick="saveDirectorPreferences()" class="flex-1 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow transition cursor-pointer">
+          <i class="fa-solid fa-check"></i>
+          <span>حفظ التخصيص</span>
+        </button>
+        <button type="button" onclick="closeDirectorIdentityModal()" class="px-4 py-2 bg-cinema-800 hover:bg-cinema-700 text-slate-300 rounded-xl text-xs font-bold transition cursor-pointer">
+          إلغاء
+        </button>
+      </div>
+
+    </div>
+  </div>
+
 </body>
 
 </html>
