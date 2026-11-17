@@ -1,7 +1,7 @@
 # ==============================================================================
 # PROPRIETARY INTELLECTUAL PROPERTY & TRADE SECRET NOTICE
 # System: VirtuFilm Studio AI (Cindy AI Director Architecture v8.0)
-# Inventor & Owner: Ehab Fikry (المخرج / إيهاب فكري)
+# Conceived by: Ehab Fikry (إيهاب فكري - Cinema Enthusiast & Independent Storyteller)
 # Patent Reference: CAD-IP-2026-001
 # Legal Protection:
 #   1. WIPO Berne Convention (Automatic International Copyright in 181 Countries)
@@ -177,7 +177,7 @@ def generate_ip_manifest():
             tf.write("===================================================================\n")
             tf.write("VIRTUFILM STUDIO AI - CRYPTOGRAPHIC PRIOR-ART & IP TIMESTAMP LEDGER\n")
             tf.write("===================================================================\n")
-            tf.write(f"Creator & Film Director    : Ehab Fikry (المخرج إيهاب فكري)\n")
+            tf.write(f"Conceived & Curated by    : Ehab Fikry (Cinema Enthusiast & Storyteller)\n")
             tf.write(f"Engineering & AI Systems   : Antigravity (Google DeepMind)\n")
             tf.write(f"Timestamp (UTC)            : {now_iso}\n")
             tf.write(f"Master Architecture SHA256 : {master_sha256}\n")
@@ -3062,7 +3062,7 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
 
         sys_inst = (
             "You are Cindy (سيندي), an elite First Assistant Director (1st AD), Director of Photography (DP), "
-            "and 3D Pre-vis Architect working directly with The Film Director (أستاذنا المخرج / أستاذ إيهاب).\n"
+            "and 3D Pre-vis Architect working directly with The Filmmaker / Director (المخرج / صانع العمل / يا فندم).\n"
             "CRITICAL BEHAVIORAL RULES:\n"
             "1. NEVER be stuck on a previous or pre-made scene! Listen 100% to what the Director is saying right now.\n"
             "2. ADAPTIVE CONVERSATIONAL LANGUAGE & STRICT RULES:\n"
