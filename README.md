@@ -2,8 +2,9 @@
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPLv3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![Creator](https://img.shields.io/badge/Conceived%20by-Ehab%20Fikry-gold?style=for-the-badge)](https://github.com/ehabfikry)
-[![Focus](https://img.shields.io/badge/Role-Cinema%20Enthusiast%20&%20Storyteller-purple?style=for-the-badge)](https://github.com/ehabfikry)
-[![AI Architecture](https://img.shields.io/badge/AI%20Engineering-Antigravity%20(Google%20DeepMind)-indigo?style=for-the-badge)](https://github.com/ehabfikry/VirtuFilm-Studio-AI)
+[![Role](https://img.shields.io/badge/Role-Cinema%20Enthusiast%20&%20Storyteller-purple?style=for-the-badge)](https://github.com/ehabfikry)
+[![Platforms](https://img.shields.io/badge/Platforms-Windows%20%7C%20macOS%20%7C%20Linux-success?style=for-the-badge)](https://github.com/ehabfikry/VirtuFilm-Studio-AI)
+[![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11-blue?style=for-the-badge)](https://www.python.org/)
 
 An open-source workflow and visual experimentation studio conceived by **Ehab Fikry** (*إيهاب فكري*), an independent cinema enthusiast, storyteller, and creative thinker, in technical and AI implementation collaboration with **Antigravity (Google DeepMind)**.
 
@@ -30,6 +31,20 @@ This project does not claim to invent new generative neural architectures from s
 * **Community Triage Desk:** A lightweight assistant to help answer technical setup questions and organize community feedback.
 
 ---
+
+
+---
+
+## 💻 Supported Environments & Compatibility Matrix (بيئات التشغيل المدعومة)
+
+| Operating System | Hardware Architecture | 3D Engine Setup | Execution Mode |
+| :--- | :--- | :--- | :--- |
+| **Windows 10 / 11** | NVIDIA RTX GPUs (CUDA 12+) or CPU | Blender 5.3 LTS (Auto-detected) | Localhost `127.0.0.1:8765` (`install_windows.bat`) |
+| **macOS (Sonoma / Sequoia / Ventura)** | Apple Silicon (**M1 / M2 / M3 / M4**) & Intel Core | Blender LTS (`/Applications/Blender.app`) | Native (`./install_mac_linux.sh`) |
+| **Linux (Ubuntu 22.04+ / Debian)** | NVIDIA CUDA / AMD ROCm / CPU | Blender LTS (`apt`, `snap`, or standalone) | Native (`./install_mac_linux.sh`) |
+
+* **Python Runtime:** Python 3.10.x or 3.11.x (Recommended: isolated virtualenv `.venv`).
+* **GPU Memory (Optional for Local Nodes):** 8GB–24GB VRAM for local ComfyUI diffusion, or zero local VRAM requirements when utilizing cloud BYOK dispatchers (Fal.ai / RunPod).
 
 ## 🚀 Quick Start (Windows, macOS & Linux)
 
