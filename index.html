@@ -14730,12 +14730,12 @@ let currentUploadContext = 'chat';
 
     function applyRadarPrompt(promptText) {
       closeCinemaRadarModal();
-      switchTab('screening');
+      switchTab('chat');
       const chatInp = document.getElementById('chat-input');
       if (chatInp && promptText) {
         chatInp.value = promptText;
         chatInp.focus();
-        showToast(window.currentAppLang === 'en' ? 'Prompt loaded from Radar!' : 'تم تجهيز برومبت التجربة في شريط الشات!', 'info');
+        showToast(window.currentAppLang === 'en' ? 'Loaded technical directive into Cindy Chat!' : 'تم تجهيز التوجيه التقني المباشر لسيندي في الشات!', 'success');
       }
     }
   </script>
