@@ -1243,6 +1243,106 @@ class CINDY_OT_OptimizeViewportPerformance(bpy.types.Operator):
         return {'FINISHED'}
 
 
+# =============================================================================
+# World & Environment Library (HDRI 360 & 3D Sets)
+# =============================================================================
+
+ENVIRONMENT_LIBRARY_DIR = r"C:\Users\DELL\Downloads\مكتبة_البيئات_والعوالم"
+DOWNLOADS_DIR = r"C:\Users\DELL\Downloads"
+
+def _get_environment_items(self, context):
+    items = []
+    # 1. Scan environment library
+    if os.path.exists(ENVIRONMENT_LIBRARY_DIR):
+        for root, dirs, files in os.walk(ENVIRONMENT_LIBRARY_DIR):
+            for f in files:
+                if f.lower().endswith(('.exr', '.hdr', '.glb', '.gltf')):
+                    rel = os.path.relpath(os.path.join(root, f), ENVIRONMENT_LIBRARY_DIR)
+                    clean = rel.replace('\\', ' / ')
+                    items.append((os.path.join(root, f), clean, f"Environment: {f}"))
+    # 2. Also scan Downloads root for recent downloads
+    if os.path.exists(DOWNLOADS_DIR):
+        for f in os.listdir(DOWNLOADS_DIR):
+            if f.lower().endswith(('.exr', '.hdr')):
+                full = os.path.join(DOWNLOADS_DIR, f)
+                items.append((full, f"[Downloads] {f}", f"Recent download: {f}"))
+    if not items:
+        items.append(('NONE', "No Environment Files Found", "Place .exr/.hdr in مكتبة_البيئات_والعوالم or Downloads"))
+    return items
+
+
+class CINDY_OT_ApplyEnvironmentWorld(bpy.types.Operator):
+    bl_idname = "cindy.apply_env_world"
+    bl_label = "Apply HDRI World & Lighting"
+    bl_description = "Wrap the 360 HDRI environment around the scene and illuminate all characters naturally"
+
+    def execute(self, context):
+        scene = context.scene
+        env_path = scene.cindy_env_world
+        if not env_path or env_path == 'NONE' or not os.path.exists(env_path):
+            self.report({'ERROR'}, "Please select a valid HDRI/EXR file!")
+            return {'CANCELLED'}
+
+        world = scene.world
+        if not world:
+            world = bpy.data.worlds.new("Cindy_HDRI_World")
+            scene.world = world
+        world.use_nodes = True
+        nodes = world.node_tree.nodes
+        links = world.node_tree.links
+        nodes.clear()
+
+        n_out = nodes.new(type='ShaderNodeOutputWorld')
+        n_bg = nodes.new(type='ShaderNodeBackground')
+        n_tex = nodes.new(type='ShaderNodeTexEnvironment')
+        n_map = nodes.new(type='ShaderNodeMapping')
+        n_coord = nodes.new(type='ShaderNodeTexCoord')
+
+        try:
+            img = bpy.data.images.load(env_path, check_existing=True)
+            n_tex.image = img
+        except Exception as e:
+            self.report({'ERROR'}, f"Failed to load image: {e}")
+            return {'CANCELLED'}
+
+        n_bg.inputs['Strength'].default_value = scene.cindy_env_strength
+        n_map.inputs['Rotation'].default_value[2] = math.radians(scene.cindy_env_rotation)
+
+        links.new(n_coord.outputs['Generated'], n_map.inputs['Vector'])
+        links.new(n_map.outputs['Vector'], n_tex.inputs['Vector'])
+        links.new(n_tex.outputs['Color'], n_bg.inputs['Color'])
+        links.new(n_bg.outputs['Background'], n_out.inputs['Surface'])
+
+        self.report({'INFO'}, f"Applied HDRI World: {os.path.basename(env_path)}")
+        return {'FINISHED'}
+
+
+class CINDY_OT_AutoDetectLatestEXR(bpy.types.Operator):
+    bl_idname = "cindy.auto_detect_latest_exr"
+    bl_label = "⚡ Detect & Apply Latest Downloaded EXR"
+    bl_description = "Automatically scans Downloads for the most recent .exr/.hdr file and applies it to the scene"
+
+    def execute(self, context):
+        candidates = []
+        for p in [DOWNLOADS_DIR, ENVIRONMENT_LIBRARY_DIR]:
+            if os.path.exists(p):
+                for root, dirs, files in os.walk(p):
+                    for f in files:
+                        if f.lower().endswith(('.exr', '.hdr')):
+                            full = os.path.join(root, f)
+                            candidates.append((os.path.getmtime(full), full))
+        if not candidates:
+            self.report({'ERROR'}, "No .exr or .hdr file found in Downloads or Environment Library!")
+            return {'CANCELLED'}
+
+        candidates.sort(reverse=True)
+        latest_path = candidates[0][1]
+        context.scene.cindy_env_world = latest_path
+        bpy.ops.cindy.apply_env_world()
+        self.report({'INFO'}, f"Auto-detected & Applied: {os.path.basename(latest_path)}")
+        return {'FINISHED'}
+
+
 class CINDY_PT_DirectorPanel(bpy.types.Panel):
     bl_label = "Cindy AI Director"
     bl_idname = "CINDY_PT_director_panel"
@@ -1277,6 +1377,22 @@ class CINDY_PT_DirectorPanel(bpy.types.Panel):
         col_load_char = box_chars.column(align=True)
         col_load_char.scale_y = 1.3
         col_load_char.operator("cindy.load_project_character", text="🎭 Import Character & Lock Motion", icon='IMPORT')
+
+        layout.separator()
+
+        # ---------------------------------------------------------------------
+        # 1C. World & Environment Library (HDRI 360 & Sets)
+        # ---------------------------------------------------------------------
+        box_env = layout.box()
+        box_env.label(text="World & Environment Library (HDRI 360):", icon='WORLD')
+        box_env.prop(scene, "cindy_env_world", text="Environment")
+        row_env_ctrl = box_env.row(align=True)
+        row_env_ctrl.prop(scene, "cindy_env_strength", text="Strength")
+        row_env_ctrl.prop(scene, "cindy_env_rotation", text="Angle (Z)")
+        col_apply_env = box_env.column(align=True)
+        col_apply_env.scale_y = 1.2
+        col_apply_env.operator("cindy.apply_env_world", text="🌍 Apply Selected HDRI World", icon='CHECKMARK')
+        col_apply_env.operator("cindy.auto_detect_latest_exr", text="⚡ Auto-Detect Latest Downloaded EXR", icon='FILE_REFRESH')
 
         layout.separator()
 
@@ -1509,6 +1625,27 @@ def register():
         description="Select Mixamo FBX animation clip",
         items=_get_character_motion_items
     )
+    bpy.types.Scene.cindy_env_world = bpy.props.EnumProperty(
+        name="Environment World",
+        description="Select HDRI / Environment World from library or Downloads",
+        items=_get_environment_items
+    )
+    bpy.types.Scene.cindy_env_strength = bpy.props.FloatProperty(
+        name="Strength",
+        description="Environment lighting brightness strength",
+        default=1.0,
+        min=0.0,
+        max=10.0
+    )
+    bpy.types.Scene.cindy_env_rotation = bpy.props.FloatProperty(
+        name="Rotation Angle (Z)",
+        description="Rotate environment around scene in degrees",
+        default=0.0,
+        min=0.0,
+        max=360.0
+    )
+    bpy.utils.register_class(CINDY_OT_ApplyEnvironmentWorld)
+    bpy.utils.register_class(CINDY_OT_AutoDetectLatestEXR)
     bpy.utils.register_class(CINDY_OT_LoadProjectCharacter)
     bpy.utils.register_class(CINDY_OT_OptimizeViewportPerformance)
     bpy.utils.register_class(CINDY_OT_NewDirectorStage)
@@ -1572,6 +1709,11 @@ def unregister():
     bpy.utils.unregister_class(CINDY_OT_NewDirectorStage)
     bpy.utils.unregister_class(CINDY_OT_OptimizeViewportPerformance)
     bpy.utils.unregister_class(CINDY_OT_LoadProjectCharacter)
+    bpy.utils.unregister_class(CINDY_OT_AutoDetectLatestEXR)
+    bpy.utils.unregister_class(CINDY_OT_ApplyEnvironmentWorld)
+    del bpy.types.Scene.cindy_env_rotation
+    del bpy.types.Scene.cindy_env_strength
+    del bpy.types.Scene.cindy_env_world
     del bpy.types.Scene.cindy_char_motion
     del bpy.types.Scene.cindy_char_folder
 
