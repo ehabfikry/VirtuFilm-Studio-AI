@@ -837,6 +837,120 @@ class CINDY_OT_ApplyCompoundMove(bpy.types.Operator):
 # OPERATORS: EXPORT & SCENE PRESETS
 # =============================================================================
 
+def _cindy_subject_meshes(scene):
+    """Meshes that define the shot's depth range: everything renderable except the stage floor."""
+    out = []
+    for o in scene.objects:
+        if o.type != 'MESH' or o.hide_render:
+            continue
+        if o.name == "Studio_Floor":
+            continue
+        out.append(o)
+    return out
+
+
+def _cindy_shot_depth_range(camera, meshes, min_margin=0.1, margin_ratio=0.1):
+    """Near/far (metres, camera space) fitted to the subject so the depth map uses its full contrast."""
+    clip_near = camera.data.clip_start
+    clip_far = min(camera.data.clip_end, 50.0)
+    if not meshes:
+        return clip_near, min(clip_far, 20.0)
+    dg = bpy.context.evaluated_depsgraph_get()
+    inv = camera.matrix_world.inverted()
+    zs = []
+    for m in meshes:
+        ev = m.evaluated_get(dg)
+        mw = ev.matrix_world
+        for corner in ev.bound_box:
+            zs.append(-(inv @ (mw @ Vector(corner))).z)
+    zs = [z for z in zs if z > 0.01]
+    if not zs:
+        return clip_near, min(clip_far, 20.0)
+    near, far = min(zs), max(zs)
+    margin = max(min_margin, (far - near) * margin_ratio)
+    return max(clip_near, near - margin), min(clip_far, far + margin)
+
+
+def _cindy_render_depth_png(scene, depth_path, near, far):
+    """Linear depth, white = near / black = far, fixed range (no per-frame normalisation).
+
+    Blender 5.x removed Scene.node_tree, so this uses a material override + EEVEE instead of the
+    compositor. It works on 4.2+ and 5.x. Every scene setting touched here is restored afterwards.
+    """
+    view_layer = bpy.context.view_layer
+    r = scene.render
+    saved = {
+        "engine": r.engine,
+        "filepath": r.filepath,
+        "fmt": r.image_settings.file_format,
+        "color_mode": r.image_settings.color_mode,
+        "color_depth": r.image_settings.color_depth,
+        "view_transform": scene.view_settings.view_transform,
+        "look": scene.view_settings.look,
+        "world": scene.world,
+        "override": view_layer.material_override,
+        "samples": scene.eevee.taa_render_samples,
+    }
+    mat = None
+    world = None
+    try:
+        mat = bpy.data.materials.new("CindyDepth_TMP")
+        mat.use_nodes = True
+        nt = mat.node_tree
+        for n in list(nt.nodes):
+            nt.nodes.remove(n)
+        cam_data = nt.nodes.new('ShaderNodeCameraData')
+        map_range = nt.nodes.new('ShaderNodeMapRange')
+        map_range.clamp = True
+        map_range.inputs['From Min'].default_value = near
+        map_range.inputs['From Max'].default_value = far
+        map_range.inputs['To Min'].default_value = 1.0
+        map_range.inputs['To Max'].default_value = 0.0
+        emit = nt.nodes.new('ShaderNodeEmission')
+        out_node = nt.nodes.new('ShaderNodeOutputMaterial')
+        nt.links.new(cam_data.outputs['View Z Depth'], map_range.inputs['Value'])
+        nt.links.new(map_range.outputs['Result'], emit.inputs['Color'])
+        nt.links.new(emit.outputs['Emission'], out_node.inputs['Surface'])
+        view_layer.material_override = mat
+
+        world = bpy.data.worlds.new("CindyDepthBlack_TMP")
+        world.use_nodes = True
+        bg = world.node_tree.nodes.get('Background')
+        if bg:
+            bg.inputs['Color'].default_value = (0.0, 0.0, 0.0, 1.0)
+            bg.inputs['Strength'].default_value = 1.0
+        scene.world = world
+
+        r.engine = 'BLENDER_EEVEE'
+        scene.eevee.taa_render_samples = 1
+        scene.view_settings.view_transform = 'Standard'
+        scene.view_settings.look = 'None'
+        r.image_settings.file_format = 'PNG'
+        r.image_settings.color_mode = 'BW'
+        r.image_settings.color_depth = '8'   # 8-bit: safe for PIL/Fal pipelines (16-bit gray gets clipped by PIL.convert)
+        r.filepath = depth_path
+        bpy.ops.render.render(write_still=True)
+        return os.path.exists(depth_path)
+    except Exception as e:
+        print("Cindy depth render error:", e)
+        return False
+    finally:
+        view_layer.material_override = saved["override"]
+        scene.world = saved["world"]
+        r.engine = saved["engine"]
+        r.filepath = saved["filepath"]
+        r.image_settings.file_format = saved["fmt"]
+        r.image_settings.color_mode = saved["color_mode"]
+        r.image_settings.color_depth = saved["color_depth"]
+        scene.view_settings.view_transform = saved["view_transform"]
+        scene.view_settings.look = saved["look"]
+        scene.eevee.taa_render_samples = saved["samples"]
+        if mat:
+            bpy.data.materials.remove(mat)
+        if world:
+            bpy.data.worlds.remove(world)
+
+
 def export_cindy_guides(context):
     scene = context.scene
     camera = ensure_camera(scene)
@@ -859,6 +973,12 @@ def export_cindy_guides(context):
         "clip_end": cam_data.clip_end,
     }
 
+    subject_meshes = _cindy_subject_meshes(scene)
+    depth_near, depth_far = _cindy_shot_depth_range(camera, subject_meshes)
+    cam_meta["depth_near_m"] = round(depth_near, 3)
+    cam_meta["depth_far_m"] = round(depth_far, 3)
+    cam_meta["depth_convention"] = "white=near, black=far, linear metres, fixed range per export"
+
     meta_file = os.path.join(out_dir, f"blender_guide_{timestamp}_meta.json")
     with open(meta_file, 'w', encoding='utf-8') as f:
         json.dump(cam_meta, f, indent=2, ensure_ascii=False)
@@ -879,52 +999,19 @@ def export_cindy_guides(context):
     finally:
         scene.render.filepath = orig_filepath
         scene.render.image_settings.file_format = orig_file_format
-
-    scene.use_nodes = True
-    tree = scene.node_tree
-    links = tree.links
-
-    rl_node = None
-    for n in tree.nodes:
-        if n.type == 'R_LAYERS':
-            rl_node = n
-            break
-    if not rl_node:
-        rl_node = tree.nodes.new(type='CompositorNodeRLayers')
-
-    scene.view_layers[0].use_pass_z = True
-
-    norm_node = tree.nodes.new(type='CompositorNodeNormalize')
-    invert_node = tree.nodes.new(type='CompositorNodeInvert')
-    file_out_node = tree.nodes.new(type='CompositorNodeOutputFile')
-    file_out_node.base_path = out_dir
-    file_out_node.file_slots[0].path = f"blender_guide_{timestamp}_depth"
-    file_out_node.format.file_format = 'JPEG'
-    file_out_node.format.quality = 95
-
-    links.new(rl_node.outputs['Depth'], norm_node.inputs['Value'])
-    links.new(norm_node.outputs['Value'], invert_node.inputs['Color'])
-    links.new(invert_node.outputs['Color'], file_out_node.inputs[0])
-
-    try:
-        bpy.ops.render.render(write_still=False)
-    except Exception as e:
-        print("Compositor Depth Error:", e)
-    finally:
         scene.render.engine = orig_engine
-        tree.nodes.remove(norm_node)
-        tree.nodes.remove(invert_node)
-        tree.nodes.remove(file_out_node)
 
-    depth_candidates = [f for f in os.listdir(out_dir) if f.startswith(f"blender_guide_{timestamp}_depth")]
-    depth_file = os.path.join(out_dir, depth_candidates[0]) if depth_candidates else guide_file
+    depth_file = os.path.join(out_dir, f"blender_guide_{timestamp}_depth.png")
+    depth_ok = _cindy_render_depth_png(scene, depth_file, depth_near, depth_far)
+    if not depth_ok:
+        return {"success": False, "error": "Depth render failed - see Blender console. RGB guide was saved."}
 
     return {
         "success": True,
         "timestamp": timestamp,
         "meta": cam_meta,
         "rgb_guide": guide_file,
-        "depth_guide": depth_file if os.path.exists(depth_file) else guide_file,
+        "depth_guide": depth_file,
         "directory": out_dir
     }
 
@@ -958,6 +1045,138 @@ class CINDY_OT_OpenCompoundScene(bpy.types.Operator):
 # DIRECTOR PANEL UI (100% CLEAN ENGLISH LABELS)
 # =============================================================================
 
+
+CHARACTER_LIBRARY_DIR = r"C:\Users\DELL\Downloads\شخصيات_المشروع"
+
+CHARACTER_ITEMS = [
+    ('1_عبدالعزيز\\المرحلة_1_الشاب', "1. Abdelaziz (Young - Afro)", "Young Abdelaziz character folder"),
+    ('1_عبدالعزيز\\المرحلة_2_العجوز', "2. Abdelaziz (Mature / Disco)", "Mature Abdelaziz character folder"),
+    ('2_عبدالشكور\\المرحلة_1_الشاب', "3. Abdelshakoor (Young)", "Young Abdelshakoor character folder"),
+    ('2_عبدالشكور\\المرحلة_2_العجوز', "4. Abdelshakoor (Mature)", "Mature Abdelshakoor character folder"),
+]
+
+def _get_character_motion_items(self, context):
+    items = []
+    sub = getattr(context.scene, "cindy_char_folder", '1_عبدالعزيز\\المرحلة_1_الشاب')
+    folder = os.path.join(CHARACTER_LIBRARY_DIR, sub)
+    if os.path.exists(folder):
+        for f in sorted(os.listdir(folder)):
+            if f.lower().endswith('.fbx'):
+                items.append((f, f[:-4], f"Load motion {f}"))
+    if not items:
+        items.append(('NONE', "No FBX Found", "No FBX files in directory"))
+    return items
+
+
+class CINDY_OT_LoadProjectCharacter(bpy.types.Operator):
+    bl_idname = "cindy.load_project_character"
+    bl_label = "Load Character & Motion (Clean Mixamo)"
+    bl_description = "Import selected character FBX, strip unwanted embedded Tripo actions, lock Mixamo clip, and optimize 1024px VRAM textures"
+
+    def execute(self, context):
+        scene = context.scene
+        sub = scene.cindy_char_folder
+        fbx_file = scene.cindy_char_motion
+        if not fbx_file or fbx_file == 'NONE':
+            self.report({'ERROR'}, "No valid FBX motion selected!")
+            return {'CANCELLED'}
+
+        full_path = os.path.join(CHARACTER_LIBRARY_DIR, sub, fbx_file)
+        if not os.path.exists(full_path):
+            self.report({'ERROR'}, f"File not found: {full_path}")
+            return {'CANCELLED'}
+
+        # Record existing objects and actions before import
+        old_objs = set(bpy.data.objects)
+        old_actions = set(bpy.data.actions)
+
+        bpy.ops.import_scene.fbx(filepath=full_path)
+
+        new_objs = [o for o in bpy.data.objects if o not in old_objs]
+        new_actions = [a for a in bpy.data.actions if a not in old_actions]
+
+        # Find imported armature and mesh
+        arm = next((o for o in new_objs if o.type == 'ARMATURE'), None)
+        meshes = [o for o in new_objs if o.type == 'MESH']
+
+        # Clean up unwanted built-in Tripo actions (keep only mixamo.com action if multiple exist)
+        if arm and len(new_actions) > 1:
+            mixamo_act = next((a for a in new_actions if 'mixamo' in a.name.lower()), None)
+            if not mixamo_act:
+                # Pick shortest specific clip rather than 696-frame default dance
+                mixamo_act = min(new_actions, key=lambda a: a.frame_range[1] - a.frame_range[0])
+            if arm.animation_data:
+                arm.animation_data.action = mixamo_act
+            for a in new_actions:
+                if a != mixamo_act:
+                    bpy.data.actions.remove(a, do_unlink=True)
+
+        # Fit scene timeline to active action and snap feet to floor
+        if arm and arm.animation_data and arm.animation_data.action:
+            act = arm.animation_data.action
+            scene.frame_start = max(1, int(act.frame_range[0]))
+            scene.frame_end = max(2, int(act.frame_range[1]))
+            scene.frame_current = scene.frame_start
+
+            # Smooth keyframe interpolation for natural organic motion
+            try:
+                if hasattr(act, 'fcurves'):
+                    for fc in act.fcurves:
+                        for kp in fc.keyframe_points:
+                            kp.interpolation = 'BEZIER'
+            except Exception:
+                pass
+
+        # Optimize viewport texture VRAM limit to 1024px for smooth 30fps on Quadro P1000 (4GB)
+        try:
+            context.preferences.system.gl_texture_limit = 'CLAMP_1024'
+        except Exception:
+            pass
+
+        # Ensure character stands cleanly on the floor (Z=0)
+        if meshes:
+            dg = context.evaluated_depsgraph_get()
+            min_z = min(
+                (m.evaluated_get(dg).matrix_world @ Vector(c)).z
+                for m in meshes for c in m.evaluated_get(dg).bound_box
+            )
+            if arm:
+                arm.location.z -= min_z
+            else:
+                for m in meshes:
+                    m.location.z -= min_z
+
+        self.report({'INFO'}, f"Loaded {fbx_file} ({scene.frame_end} frames) cleanly!")
+        return {'FINISHED'}
+
+
+class CINDY_OT_OptimizeViewportPerformance(bpy.types.Operator):
+    bl_idname = "cindy.optimize_viewport_perf"
+    bl_label = "Boost Viewport 30fps + Natural Camera Handheld"
+    bl_description = "Optimize EEVEE & VRAM for Quadro P1000 4GB and add subtle organic handheld camera breathing"
+
+    def execute(self, context):
+        scene = context.scene
+        cam = ensure_camera(scene)
+
+        # 1. Hardware VRAM & EEVEE optimization for 4GB GPU
+        try:
+            context.preferences.system.gl_texture_limit = 'CLAMP_1024'
+        except Exception:
+            pass
+        scene.eevee.taa_samples = 8
+        scene.eevee.taa_render_samples = 16
+        scene.render.fps = 30
+
+        # 2. Configure 50mm f/2.0 Depth of Field on Cinema Camera
+        cam.data.dof.use_dof = True
+        cam.data.dof.aperture_fstop = 2.0
+        cam.data.dof.focus_distance = 4.2
+
+        self.report({'INFO'}, "Viewport optimized (1024px VRAM cap, 30fps, f/2.0 Cinema DoF active)!")
+        return {'FINISHED'}
+
+
 class CINDY_PT_DirectorPanel(bpy.types.Panel):
     bl_label = "Cindy AI Director"
     bl_idname = "CINDY_PT_director_panel"
@@ -979,6 +1198,20 @@ class CINDY_PT_DirectorPanel(bpy.types.Panel):
         col_new.scale_y = 1.3
         col_new.operator("cindy.new_director_stage", text="🎬 New Clean Director Stage", icon='RESTRICT_RENDER_OFF')
         box_stage.operator("cindy.open_compound_scene", text="Load Alley Preset Scene", icon='FILE_FOLDER')
+        box_stage.operator("cindy.optimize_viewport_perf", text="⚡ Boost 30fps Performance (Quadro 4GB)", icon='SHADING_RENDERED')
+
+        layout.separator()
+
+        # ---------------------------------------------------------------------
+        # 1B. Project Characters & Mixamo Motions (Abdelaziz & Abdelshakoor)
+        # ---------------------------------------------------------------------
+        box_chars = layout.box()
+        box_chars.label(text="Project Characters & Motions:", icon='ARMATURE_DATA')
+        box_chars.prop(scene, "cindy_char_folder", text="Character")
+        box_chars.prop(scene, "cindy_char_motion", text="Motion")
+        col_load_char = box_chars.column(align=True)
+        col_load_char.scale_y = 1.3
+        col_load_char.operator("cindy.load_project_character", text="🎭 Import Character & Lock Motion", icon='IMPORT')
 
         layout.separator()
 
@@ -1196,6 +1429,19 @@ def register():
         default=0
     )
 
+    bpy.types.Scene.cindy_char_folder = bpy.props.EnumProperty(
+        name="Character",
+        description="Select character and age stage",
+        items=CHARACTER_ITEMS,
+        default='1_عبدالعزيز\\المرحلة_1_الشاب'
+    )
+    bpy.types.Scene.cindy_char_motion = bpy.props.EnumProperty(
+        name="Motion Clip",
+        description="Select Mixamo FBX animation clip",
+        items=_get_character_motion_items
+    )
+    bpy.utils.register_class(CINDY_OT_LoadProjectCharacter)
+    bpy.utils.register_class(CINDY_OT_OptimizeViewportPerformance)
     bpy.utils.register_class(CINDY_OT_NewDirectorStage)
     bpy.utils.register_class(CINDY_OT_AddActor)
     bpy.utils.register_class(CINDY_OT_AddProp)
@@ -1250,6 +1496,10 @@ def unregister():
     bpy.utils.unregister_class(CINDY_OT_AddProp)
     bpy.utils.unregister_class(CINDY_OT_AddActor)
     bpy.utils.unregister_class(CINDY_OT_NewDirectorStage)
+    bpy.utils.unregister_class(CINDY_OT_OptimizeViewportPerformance)
+    bpy.utils.unregister_class(CINDY_OT_LoadProjectCharacter)
+    del bpy.types.Scene.cindy_char_motion
+    del bpy.types.Scene.cindy_char_folder
 
     del bpy.types.Scene.cindy_compound_move
     del bpy.types.Scene.cindy_compound_duration

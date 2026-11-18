@@ -2756,7 +2756,8 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             rgb_url = f"/outputs/blender_guides/{stills[0]}" if stills else ""
             storyboard_urls = [f"/outputs/blender_guides/{f}" for f in stills[:6]]
 
-        depth_files = [f for f in os.listdir(b_dir) if "depth" in f.lower() and f.endswith(".jpg")]
+        depth_files = [f for f in os.listdir(b_dir) if "depth" in f.lower() and f.lower().endswith((".png", ".jpg"))]
+        depth_files.sort(key=lambda x: os.path.getmtime(os.path.join(b_dir, x)), reverse=True)
         depth_url = f"/outputs/blender_guides/{depth_files[0]}" if depth_files else rgb_url
 
         meta = engine_result.get("meta", {})
