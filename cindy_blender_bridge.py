@@ -1082,16 +1082,29 @@ CHARACTER_ITEMS = [
     ('4_نوسة', "6. Nousa", "Nousa character folder"),
 ]
 
+def _get_character_folder_items(self, context):
+    items = []
+    if os.path.exists(CHARACTER_LIBRARY_DIR):
+        for root, dirs, files in os.walk(CHARACTER_LIBRARY_DIR):
+            fbx_files = [f for f in files if f.lower().endswith(('.fbx', '.glb'))]
+            if fbx_files:
+                rel = os.path.relpath(root, CHARACTER_LIBRARY_DIR)
+                clean_name = rel.replace('\\', ' / ')
+                items.append((rel, clean_name, f"Character folder: {rel}"))
+    if not items:
+        return CHARACTER_ITEMS
+    return items
+
 def _get_character_motion_items(self, context):
     items = []
     sub = getattr(context.scene, "cindy_char_folder", '1_عبدالعزيز\\المرحلة_1_الشاب')
     folder = os.path.join(CHARACTER_LIBRARY_DIR, sub)
     if os.path.exists(folder):
         for f in sorted(os.listdir(folder)):
-            if f.lower().endswith('.fbx'):
-                items.append((f, f[:-4], f"Load motion {f}"))
+            if f.lower().endswith(('.fbx', '.glb')):
+                items.append((f, f.rsplit('.', 1)[0], f"Load motion {f}"))
     if not items:
-        items.append(('NONE', "No FBX Found", "No FBX files in directory"))
+        items.append(('NONE', "No 3D Models Found", "No FBX/GLB in directory"))
     return items
 
 
@@ -1151,6 +1164,35 @@ class CINDY_OT_LoadProjectCharacter(bpy.types.Operator):
                     for fc in act.fcurves:
                         for kp in fc.keyframe_points:
                             kp.interpolation = 'BEZIER'
+            except Exception:
+                pass
+
+        # Auto-detect and link BaseColor textures from the character directory
+        char_dir = os.path.join(CHARACTER_LIBRARY_DIR, sub)
+        tex_path = None
+        if os.path.exists(char_dir):
+            for fname in os.listdir(char_dir):
+                fl = fname.lower()
+                if fl.endswith(('.png', '.jpg', '.jpeg')) and not fl.startswith('t_pose'):
+                    tex_path = os.path.join(char_dir, fname)
+                    break
+        if tex_path and meshes:
+            try:
+                img_data = bpy.data.images.load(tex_path, check_existing=True)
+                for m in meshes:
+                    mat = bpy.data.materials.new(name=f"Mat_{m.name}")
+                    nodes = mat.node_tree.nodes
+                    links = mat.node_tree.links
+                    nodes.clear()
+                    n_out = nodes.new(type='ShaderNodeOutputMaterial')
+                    n_bsdf = nodes.new(type='ShaderNodeBsdfPrincipled')
+                    n_tex = nodes.new(type='ShaderNodeTexImage')
+                    n_tex.image = img_data
+                    links.new(n_tex.outputs['Color'], n_bsdf.inputs['Base Color'])
+                    links.new(n_bsdf.outputs['BSDF'], n_out.inputs['Surface'])
+                    n_bsdf.inputs['Roughness'].default_value = 0.55
+                    m.data.materials.clear()
+                    m.data.materials.append(mat)
             except Exception:
                 pass
 
@@ -1459,9 +1501,8 @@ def register():
 
     bpy.types.Scene.cindy_char_folder = bpy.props.EnumProperty(
         name="Character",
-        description="Select character and age stage",
-        items=CHARACTER_ITEMS,
-        default='1_عبدالعزيز\\المرحلة_1_الشاب'
+        description="Select character folder (auto-discovers any new character)",
+        items=_get_character_folder_items
     )
     bpy.types.Scene.cindy_char_motion = bpy.props.EnumProperty(
         name="Motion Clip",
