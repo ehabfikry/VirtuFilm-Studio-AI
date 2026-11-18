@@ -1078,6 +1078,8 @@ CHARACTER_ITEMS = [
     ('1_عبدالعزيز\\المرحلة_2_العجوز', "2. Abdelaziz (Mature / Disco)", "Mature Abdelaziz character folder"),
     ('2_عبدالشكور\\المرحلة_1_الشاب', "3. Abdelshakoor (Young)", "Young Abdelshakoor character folder"),
     ('2_عبدالشكور\\المرحلة_2_العجوز', "4. Abdelshakoor (Mature)", "Mature Abdelshakoor character folder"),
+    ('3_رجب', "5. Ragab", "Ragab character folder"),
+    ('4_نوسة', "6. Nousa", "Nousa character folder"),
 ]
 
 def _get_character_motion_items(self, context):
