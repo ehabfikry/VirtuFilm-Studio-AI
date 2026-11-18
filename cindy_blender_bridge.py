@@ -63,6 +63,30 @@ def ensure_output_dir():
         os.makedirs(OUTPUT_BASE_DIR, exist_ok=True)
     return OUTPUT_BASE_DIR
 
+def _apply_auto_quadro_optimization(scene=None):
+    """Automatically configure 1024px VRAM texture limit, 30fps, EEVEE fast sampling, and f/2.0 DoF."""
+    try:
+        bpy.context.preferences.system.gl_texture_limit = 'CLAMP_1024'
+    except Exception:
+        pass
+    sc = scene or getattr(bpy.context, "scene", None)
+    if sc:
+        try:
+            sc.eevee.taa_samples = 8
+            sc.eevee.taa_render_samples = 16
+            sc.render.fps = 30
+        except Exception:
+            pass
+        cam = sc.camera
+        if cam and cam.type == 'CAMERA':
+            try:
+                cam.data.dof.use_dof = True
+                cam.data.dof.aperture_fstop = 2.0
+                cam.data.dof.focus_distance = 4.2
+            except Exception:
+                pass
+
+
 def ensure_camera(scene):
     cam = scene.camera
     if not cam or cam.type != 'CAMERA':
@@ -78,6 +102,7 @@ def ensure_camera(scene):
     cam.data.passepartout_alpha = 0.92
     cam.data.show_composition_thirds = True
     cam.data.show_composition_center = True
+    _apply_auto_quadro_optimization(scene)
     return cam
 
 def get_target_location(scene):
@@ -1127,11 +1152,8 @@ class CINDY_OT_LoadProjectCharacter(bpy.types.Operator):
             except Exception:
                 pass
 
-        # Optimize viewport texture VRAM limit to 1024px for smooth 30fps on Quadro P1000 (4GB)
-        try:
-            context.preferences.system.gl_texture_limit = 'CLAMP_1024'
-        except Exception:
-            pass
+        # Automatically apply Quadro 4GB 30fps & Cinema DoF optimization
+        _apply_auto_quadro_optimization(scene)
 
         # Ensure character stands cleanly on the floor (Z=0)
         if meshes:
@@ -1198,7 +1220,6 @@ class CINDY_PT_DirectorPanel(bpy.types.Panel):
         col_new.scale_y = 1.3
         col_new.operator("cindy.new_director_stage", text="🎬 New Clean Director Stage", icon='RESTRICT_RENDER_OFF')
         box_stage.operator("cindy.open_compound_scene", text="Load Alley Preset Scene", icon='FILE_FOLDER')
-        box_stage.operator("cindy.optimize_viewport_perf", text="⚡ Boost 30fps Performance (Quadro 4GB)", icon='SHADING_RENDERED')
 
         layout.separator()
 
@@ -1386,6 +1407,11 @@ def draw_cindy_header_button(self, context):
     layout.separator()
     layout.operator("cindy.export_guides", text="Export to Cindy", icon='EXPORT')
 
+
+@bpy.app.handlers.persistent
+def _cindy_on_file_load(dummy):
+    _apply_auto_quadro_optimization()
+
 def register():
     bpy.types.Scene.cindy_compound_move = bpy.props.EnumProperty(
         name="Compound Camera Move",
@@ -1464,12 +1490,17 @@ def register():
     bpy.utils.register_class(CINDY_OT_ExportGuides)
     bpy.utils.register_class(CINDY_OT_OpenCompoundScene)
     bpy.utils.register_class(CINDY_PT_DirectorPanel)
+    _apply_auto_quadro_optimization()
+    if _cindy_on_file_load not in bpy.app.handlers.load_post:
+        bpy.app.handlers.load_post.append(_cindy_on_file_load)
     try:
         bpy.types.VIEW3D_HT_header.append(draw_cindy_header_button)
     except Exception:
         pass
 
 def unregister():
+    if _cindy_on_file_load in bpy.app.handlers.load_post:
+        bpy.app.handlers.load_post.remove(_cindy_on_file_load)
     try:
         bpy.types.VIEW3D_HT_header.remove(draw_cindy_header_button)
     except Exception:
