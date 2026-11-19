@@ -1010,8 +1010,116 @@ def _render_calibrated_depth_pass_53(scene, out_path, near_clip=0.45, far_clip=8
         scene.render.image_settings.color_mode = old_color_mode
 
 
-def _run_scene_audit_and_extract(context):
-    """Audit visible armatures & props via CindyDirectorGate and extract real scene metadata."""
+def _detect_actor_pose(obj, frame):
+    """Detect whether an armature is standing, sitting, or crouching at a given frame."""
+    names = []
+    ad = getattr(obj, "animation_data", None)
+    if ad:
+        if ad.action:
+            names.append(ad.action.name.lower())
+        for track in ad.nla_tracks:
+            if track.mute:
+                continue
+            for strip in track.strips:
+                if strip.frame_start <= frame <= strip.frame_end:
+                    names.append(strip.name.lower())
+                    if strip.action:
+                        names.append(strip.action.name.lower())
+    joined = " ".join(names)
+    if any(k in joined for k in ("sit", "chair", "couch", "bench")):
+        return "sitting"
+    if any(k in joined for k in ("crouch", "kneel", "squat")):
+        return "crouching"
+    return "standing"
+
+
+def _measure_armature_bounds(context, obj):
+    """Return (min_z, max_z, height, dx, dy) of an armature's evaluated child meshes."""
+    context.view_layer.update()
+    depsgraph = context.evaluated_depsgraph_get()
+    child_meshes = [c for c in obj.children_recursive if c.type == 'MESH' and not c.hide_viewport]
+    targets = child_meshes if child_meshes else [obj]
+    min_x, max_x = float('inf'), float('-inf')
+    min_y, max_y = float('inf'), float('-inf')
+    min_z, max_z = float('inf'), float('-inf')
+    for t in targets:
+        eval_t = t.evaluated_get(depsgraph)
+        for corner in eval_t.bound_box:
+            wc = eval_t.matrix_world @ Vector(corner)
+            min_x, max_x = min(min_x, wc.x), max(max_x, wc.x)
+            min_y, max_y = min(min_y, wc.y), max(max_y, wc.y)
+            min_z, max_z = min(min_z, wc.z), max(max_z, wc.z)
+    if min_z == float('inf'):
+        return 0.0, 1.75, 1.75, 0.5, 0.5
+    return min_z, max_z, max(0.0, max_z - min_z), max(0.0, max_x - min_x), max(0.0, max_y - min_y)
+
+
+def _auto_fix_actor_physics(context, obj, target_standing_height=1.75):
+    """
+    Cindy Active Brain Auto-Fix:
+    1. Detects & restores Mixamo Y-up -> Z-up upright orientation if X-rotation (90 deg) was wiped.
+    2. Normalizes abnormal scale on the standing frame so adult human height ~= 1.75m.
+    3. Grounds the actor cleanly to Z=0.0 across key animation frames (preventing Mixamo Sitting hip-drop).
+    Returns a list of applied fix descriptions.
+    """
+    import math
+    scene = context.scene
+    orig_frame = scene.frame_current
+    fixes = []
+
+    f_start = scene.frame_start
+    f_end = scene.frame_end
+    f_mid = (f_start + f_end) // 2
+
+    ad = getattr(obj, "animation_data", None)
+    key_frames = sorted(set([f_start, f_mid, f_end, orig_frame]))
+    if ad and ad.nla_tracks:
+        for track in ad.nla_tracks:
+            for strip in track.strips:
+                fs = int(max(f_start, min(f_end, strip.frame_start)))
+                fe = int(max(f_start, min(f_end, strip.frame_end)))
+                key_frames.extend([fs, fe])
+        key_frames = sorted(set(key_frames))
+
+    has_anim = bool(ad and (ad.action is not None or len(ad.nla_tracks) > 0))
+
+    # 1. Upright check: catch wiped Mixamo FBX X=90deg rotation (actor lying flat: dz << max(dx, dy))
+    scene.frame_set(f_start)
+    pose_start = _detect_actor_pose(obj, f_start)
+    _, _, h_start, dx, dy = _measure_armature_bounds(context, obj)
+    if pose_start == "standing" and h_start < 0.90 and max(dx, dy) > 1.25 and abs(obj.rotation_euler.x) < 0.2:
+        for kf in key_frames:
+            scene.frame_set(kf)
+            obj.rotation_euler.x = math.radians(90.0)
+            if has_anim or len(key_frames) > 1:
+                obj.keyframe_insert(data_path="rotation_euler", index=0, frame=kf)
+        fixes.append(f"{obj.name}: restored Mixamo upright X=90deg (was lying flat dz={h_start:.2f}m, max_xy={max(dx,dy):.2f}m)")
+        scene.frame_set(f_start)
+        _, _, h_start, dx, dy = _measure_armature_bounds(context, obj)
+
+    # 2. Scale check on frame_start (standing)
+    if pose_start == "standing" and (h_start < 1.50 or h_start > 2.00) and h_start > 0.05:
+        sf = target_standing_height / h_start
+        obj.scale = (obj.scale.x * sf, obj.scale.y * sf, obj.scale.z * sf)
+        fixes.append(f"{obj.name}: rescaled {h_start:.2f}m -> {target_standing_height:.2f}m (factor {sf:.3f})")
+
+    # 3. Multi-frame floor grounding (catches Mixamo Sitting/Crouching sinking below Z=0)
+    for kf in key_frames:
+        scene.frame_set(kf)
+        min_z, _, _, _, _ = _measure_armature_bounds(context, obj)
+        if abs(min_z) > 0.03:
+            obj.location.z -= min_z
+            if has_anim or len(key_frames) > 1:
+                obj.keyframe_insert(data_path="location", index=2, frame=kf)
+            fixes.append(f"{obj.name} @f{kf}: grounded Z by {-min_z:+.3f}m")
+
+    scene.frame_set(orig_frame)
+    context.view_layer.update()
+    return fixes
+
+
+def _run_scene_audit_and_extract(context, auto_fix=True):
+    """Audit visible armatures & props via CindyDirectorGate (with Active Auto-Fix) and extract real scene metadata."""
     import sys
     repo_dir = r"C:\Users\DELL\Desktop\Cindy-AI-Director"
     if repo_dir not in sys.path:
@@ -1019,29 +1127,22 @@ def _run_scene_audit_and_extract(context):
     from cindy_director_gate import CindyDirectorGate
 
     scene = context.scene
-    depsgraph = context.evaluated_depsgraph_get()
     actors = []
     audit_checks = []
+    auto_fixes_applied = []
     all_passed = True
 
     for obj in scene.objects:
         if obj.type == 'ARMATURE' and not obj.hide_viewport:
-            name = obj.name.replace('RIG_', '').replace('CHAR_', '').replace('_', ' ').strip().capitalize()
-            # Measure evaluated height & lowest Z across child meshes (fallback to armature)
-            child_meshes = [c for c in obj.children if c.type == 'MESH']
-            targets = child_meshes if child_meshes else [obj]
-            min_z, max_z = float('inf'), float('-inf')
-            for t in targets:
-                eval_t = t.evaluated_get(depsgraph)
-                for corner in eval_t.bound_box:
-                    wc = eval_t.matrix_world @ Vector(corner)
-                    min_z = min(min_z, wc.z)
-                    max_z = max(max_z, wc.z)
-            height = (max_z - min_z) if (max_z > min_z) else 1.75
-            if min_z == float('inf'):
-                min_z = 0.0
+            if auto_fix:
+                applied = _auto_fix_actor_physics(context, obj)
+                auto_fixes_applied.extend(applied)
 
-            scale_res = CindyDirectorGate.audit_actor_scale(name, height)
+            name = obj.name.replace('RIG_', '').replace('CHAR_', '').replace('_', ' ').strip().capitalize()
+            pose = _detect_actor_pose(obj, scene.frame_current)
+            min_z, max_z, height, _, _ = _measure_armature_bounds(context, obj)
+
+            scale_res = CindyDirectorGate.audit_actor_scale(name, height, pose=pose)
             ground_res = CindyDirectorGate.audit_ground_contact(min_z, ground_tolerance=0.05)
             audit_checks.append(scale_res)
             audit_checks.append(ground_res)
@@ -1059,13 +1160,14 @@ def _run_scene_audit_and_extract(context):
 
             actors.append({
                 'name': name,
-                'appearance': f"Character {name} staged at {height:.2f}m physical scale",
+                'appearance': f"Character {name} staged ({pose}) at {height:.2f}m physical scale",
                 'locked_prop': held_prop
             })
 
     return actors, {
         'passed': all_passed,
         'actor_count': len(actors),
+        'auto_fixes_applied': auto_fixes_applied,
         'checks': audit_checks
     }
 

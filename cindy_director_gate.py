@@ -21,6 +21,12 @@ TARGET_HUMAN_HEIGHT = 1.75
 HEIGHT_TOLERANCE_MIN = 1.60
 HEIGHT_TOLERANCE_MAX = 1.90
 
+POSE_HEIGHT_BOUNDS = {
+    "standing": (1.60, 1.90, 1.75),
+    "sitting": (1.05, 1.55, 1.30),
+    "crouching": (0.85, 1.45, 1.15),
+}
+
 class CindyDirectorGate:
     """
     Automated directorial checklist that audits a 3D scene before rendering.
@@ -28,19 +34,23 @@ class CindyDirectorGate:
     """
 
     @staticmethod
-    def audit_actor_scale(actor_name: str, current_height: float) -> Dict[str, Any]:
+    def audit_actor_scale(actor_name: str, current_height: float, pose: str = "standing") -> Dict[str, Any]:
         """
-        Validates that an actor's bounding height adheres to realistic human anatomy.
+        Validates that an actor's bounding height adheres to realistic human anatomy
+        for their current pose (standing, sitting, crouching).
         """
-        is_valid = HEIGHT_TOLERANCE_MIN <= current_height <= HEIGHT_TOLERANCE_MAX
-        deviation = current_height - TARGET_HUMAN_HEIGHT
+        pose_key = (pose or "standing").lower()
+        h_min, h_max, target = POSE_HEIGHT_BOUNDS.get(pose_key, (HEIGHT_TOLERANCE_MIN, HEIGHT_TOLERANCE_MAX, TARGET_HUMAN_HEIGHT))
+        is_valid = h_min <= current_height <= h_max
+        deviation = current_height - target
         return {
             'actor': actor_name,
+            'pose': pose_key,
             'height': round(current_height, 3),
-            'target': TARGET_HUMAN_HEIGHT,
+            'target': target,
             'deviation_meters': round(deviation, 3),
             'passed': is_valid,
-            'message': "Scale verified (1.75m adult human)" if is_valid else f"Scale anomaly detected: {current_height:.2f}m is outside [{HEIGHT_TOLERANCE_MIN}m, {HEIGHT_TOLERANCE_MAX}m]"
+            'message': f"Scale verified ({current_height:.2f}m {pose_key} adult human)" if is_valid else f"Scale anomaly detected ({pose_key}): {current_height:.2f}m is outside [{h_min}m, {h_max}m]"
         }
 
     @staticmethod
