@@ -909,13 +909,117 @@ def _get_environment_file_items(self, context):
 
 
 # ---------------------------------------------------------------------------
-# Section 6: AI Video Prompt & Previz Synthesis Operator (CozyClay & Prompt Grammar)
+# Section 6: AI Video Engine Export (Beauty + 8-bit Depth + Director Gate + 7-Part Prompt -> Cindy App)
 # ---------------------------------------------------------------------------
 
+BLENDER_GUIDES_OUT_DIR = r"C:\Users\DELL\Desktop\Cindy-AI-Director\outputs\blender_guides"
+
+def _render_calibrated_depth_pass_53(scene, out_path, near_clip=0.45, far_clip=8.0):
+    """Blender 5.3 compatible 8-bit linear depth pass via EEVEE material_override."""
+    mat_name = "Cindy_Depth_Override_Mat"
+    mat = bpy.data.materials.get(mat_name) or bpy.data.materials.new(name=mat_name)
+    mat.use_nodes = True
+    nodes = mat.node_tree.nodes
+    links = mat.node_tree.links
+    nodes.clear()
+
+    n_cam = nodes.new(type='ShaderNodeCameraData')
+    n_map = nodes.new(type='ShaderNodeMapRange')
+    n_map.clamp = True
+    n_map.inputs['From Min'].default_value = near_clip
+    n_map.inputs['From Max'].default_value = far_clip
+    n_map.inputs['To Min'].default_value = 1.0  # Near = White (ControlNet Depth standard)
+    n_map.inputs['To Max'].default_value = 0.0  # Far = Black
+    n_emit = nodes.new(type='ShaderNodeEmission')
+    n_out = nodes.new(type='ShaderNodeOutputMaterial')
+
+    links.new(n_cam.outputs['View Z Depth'], n_map.inputs['Value'])
+    links.new(n_map.outputs['Result'], n_emit.inputs['Color'])
+    links.new(n_emit.outputs['Emission'], n_out.inputs['Surface'])
+
+    vl = bpy.context.view_layer
+    old_override = vl.material_override
+    old_filepath = scene.render.filepath
+    old_format = scene.render.image_settings.file_format
+    old_color_mode = scene.render.image_settings.color_mode
+
+    try:
+        vl.material_override = mat
+        scene.render.filepath = out_path
+        scene.render.image_settings.file_format = 'PNG'
+        scene.render.image_settings.color_mode = 'BW'
+        bpy.ops.render.render(write_still=True)
+    finally:
+        vl.material_override = old_override
+        scene.render.filepath = old_filepath
+        scene.render.image_settings.file_format = old_format
+        scene.render.image_settings.color_mode = old_color_mode
+
+
+def _run_scene_audit_and_extract(context):
+    """Audit visible armatures & props via CindyDirectorGate and extract real scene metadata."""
+    import sys
+    repo_dir = r"C:\Users\DELL\Desktop\Cindy-AI-Director"
+    if repo_dir not in sys.path:
+        sys.path.append(repo_dir)
+    from cindy_director_gate import CindyDirectorGate
+
+    scene = context.scene
+    depsgraph = context.evaluated_depsgraph_get()
+    actors = []
+    audit_checks = []
+    all_passed = True
+
+    for obj in scene.objects:
+        if obj.type == 'ARMATURE' and not obj.hide_viewport:
+            name = obj.name.replace('RIG_', '').replace('CHAR_', '').replace('_', ' ').strip().capitalize()
+            # Measure evaluated height & lowest Z across child meshes (fallback to armature)
+            child_meshes = [c for c in obj.children if c.type == 'MESH']
+            targets = child_meshes if child_meshes else [obj]
+            min_z, max_z = float('inf'), float('-inf')
+            for t in targets:
+                eval_t = t.evaluated_get(depsgraph)
+                for corner in eval_t.bound_box:
+                    wc = eval_t.matrix_world @ Vector(corner)
+                    min_z = min(min_z, wc.z)
+                    max_z = max(max_z, wc.z)
+            height = (max_z - min_z) if (max_z > min_z) else 1.75
+            if min_z == float('inf'):
+                min_z = 0.0
+
+            scale_res = CindyDirectorGate.audit_actor_scale(name, height)
+            ground_res = CindyDirectorGate.audit_ground_contact(min_z, ground_tolerance=0.05)
+            audit_checks.append(scale_res)
+            audit_checks.append(ground_res)
+            if not scale_res['passed'] or not ground_res['passed']:
+                all_passed = False
+
+            held_prop = ""
+            for other in scene.objects:
+                for const in other.constraints:
+                    if const.type == 'CHILD_OF' and const.target == obj:
+                        held_prop = other.name.replace('_', ' ')
+                        prop_res = CindyDirectorGate.audit_prop_socket(held_prop, True, const.subtarget or "Bone")
+                        audit_checks.append(prop_res)
+                        break
+
+            actors.append({
+                'name': name,
+                'appearance': f"Character {name} staged at {height:.2f}m physical scale",
+                'locked_prop': held_prop
+            })
+
+    return actors, {
+        'passed': all_passed,
+        'actor_count': len(actors),
+        'checks': audit_checks
+    }
+
+
 class CINDY_OT_SynthesizeVideoPrompt(bpy.types.Operator):
-    """Synthesize model-specific 7-part video prompts from 3D camera and actors (CozyClay / Wan2.2 / Seedance / Hunyuan)"""
+    """Audit 3D scene, render Beauty + 8-bit Depth passes, synthesize 7-part prompt, and export directly to Cindy AI Director App"""
     bl_idname = "cindy.synthesize_video_prompt"
-    bl_label = "Synthesize AI Video Prompt Package"
+    bl_label = "Export Guide + Depth + Prompt to Cindy App"
     bl_options = {'REGISTER', 'UNDO'}
 
     target_engine: bpy.props.EnumProperty(
@@ -929,64 +1033,108 @@ class CINDY_OT_SynthesizeVideoPrompt(bpy.types.Operator):
         default='WAN_2_2'
     )
 
+    render_passes: bpy.props.BoolProperty(
+        name="Render Beauty & Depth Passes",
+        default=True
+    )
+
     def execute(self, context):
-        try:
-            from cindy_prompt_grammar import CindyPromptGrammar
-        except ImportError:
-            import sys, os
-            repo_dir = r"C:\Users\DELL\Desktop\Cindy-AI-Director"
-            if repo_dir not in sys.path:
-                sys.path.append(repo_dir)
-            from cindy_prompt_grammar import CindyPromptGrammar
+        import sys, json, time
+        repo_dir = r"C:\Users\DELL\Desktop\Cindy-AI-Director"
+        if repo_dir not in sys.path:
+            sys.path.append(repo_dir)
+        from cindy_prompt_grammar import CindyPromptGrammar
 
         scene = context.scene
         cam = scene.camera
-        lens_str = f"{int(cam.data.lens)}mm prime" if (cam and cam.data) else "38mm anamorphic prime"
+        lens_mm = round(float(cam.data.lens), 1) if (cam and cam.data) else 38.0
+        lens_str = f"{int(lens_mm)}mm prime lens"
 
-        actors = []
-        for obj in scene.objects:
-            if obj.type == 'ARMATURE' and not obj.hide_viewport:
-                name = obj.name.replace('RIG_', '').replace('CHAR_', '').capitalize()
-                held_prop = ""
-                for child in scene.objects:
-                    for const in child.constraints:
-                        if const.type == 'CHILD_OF' and const.target == obj:
-                            held_prop = child.name.replace('_', ' ')
-                            break
-                actors.append({
-                    'name': name,
-                    'appearance': f"Character {name} accurately staged at 1.75m height",
-                    'locked_prop': held_prop
-                })
-
+        # 1. Run Director Quality Gate & extract real actors
+        actors, audit_report = _run_scene_audit_and_extract(context)
         if not actors:
-            actors = [
-                {'name': "Actor A", 'appearance': "Protagonist", 'locked_prop': "cue stick"},
-                {'name': "Actor B", 'appearance': "Antagonist", 'locked_prop': ""}
-            ]
+            actors = [{'name': "Subject", 'appearance': "Primary character staged in 3D frame", 'locked_prop': ""}]
 
+        # Detect environment name from World HDRI or scene name
+        env_desc = f"3D staged interior set ({scene.name}), physically grounded lighting and perspective"
+        if scene.world and scene.world.use_nodes:
+            for n in scene.world.node_tree.nodes:
+                if n.type == 'TEX_ENVIRONMENT' and n.image:
+                    env_desc = f"Cinematic set lit by {n.image.name} environment, physically accurate shadows and depth"
+                    break
+
+        move_preset = getattr(scene, 'cindy_compound_move', 'STEADY_TRACK')
         payload = CindyPromptGrammar.build_seven_part_prompt(
-            visual_style="Cinematic 35mm film still, warm chiaroscuro lighting, tactile fabric textures, rich deep contrast",
-            shot_type="Medium Wide Cinematic Two-Shot, eye-level framing",
+            visual_style="Cinematic 35mm film still, natural chiaroscuro lighting, rich tactile textures, photorealistic skin and fabric",
+            shot_type=f"3D Previz-grounded camera composition ({lens_str})",
             camera_lens=lens_str,
-            camera_motion="Steady horizontal slider push-in, no handheld shake",
-            scene_environment="Vintage billiard room, dark wood paneling, tournament green felt table under green enamel lamp",
+            camera_motion=f"Steady controlled cinema camera ({move_preset.replace('_', ' ').lower()}), zero handheld jitter",
+            scene_environment=env_desc,
             cast_and_props=actors,
             chronological_beats=[
-                {'time': "0.0-0.5s", 'actor': "Scene", 'action': "begins in locked physical alignment with 3D guide frame"},
-                {'time': "0.5-2.0s", 'actor': actors[0]['name'], 'action': "smoothly addresses the table, aiming steadily"},
-                {'time': "1.2-2.8s", 'actor': actors[1]['name'] if len(actors) > 1 else "Opponent", 'action': "observes intently with subtle confidence"}
+                {'time': "0.0-0.5s", 'actor': "Scene", 'action': "opens locked to 3D guide framing and spatial depth"},
+                {'time': "0.5-2.5s", 'actor': actors[0]['name'], 'action': "performs motivated physical action while maintaining exact spatial grounding"},
+                {'time': "1.5-3.5s", 'actor': actors[1]['name'] if len(actors) > 1 else actors[0]['name'], 'action': "reacts naturally with subtle micro-expressions"}
             ],
             target_model=self.target_engine
         )
 
+        # 2. Export Beauty + Depth + JSON Manifest to Cindy App (outputs/blender_guides/)
+        os.makedirs(BLENDER_GUIDES_OUT_DIR, exist_ok=True)
+        beauty_file = "blender_bridge_beauty.jpg"
+        depth_file = "blender_bridge_depth.png"
+        beauty_path = os.path.join(BLENDER_GUIDES_OUT_DIR, beauty_file)
+        depth_path = os.path.join(BLENDER_GUIDES_OUT_DIR, depth_file)
+
+        if self.render_passes and cam:
+            old_fp = scene.render.filepath
+            old_fmt = scene.render.image_settings.file_format
+            old_res_x, old_res_y = scene.render.resolution_x, scene.render.resolution_y
+            try:
+                scene.render.resolution_x = 1280
+                scene.render.resolution_y = 720
+                scene.render.filepath = beauty_path
+                scene.render.image_settings.file_format = 'JPEG'
+                bpy.ops.render.render(write_still=True)
+                _render_calibrated_depth_pass_53(scene, depth_path, near_clip=0.45, far_clip=8.0)
+            finally:
+                scene.render.filepath = old_fp
+                scene.render.image_settings.file_format = old_fmt
+                scene.render.resolution_x = old_res_x
+                scene.render.resolution_y = old_res_y
+
+        manifest = {
+            "exported_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "source": "cindy_blender_bridge_v8",
+            "title": scene.name,
+            "lens_focal_length_mm": lens_mm,
+            "frame": scene.frame_current,
+            "duration_sec": round((scene.frame_end - scene.frame_start) / max(1, scene.render.fps), 2),
+            "stills": [{"url": f"/outputs/blender_guides/{beauty_file}", "frame": scene.frame_current}] if os.path.exists(beauty_path) else [],
+            "depth_url": f"/outputs/blender_guides/{depth_file}" if os.path.exists(depth_path) else "",
+            "meta": {
+                "lens_focal_length_mm": lens_mm,
+                "frame": scene.frame_current,
+                "duration_sec": round((scene.frame_end - scene.frame_start) / max(1, scene.render.fps), 2),
+                "resolution": [1280, 720],
+                "shot_type": f"Blender 3D Guide ({lens_str})",
+                "actors": [a['name'] for a in actors]
+            },
+            "prompt_package": payload,
+            "audit": audit_report
+        }
+
+        manifest_path = os.path.join(BLENDER_GUIDES_OUT_DIR, "latest_previs_result.json")
+        with open(manifest_path, "w", encoding="utf-8") as fh:
+            json.dump(manifest, fh, ensure_ascii=False, indent=2)
+
         try:
             context.window_manager.clipboard = payload['positive_prompt']
-            self.report({'INFO'}, f"Generated {self.target_engine} Prompt! Copied to Clipboard.")
         except Exception:
-            self.report({'INFO'}, f"Generated {self.target_engine} Prompt successfully.")
+            pass
 
-        print(f"\n=== CINDY PROMPT SYNTHESIS [{self.target_engine}] ===\n{payload['positive_prompt']}\n")
+        gate_status = "PASS" if audit_report['passed'] else "WARN"
+        self.report({'INFO'}, f"Exported Guide + Depth + {self.target_engine} Prompt to Cindy App! [Gate: {gate_status}]")
         return {'FINISHED'}
 
 

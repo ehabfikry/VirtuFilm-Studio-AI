@@ -2746,7 +2746,7 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             has_video = True
 
         engine_stills = engine_result.get("stills", [])
-        stills = [f for f in os.listdir(b_dir) if f.endswith(".jpg") and "depth" not in f.lower()]
+        stills = [f for f in os.listdir(b_dir) if f.lower().endswith((".jpg", ".jpeg", ".png")) and "depth" not in f.lower()]
         stills.sort(key=lambda x: os.path.getmtime(os.path.join(b_dir, x)), reverse=True)
 
         if engine_stills:
@@ -2758,7 +2758,7 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
 
         depth_files = [f for f in os.listdir(b_dir) if "depth" in f.lower() and f.lower().endswith((".png", ".jpg"))]
         depth_files.sort(key=lambda x: os.path.getmtime(os.path.join(b_dir, x)), reverse=True)
-        depth_url = f"/outputs/blender_guides/{depth_files[0]}" if depth_files else rgb_url
+        depth_url = engine_result.get("depth_url") or (f"/outputs/blender_guides/{depth_files[0]}" if depth_files else rgb_url)
 
         meta = engine_result.get("meta", {})
         if not meta:
@@ -2779,7 +2779,9 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             "depth_url": depth_url,
             "meta": meta,
             "storyboard": storyboard_urls,
-            "stills_detail": engine_stills
+            "stills_detail": engine_stills,
+            "prompt_package": engine_result.get("prompt_package", {}),
+            "audit": engine_result.get("audit", {})
         })
 
     def handle_generate_previs(self, payload):

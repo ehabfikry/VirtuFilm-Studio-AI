@@ -4607,28 +4607,44 @@
       if (!latestBlenderGuideData) return;
       const rgb = latestBlenderGuideData.rgb_url;
       const lens = latestBlenderGuideData.meta.lens_focal_length_mm || 50;
+      const pkg = latestBlenderGuideData.prompt_package || {};
+      const audit = latestBlenderGuideData.audit || {};
+
       const previewImg = document.getElementById('screen-preview-img');
       if (previewImg) {
-        previewImg.src = rgb;
+        previewImg.src = rgb + '?t=' + Date.now();
         previewImg.classList.remove('hidden');
       }
       currentScreenMedia = { type: 'image', url: rgb, name: 'Blender 3D Guide' };
-      const pInp = document.getElementById('chat-input') || document.getElementById('edit-media-prompt');
-      if (pInp && !pInp.value.includes('lens')) {
-        pInp.value = (pInp.value ? pInp.value + ', ' : '') + `cinematic composition, ${lens}mm lens framing, depth-mapped structure`;
+
+      const targetPrompt = pkg.positive_prompt || `cinematic composition, ${lens}mm lens framing, depth-mapped structure`;
+      const studioPrompt = document.getElementById('screen-active-prompt');
+      const editPrompt = document.getElementById('edit-media-prompt');
+      const chatInp = document.getElementById('chat-input');
+      if (studioPrompt) {
+        studioPrompt.value = targetPrompt;
+        studioPrompt.innerText = targetPrompt;
       }
-      showToast(`تم ربط لقطة وخريطة عمق بلندر باستوديو Fal.ai بنجاح! 🎬`, 'success');
+      if (editPrompt) editPrompt.value = targetPrompt;
+      else if (chatInp) chatInp.value = targetPrompt;
+
+      const gateTag = (audit && typeof audit.passed === 'boolean') ? (audit.passed ? ' [Gate: PASS]' : ' [Gate: WARN]') : '';
+      showToast(`تم ربط لقطة وخريطة عمق بلندر + البرومبت السباعي (${lens}mm)${gateTag} باستوديو Fal.ai! 🎬`, 'success');
     }
 
     function applyBlenderGuideToComfy() {
       if (!latestBlenderGuideData) return;
-      const depth = latestBlenderGuideData.depth_url;
       const lens = latestBlenderGuideData.meta.lens_focal_length_mm || 50;
+      const pkg = latestBlenderGuideData.prompt_package || {};
       const pInp = (currentComfySubMode === 'video') ? document.getElementById('comfy-video-prompt') : document.getElementById('comfy-prompt');
-      if (pInp && !pInp.value.includes('lens')) {
-        pInp.value = (pInp.value ? pInp.value + ', ' : '') + `framed with ${lens}mm lens, 3D depth-guided composition`;
+      const nInp = document.getElementById('comfy-negative-prompt') || document.getElementById('comfy-video-neg-prompt');
+      if (pInp) {
+        pInp.value = pkg.positive_prompt || ((pInp.value ? pInp.value + ', ' : '') + `framed with ${lens}mm lens, 3D depth-guided composition`);
       }
-      showToast(`تم تفعيل توجيه Depth Pass من بلندر لكاميرا ComfyUI! ⚡`, 'success');
+      if (nInp && pkg.negative_prompt) {
+        nInp.value = pkg.negative_prompt;
+      }
+      showToast(`تم تفعيل توجيه Depth Pass + البرومبت السباعي من بلندر لكاميرا ComfyUI! ⚡`, 'success');
     }
 
     function sendPromptToFalStudio(promptText, mode, model) {
