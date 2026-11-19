@@ -908,6 +908,60 @@ def _get_environment_file_items(self, context):
     return items if items else [('NONE', "No HDRI/EXR Found", "")]
 
 
+def _get_3d_asset_items(self, context):
+    items = []
+    exts = ('.gltf', '.glb', '.fbx', '.obj')
+    search_roots = ["4_أثاث_وديكورات_3D_Props", "1_داخلي_Interiors", "2_خارجي_Exteriors"]
+    for sub in search_roots:
+        base = os.path.join(ENVIRONMENT_LIBRARY_DIR, sub)
+        if not os.path.exists(base):
+            continue
+        for root, dirs, files in os.walk(base):
+            for f in sorted(files):
+                if f.lower().endswith(exts):
+                    full = os.path.join(root, f)
+                    rel = os.path.relpath(full, ENVIRONMENT_LIBRARY_DIR)
+                    label = os.path.splitext(f)[0]
+                    items.append((rel, label, f"3D Asset: {rel}"))
+    return items[:120] if items else [('NONE', "No 3D Props/Locations Found", "")]
+
+
+class CINDY_OT_LoadEnvironmentAsset(bpy.types.Operator):
+    bl_idname = "cindy.load_environment_asset"
+    bl_label = "Import 3D Prop / Location (Z=0)"
+    bl_description = "Import selected 3D location or furniture prop from the Environments Library and snap to floor"
+
+    def execute(self, context):
+        rel = getattr(context.scene, 'cindy_3d_asset', 'NONE')
+        if not rel or rel == 'NONE':
+            self.report({'ERROR'}, "No 3D asset selected!")
+            return {'CANCELLED'}
+        full_path = os.path.join(ENVIRONMENT_LIBRARY_DIR, rel)
+        if not os.path.exists(full_path):
+            self.report({'ERROR'}, f"Asset not found: {full_path}")
+            return {'CANCELLED'}
+
+        old_objs = set(bpy.data.objects)
+        ext = os.path.splitext(full_path)[1].lower()
+        try:
+            if ext in ('.gltf', '.glb'):
+                bpy.ops.import_scene.gltf(filepath=full_path)
+            elif ext == '.fbx':
+                bpy.ops.import_scene.fbx(filepath=full_path)
+            elif ext == '.obj':
+                bpy.ops.wm.obj_import(filepath=full_path)
+        except Exception as e:
+            self.report({'ERROR'}, f"Import failed: {e}")
+            return {'CANCELLED'}
+
+        new_objs = [o for o in bpy.data.objects if o not in old_objs]
+        roots = [o for o in new_objs if o.parent not in new_objs]
+        for r in roots:
+            _snap_object_to_ground(r)
+        self.report({'INFO'}, f"Imported & Grounded 3D Asset: {os.path.basename(full_path)}")
+        return {'FINISHED'}
+
+
 # ---------------------------------------------------------------------------
 # Section 6: AI Video Engine Export (Beauty + 8-bit Depth + Director Gate + 7-Part Prompt -> Cindy App)
 # ---------------------------------------------------------------------------
@@ -1291,12 +1345,15 @@ class CINDY_PT_DirectorPanel(bpy.types.Panel):
         row_socket.operator("cindy.attach_prop_to_hand", text="Attach Prop to Hand", icon='LINKED')
         box_phys.operator("cindy.create_billiard_stage", text="Stage Tournament Billiard Table", icon='TABLE')
 
-        # Section 3: Environment HDRI
+        # Section 3: Environment HDRI & 3D Props/Locations
         box_env = layout.box()
-        box_env.label(text="3. Environment & Lighting HDRI", icon='WORLD')
-        box_env.prop(scene, "cindy_env_category", text="Type")
+        box_env.label(text="3. Environment HDRI & 3D Locations/Props", icon='WORLD')
+        box_env.prop(scene, "cindy_env_category", text="HDRI Type")
         box_env.prop(scene, "cindy_env_file", text="HDRI")
         box_env.operator("cindy.apply_environment_world", text="Apply HDRI to Stage", icon='SHADING_RENDERED')
+        box_env.separator()
+        box_env.prop(scene, "cindy_3d_asset", text="3D Prop/Loc")
+        box_env.operator("cindy.load_environment_asset", text="Import 3D Prop / Location (Z=0)", icon='IMPORT')
 
         # Section 4: Framing & Cinematic Camera
         box_cam = layout.box()
@@ -1334,6 +1391,7 @@ def register():
     bpy.types.Scene.cindy_char_motion = bpy.props.EnumProperty(items=_get_character_motion_items)
     bpy.types.Scene.cindy_env_category = bpy.props.EnumProperty(items=_get_environment_category_items)
     bpy.types.Scene.cindy_env_file = bpy.props.EnumProperty(items=_get_environment_file_items)
+    bpy.types.Scene.cindy_3d_asset = bpy.props.EnumProperty(items=_get_3d_asset_items)
     bpy.types.Scene.cindy_target_video_engine = bpy.props.EnumProperty(
         items=[
             ('WAN_2_2', "Wan 2.2 (Alibaba)", "Wan 2.2 Production Prompt"),
@@ -1366,6 +1424,7 @@ def register():
         CINDY_OT_ApplyCompoundMove,
         CINDY_OT_LoadProjectCharacter,
         CINDY_OT_ApplyEnvironmentWorld,
+        CINDY_OT_LoadEnvironmentAsset,
         CINDY_OT_SynthesizeVideoPrompt,
         CINDY_OT_ExportDepthVideo,
         CINDY_PT_DirectorPanel
@@ -1380,6 +1439,7 @@ def unregister():
         CINDY_PT_DirectorPanel,
         CINDY_OT_ExportDepthVideo,
         CINDY_OT_SynthesizeVideoPrompt,
+        CINDY_OT_LoadEnvironmentAsset,
         CINDY_OT_ApplyEnvironmentWorld,
         CINDY_OT_LoadProjectCharacter,
         CINDY_OT_ApplyCompoundMove,
