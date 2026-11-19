@@ -907,6 +907,89 @@ def _get_environment_file_items(self, context):
                     items.append((f, f, f"Environment: {f}"))
     return items if items else [('NONE', "No HDRI/EXR Found", "")]
 
+
+# ---------------------------------------------------------------------------
+# Section 6: AI Video Prompt & Previz Synthesis Operator (CozyClay & Prompt Grammar)
+# ---------------------------------------------------------------------------
+
+class CINDY_OT_SynthesizeVideoPrompt(bpy.types.Operator):
+    """Synthesize model-specific 7-part video prompts from 3D camera and actors (CozyClay / Wan2.2 / Seedance / Hunyuan)"""
+    bl_idname = "cindy.synthesize_video_prompt"
+    bl_label = "Synthesize AI Video Prompt Package"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    target_engine: bpy.props.EnumProperty(
+        name="Target Engine",
+        items=[
+            ('WAN_2_2', "Wan 2.2 (Alibaba)", "Wan 2.2 I2V / T2V Production Prompt"),
+            ('SEEDANCE_2_5', "Seedance 2.0 (Doubao)", "Seedance Structured Delimiters"),
+            ('HUNYUAN_VIDEO', "HunyuanVideo 13B", "Tencent Hunyuan Cinema Optics"),
+            ('COMFYUI_SD15', "ComfyUI / SD1.5", "ComfyUI Standard Negative/Positive")
+        ],
+        default='WAN_2_2'
+    )
+
+    def execute(self, context):
+        try:
+            from cindy_prompt_grammar import CindyPromptGrammar
+        except ImportError:
+            import sys, os
+            repo_dir = r"C:\Users\DELL\Desktop\Cindy-AI-Director"
+            if repo_dir not in sys.path:
+                sys.path.append(repo_dir)
+            from cindy_prompt_grammar import CindyPromptGrammar
+
+        scene = context.scene
+        cam = scene.camera
+        lens_str = f"{int(cam.data.lens)}mm prime" if (cam and cam.data) else "38mm anamorphic prime"
+
+        actors = []
+        for obj in scene.objects:
+            if obj.type == 'ARMATURE' and not obj.hide_viewport:
+                name = obj.name.replace('RIG_', '').replace('CHAR_', '').capitalize()
+                held_prop = ""
+                for child in scene.objects:
+                    for const in child.constraints:
+                        if const.type == 'CHILD_OF' and const.target == obj:
+                            held_prop = child.name.replace('_', ' ')
+                            break
+                actors.append({
+                    'name': name,
+                    'appearance': f"Character {name} accurately staged at 1.75m height",
+                    'locked_prop': held_prop
+                })
+
+        if not actors:
+            actors = [
+                {'name': "Actor A", 'appearance': "Protagonist", 'locked_prop': "cue stick"},
+                {'name': "Actor B", 'appearance': "Antagonist", 'locked_prop': ""}
+            ]
+
+        payload = CindyPromptGrammar.build_seven_part_prompt(
+            visual_style="Cinematic 35mm film still, warm chiaroscuro lighting, tactile fabric textures, rich deep contrast",
+            shot_type="Medium Wide Cinematic Two-Shot, eye-level framing",
+            camera_lens=lens_str,
+            camera_motion="Steady horizontal slider push-in, no handheld shake",
+            scene_environment="Vintage billiard room, dark wood paneling, tournament green felt table under green enamel lamp",
+            cast_and_props=actors,
+            chronological_beats=[
+                {'time': "0.0-0.5s", 'actor': "Scene", 'action': "begins in locked physical alignment with 3D guide frame"},
+                {'time': "0.5-2.0s", 'actor': actors[0]['name'], 'action': "smoothly addresses the table, aiming steadily"},
+                {'time': "1.2-2.8s", 'actor': actors[1]['name'] if len(actors) > 1 else "Opponent", 'action': "observes intently with subtle confidence"}
+            ],
+            target_model=self.target_engine
+        )
+
+        try:
+            context.window_manager.clipboard = payload['positive_prompt']
+            self.report({'INFO'}, f"Generated {self.target_engine} Prompt! Copied to Clipboard.")
+        except Exception:
+            self.report({'INFO'}, f"Generated {self.target_engine} Prompt successfully.")
+
+        print(f"\n=== CINDY PROMPT SYNTHESIS [{self.target_engine}] ===\n{payload['positive_prompt']}\n")
+        return {'FINISHED'}
+
+
 class CINDY_PT_DirectorPanel(bpy.types.Panel):
     bl_label = "Cindy AI Director — Studio Suite"
     bl_idname = "CINDY_PT_director_panel"
@@ -964,6 +1047,13 @@ class CINDY_PT_DirectorPanel(bpy.types.Panel):
         box_mov.prop(scene, "cindy_move_duration", text="Duration (Frames)")
         box_mov.operator("cindy.apply_compound_move", text="Generate Camera Move", icon='PLAY')
 
+        # Section 6: AI Video Engine & Prompt Bridge (Previz -> Wan2.2 / Seedance / Hunyuan)
+        box_ai = layout.box()
+        box_ai.label(text="6. AI Video Engine Export (Previz Grounding)", icon='OUTLINER_OB_CAMERA')
+        box_ai.prop(scene, "cindy_target_video_engine", text="Engine")
+        op_synth = box_ai.operator("cindy.synthesize_video_prompt", text="Export 7-Part Prompt Package", icon='TEXT')
+        op_synth.target_engine = scene.cindy_target_video_engine
+
 def register():
     bpy.types.Scene.cindy_compound_move = bpy.props.EnumProperty(items=COMPOUND_MOVE_ITEMS, default='CRANE_PUSH_IN')
     bpy.types.Scene.cindy_move_duration = bpy.props.IntProperty(default=90, min=15, max=600)
@@ -972,6 +1062,15 @@ def register():
     bpy.types.Scene.cindy_char_motion = bpy.props.EnumProperty(items=_get_character_motion_items)
     bpy.types.Scene.cindy_env_category = bpy.props.EnumProperty(items=_get_environment_category_items)
     bpy.types.Scene.cindy_env_file = bpy.props.EnumProperty(items=_get_environment_file_items)
+    bpy.types.Scene.cindy_target_video_engine = bpy.props.EnumProperty(
+        items=[
+            ('WAN_2_2', "Wan 2.2 (Alibaba)", "Wan 2.2 Production Prompt"),
+            ('SEEDANCE_2_5', "Seedance 2.0 (Doubao)", "Seedance Delimiters"),
+            ('HUNYUAN_VIDEO', "HunyuanVideo 13B", "Hunyuan Optics"),
+            ('COMFYUI_SD15', "ComfyUI / SD1.5", "ComfyUI Nodes")
+        ],
+        default='WAN_2_2'
+    )
 
     bpy.utils.register_class(CINDY_OT_AttachPropToHand)
     bpy.utils.utils_register_class = getattr(bpy.utils, "register_class")
@@ -996,6 +1095,7 @@ def register():
         CINDY_OT_ApplyCompoundMove,
         CINDY_OT_LoadProjectCharacter,
         CINDY_OT_ApplyEnvironmentWorld,
+        CINDY_OT_SynthesizeVideoPrompt,
         CINDY_PT_DirectorPanel
     ]:
         try:
@@ -1006,6 +1106,7 @@ def register():
 def unregister():
     for cls in [
         CINDY_PT_DirectorPanel,
+        CINDY_OT_SynthesizeVideoPrompt,
         CINDY_OT_ApplyEnvironmentWorld,
         CINDY_OT_LoadProjectCharacter,
         CINDY_OT_ApplyCompoundMove,
