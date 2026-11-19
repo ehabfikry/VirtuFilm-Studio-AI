@@ -50,14 +50,6 @@ class CindyPromptGrammar:
             'optimal_lens': "35mm",
             'prefers_timing_cues': True,
             'negative_weight_support': False
-        },
-        'COMFYUI_SD15': {
-            'name': "ComfyUI DreamShaper / SD1.5",
-            'default_fps': 30,
-            'default_frames': 90,
-            'optimal_lens': "50mm",
-            'prefers_timing_cues': False,
-            'negative_weight_support': True
         }
     }
 

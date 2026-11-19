@@ -7849,8 +7849,8 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                         workflow, seed = comfyui_client.build_cogvideox_workflow(uploaded_name, prompt_text, ckpt, width, height, 49, steps, fps)
                         engine_label = "THUDM CogVideoX-5B"
                     else:
-                        workflow, seed = comfyui_client.build_svd_video_workflow(uploaded_name, ckpt, width, height, video_frames, motion_bucket_id, fps, steps)
-                        engine_label = "Stability AI SVD-XT"
+                        workflow, seed = comfyui_client.build_wan21_video_workflow(uploaded_name, prompt_text, ckpt, width, height, video_frames, steps, fps)
+                        engine_label = "Wan 2.1 I2V (Default DiT)"
 
                     res = comfyui_client.execute_comfyui_workflow(raw_url, workflow, OUTPUTS_DIR, timeout_seconds=400)
                     fname = res["filename"]

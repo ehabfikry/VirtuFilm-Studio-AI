@@ -1027,8 +1027,7 @@ class CINDY_OT_SynthesizeVideoPrompt(bpy.types.Operator):
         items=[
             ('WAN_2_2', "Wan 2.2 (Alibaba)", "Wan 2.2 I2V / T2V Production Prompt"),
             ('SEEDANCE_2_5', "Seedance 2.0 (Doubao)", "Seedance Structured Delimiters"),
-            ('HUNYUAN_VIDEO', "HunyuanVideo 13B", "Tencent Hunyuan Cinema Optics"),
-            ('COMFYUI_SD15', "ComfyUI / SD1.5", "ComfyUI Standard Negative/Positive")
+            ('HUNYUAN_VIDEO', "HunyuanVideo 13B", "Tencent Hunyuan Cinema Optics")
         ],
         default='WAN_2_2'
     )
@@ -1214,8 +1213,7 @@ def register():
         items=[
             ('WAN_2_2', "Wan 2.2 (Alibaba)", "Wan 2.2 Production Prompt"),
             ('SEEDANCE_2_5', "Seedance 2.0 (Doubao)", "Seedance Delimiters"),
-            ('HUNYUAN_VIDEO', "HunyuanVideo 13B", "Hunyuan Optics"),
-            ('COMFYUI_SD15', "ComfyUI / SD1.5", "ComfyUI Nodes")
+            ('HUNYUAN_VIDEO', "HunyuanVideo 13B", "Hunyuan Optics")
         ],
         default='WAN_2_2'
     )
