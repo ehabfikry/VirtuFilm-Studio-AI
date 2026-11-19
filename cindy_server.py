@@ -2775,6 +2775,7 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             "has_guide": bool(rgb_url or has_video),
             "has_video": has_video,
             "video_url": video_url,
+            "depth_video_url": engine_result.get("depth_video_url", ""),
             "rgb_url": rgb_url,
             "depth_url": depth_url,
             "meta": meta,

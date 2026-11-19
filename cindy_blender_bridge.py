@@ -1137,6 +1137,130 @@ class CINDY_OT_SynthesizeVideoPrompt(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class CINDY_OT_ExportDepthVideo(bpy.types.Operator):
+    """Render full animated Beauty MP4 + Calibrated 8-bit Depth MP4 sequence for V2V ControlNet/Wan pipelines"""
+    bl_idname = "cindy.export_depth_video"
+    bl_label = "Export Animated Depth + Beauty Video (MP4)"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    max_frames: bpy.props.IntProperty(name="Max Frames", default=72, min=12, max=240)
+
+    def execute(self, context):
+        import subprocess, shutil, tempfile, json, time
+        scene = context.scene
+        cam = scene.camera
+        if not cam:
+            self.report({'ERROR'}, "No active camera in scene!")
+            return {'CANCELLED'}
+
+        os.makedirs(BLENDER_GUIDES_OUT_DIR, exist_ok=True)
+        fps = max(1, int(scene.render.fps))
+        f_start = scene.frame_start
+        f_end = min(scene.frame_end, f_start + self.max_frames - 1)
+
+        tmp_beauty = tempfile.mkdtemp(prefix="cindy_beauty_")
+        tmp_depth = tempfile.mkdtemp(prefix="cindy_depth_")
+        beauty_mp4 = os.path.join(BLENDER_GUIDES_OUT_DIR, "blender_bridge_beauty.mp4")
+        depth_mp4 = os.path.join(BLENDER_GUIDES_OUT_DIR, "blender_bridge_depth.mp4")
+
+        old_fp = scene.render.filepath
+        old_fmt = scene.render.image_settings.file_format
+        old_cm = scene.render.image_settings.color_mode
+        old_rx, old_ry = scene.render.resolution_x, scene.render.resolution_y
+        old_cur = scene.frame_current
+        vl = bpy.context.view_layer
+        old_override = vl.material_override
+
+        try:
+            scene.render.resolution_x = 960
+            scene.render.resolution_y = 540
+            scene.render.image_settings.file_format = 'PNG'
+
+            # 1. Render Beauty PNG sequence
+            scene.render.image_settings.color_mode = 'RGB'
+            for f in range(f_start, f_end + 1):
+                scene.frame_set(f)
+                scene.render.filepath = os.path.join(tmp_beauty, f"frame_{f - f_start:04d}.png")
+                bpy.ops.render.render(write_still=True)
+
+            # 2. Render Calibrated 8-bit Depth PNG sequence (Blender 5.3 material_override)
+            mat_name = "Cindy_Depth_Override_Mat"
+            mat = bpy.data.materials.get(mat_name) or bpy.data.materials.new(name=mat_name)
+            mat.use_nodes = True
+            nodes = mat.node_tree.nodes
+            links = mat.node_tree.links
+            nodes.clear()
+            n_cam = nodes.new(type='ShaderNodeCameraData')
+            n_map = nodes.new(type='ShaderNodeMapRange')
+            n_map.clamp = True
+            n_map.inputs['From Min'].default_value = 0.45
+            n_map.inputs['From Max'].default_value = 8.0
+            n_map.inputs['To Min'].default_value = 1.0
+            n_map.inputs['To Max'].default_value = 0.0
+            n_emit = nodes.new(type='ShaderNodeEmission')
+            n_out = nodes.new(type='ShaderNodeOutputMaterial')
+            links.new(n_cam.outputs['View Z Depth'], n_map.inputs['Value'])
+            links.new(n_map.outputs['Result'], n_emit.inputs['Color'])
+            links.new(n_emit.outputs['Emission'], n_out.inputs['Surface'])
+
+            vl.material_override = mat
+            scene.render.image_settings.color_mode = 'BW'
+            for f in range(f_start, f_end + 1):
+                scene.frame_set(f)
+                scene.render.filepath = os.path.join(tmp_depth, f"frame_{f - f_start:04d}.png")
+                bpy.ops.render.render(write_still=True)
+
+            # 3. Assemble MP4s using ffmpeg (fallback to cv2 if available)
+            ffmpeg_exe = shutil.which("ffmpeg")
+            if ffmpeg_exe:
+                for src_dir, dst_mp4 in [(tmp_beauty, beauty_mp4), (tmp_depth, depth_mp4)]:
+                    subprocess.run([
+                        ffmpeg_exe, "-y", "-framerate", str(fps),
+                        "-i", os.path.join(src_dir, "frame_%04d.png"),
+                        "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "18", dst_mp4
+                    ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            else:
+                import cv2, glob
+                for src_dir, dst_mp4 in [(tmp_beauty, beauty_mp4), (tmp_depth, depth_mp4)]:
+                    imgs = sorted(glob.glob(os.path.join(src_dir, "frame_*.png")))
+                    if imgs:
+                        first = cv2.imread(imgs[0])
+                        h, w = first.shape[:2]
+                        vw = cv2.VideoWriter(dst_mp4, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
+                        for p in imgs:
+                            vw.write(cv2.imread(p))
+                        vw.release()
+
+            # 4. Update latest_previs_result.json with video_url & depth_video_url
+            manifest_path = os.path.join(BLENDER_GUIDES_OUT_DIR, "latest_previs_result.json")
+            manifest = {}
+            if os.path.exists(manifest_path):
+                try:
+                    with open(manifest_path, "r", encoding="utf-8") as fh:
+                        manifest = json.load(fh)
+                except Exception:
+                    manifest = {}
+
+            manifest["exported_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
+            manifest["video_url"] = "/outputs/blender_guides/blender_bridge_beauty.mp4"
+            manifest["depth_video_url"] = "/outputs/blender_guides/blender_bridge_depth.mp4"
+            manifest["frame_count"] = (f_end - f_start + 1)
+            with open(manifest_path, "w", encoding="utf-8") as fh:
+                json.dump(manifest, fh, ensure_ascii=False, indent=2)
+
+            self.report({'INFO'}, f"Exported Animated Beauty + Depth MP4 ({f_end - f_start + 1}f @ {fps}fps) to Cindy App!")
+            return {'FINISHED'}
+        finally:
+            vl.material_override = old_override
+            scene.render.filepath = old_fp
+            scene.render.image_settings.file_format = old_fmt
+            scene.render.image_settings.color_mode = old_cm
+            scene.render.resolution_x, scene.render.resolution_y = old_rx, old_ry
+            scene.frame_set(old_cur)
+            shutil.rmtree(tmp_beauty, ignore_errors=True)
+            shutil.rmtree(tmp_depth, ignore_errors=True)
+
+
 class CINDY_PT_DirectorPanel(bpy.types.Panel):
     bl_label = "Cindy AI Director — Studio Suite"
     bl_idname = "CINDY_PT_director_panel"
@@ -1198,8 +1322,9 @@ class CINDY_PT_DirectorPanel(bpy.types.Panel):
         box_ai = layout.box()
         box_ai.label(text="6. AI Video Engine Export (Previz Grounding)", icon='OUTLINER_OB_CAMERA')
         box_ai.prop(scene, "cindy_target_video_engine", text="Engine")
-        op_synth = box_ai.operator("cindy.synthesize_video_prompt", text="Export 7-Part Prompt Package", icon='TEXT')
+        op_synth = box_ai.operator("cindy.synthesize_video_prompt", text="Export Keyframe + Depth + 7-Part Prompt", icon='TEXT')
         op_synth.target_engine = scene.cindy_target_video_engine
+        box_ai.operator("cindy.export_depth_video", text="Export Animated Depth + Beauty MP4 (V2V)", icon='RENDER_ANIMATION')
 
 def register():
     bpy.types.Scene.cindy_compound_move = bpy.props.EnumProperty(items=COMPOUND_MOVE_ITEMS, default='CRANE_PUSH_IN')
@@ -1242,6 +1367,7 @@ def register():
         CINDY_OT_LoadProjectCharacter,
         CINDY_OT_ApplyEnvironmentWorld,
         CINDY_OT_SynthesizeVideoPrompt,
+        CINDY_OT_ExportDepthVideo,
         CINDY_PT_DirectorPanel
     ]:
         try:
@@ -1252,6 +1378,7 @@ def register():
 def unregister():
     for cls in [
         CINDY_PT_DirectorPanel,
+        CINDY_OT_ExportDepthVideo,
         CINDY_OT_SynthesizeVideoPrompt,
         CINDY_OT_ApplyEnvironmentWorld,
         CINDY_OT_LoadProjectCharacter,
