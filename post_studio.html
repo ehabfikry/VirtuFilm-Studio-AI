@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VirtuFilm AI Post-Production</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background: #090d16; color: #e2e8f0; font-family: system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif; }
+    .glass { background: rgba(15, 23, 42, 0.78); backdrop-filter: blur(12px); border: 1px solid rgba(148, 163, 184, 0.14); }
+    .tab-active { background: linear-gradient(135deg, #a855f7, #06b6d4); color: #090d16; font-weight: 800; }
+    .tab-idle { background: rgba(30, 41, 59, 0.6); color: #94a3b8; }
+    .tab-idle:hover { color: #fff; background: rgba(51, 65, 85, 0.7); }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 6px; }
+  </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+  <!-- Top Header -->
+  <header class="h-14 px-5 flex items-center justify-between border-b border-slate-800/80 bg-slate-950/90 shrink-0">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-cyan-400 flex items-center justify-center text-slate-950 font-black text-lg shadow-lg shadow-purple-500/20">✂️</div>
+      <div>
+        <h1 class="text-sm font-black tracking-wide text-white">VirtuFilm AI Post-Production <span class="text-purple-400 font-normal text-xs">| استوديو ما بعد الإنتاج</span></h1>
+        <p class="text-[11px] text-slate-400">مرتبط تلقائياً بمجلد لقطات سيندي (<span class="text-cyan-400 font-mono">outputs/</span>)</p>
+      </div>
+    </div>
+
+    <!-- 5 Clean Post-Production Tabs -->
+    <nav class="flex items-center gap-1.5 bg-slate-900/80 p-1 rounded-xl border border-slate-800">
+      <button onclick="switchPostTab('upscale')" id="ptab-upscale" class="tab-active px-3.5 py-1.5 rounded-lg text-xs transition">✨ ترقية 4K</button>
+      <button onclick="switchPostTab('reframe')" id="ptab-reframe" class="tab-idle px-3.5 py-1.5 rounded-lg text-xs font-bold transition">📐 إعادة التأطير</button>
+      <button onclick="switchPostTab('audio')" id="ptab-audio" class="tab-idle px-3.5 py-1.5 rounded-lg text-xs font-bold transition">🎙️ استوديو الصوت</button>
+      <button onclick="switchPostTab('modal')" id="ptab-modal" class="tab-idle px-3.5 py-1.5 rounded-lg text-xs font-bold transition">🎭 تعديل Modal AI</button>
+      <button onclick="switchPostTab('merge')" id="ptab-merge" class="tab-idle px-3.5 py-1.5 rounded-lg text-xs font-bold transition">🎞️ التجميع النهائي</button>
+    </nav>
+
+    <div class="flex items-center gap-2">
+      <button id="btn-open-caprust" onclick="openCapRust()" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25 transition" title="فتح محرر الفيديو المستقل CapRust">🎬 فتح CapRust</button>
+      <a href="/" target="_blank" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 hover:text-white border border-slate-700 transition">↩️ VirtuFilm Production</a>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- Right Sidebar: Shared outputs/ Library -->
+    <aside class="w-72 border-l border-slate-800/80 bg-slate-950/60 flex flex-col shrink-0">
+      <div class="p-3 border-b border-slate-800 flex items-center justify-between">
+        <span class="text-xs font-bold text-slate-200">📂 لقطات سيندي (outputs)</span>
+        <button onclick="loadOutputs()" class="text-[11px] px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-cyan-300 transition">🔄 تحديث</button>
+      </div>
+      <div id="outputs-list" class="flex-1 overflow-y-auto p-2 space-y-1.5 text-xs">
+        <div class="text-slate-500 text-center py-8">جارٍ تحميل اللقطات...</div>
+      </div>
+    </aside>
+
+    <!-- Center Controls + Preview -->
+    <main class="flex-1 flex flex-col lg:flex-row gap-4 p-4 overflow-y-auto">
+
+      <!-- Controls Panel -->
+      <section class="w-full lg:w-[430px] glass rounded-2xl p-5 flex flex-col gap-4 shrink-0 overflow-y-auto">
+
+        <!-- Selected File Pill -->
+        <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between gap-2">
+          <div class="truncate">
+            <div class="text-[10px] text-slate-400">اللقطة المختارة حالياً:</div>
+            <div id="selected-video-label" class="text-xs font-bold text-cyan-300 truncate">اختر فيديو من القائمة الجانبية أو ارفع ملفاً</div>
+          </div>
+          <label class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-white cursor-pointer shrink-0">
+            📤 رفع
+            <input type="file" id="local-upload-input" accept="video/*" class="hidden" onchange="handleLocalVideoPick(event)" />
+          </label>
+        </div>
+
+        <!-- TAB 1: 4K UPSCALE -->
+        <div id="panel-upscale" class="space-y-4">
+          <h2 class="text-sm font-black text-white">✨ ترقية دقة الفيديو إلى 4K</h2>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1.5">محرك الترقية:</label>
+            <select id="post-upscale-engine" class="w-full bg-slate-950 border border-emerald-500/40 rounded-xl p-2.5 text-xs text-emerald-200 font-bold">
+              <option value="modal_seedvr2">🚀 AI حقيقي — SeedVR2 على Modal L40S (مجاني من رصيدك)</option>
+              <option value="local_ffmpeg">⚡ محلي فوري — FFmpeg 4K (ثوانٍ بدون نت)</option>
+            </select>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">الدقة المستهدفة:</label>
+              <select id="post-upscale-scale" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2 text-xs text-white">
+                <option value="4k">4K UHD (3840×2160)</option>
+                <option value="1080p">1080p Full HD</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">حبيبات الفيلم (للمحلي):</label>
+              <select id="post-upscale-grain" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2 text-xs text-white">
+                <option value="subtle">35mm ناعمة</option>
+                <option value="clean">نقي بدون حبيبات</option>
+                <option value="cinema_grain">سينمائي بارز</option>
+              </select>
+            </div>
+          </div>
+          <button onclick="runPostUpscale()" id="btn-run-upscale" class="w-full py-3 rounded-xl font-black text-xs bg-gradient-to-r from-emerald-400 to-cyan-400 text-slate-950 hover:opacity-95 transition shadow-lg">🚀 ابدأ الترقية إلى 4K</button>
+        </div>
+
+        <!-- TAB 2: REFRAME -->
+        <div id="panel-reframe" class="hidden space-y-4">
+          <h2 class="text-sm font-black text-white">📐 إعادة التأطير وتوسيع الكادر (Reframe)</h2>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1.5">محرك التأطير:</label>
+            <select id="post-reframe-mode" class="w-full bg-slate-950 border border-cyan-500/40 rounded-xl p-2.5 text-xs text-cyan-200 font-bold">
+              <option value="modal_ltx25">⚡ Modal AI — LTX-2.5 Outpainting (مجاني من رصيدك)</option>
+              <option value="smart_ambient">🚀 محلي فوري — Smart Ambient (ثوانٍ مجاناً)</option>
+              <option value="generative">🎬 Fal.ai — LTX-2.5 (مدفوع)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1.5">الأبعاد المستهدفة:</label>
+            <select id="post-reframe-ratio" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-xs text-white">
+              <option value="9:16">9:16 — ريلز / تيك توك</option>
+              <option value="16:9">16:9 — سينمائي / يوتيوب</option>
+              <option value="1:1">1:1 — مربع</option>
+              <option value="4:5">4:5 — بورتريه إنستغرام</option>
+            </select>
+          </div>
+          <button onclick="runPostReframe()" id="btn-run-reframe" class="w-full py-3 rounded-xl font-black text-xs bg-gradient-to-r from-cyan-400 to-purple-400 text-slate-950 hover:opacity-95 transition shadow-lg">📐 ابدأ إعادة التأطير</button>
+        </div>
+
+        <!-- TAB 3: AUDIO STUDIO -->
+        <div id="panel-audio" class="hidden space-y-4">
+          <h2 class="text-sm font-black text-white">🎙️ استوديو الصوت والمؤثرات</h2>
+          <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2.5">
+            <div class="text-xs font-bold text-purple-300">1. دمج صوت (تعليق أو مؤثرات) مع الفيديو المختار:</div>
+            <select id="post-audio-select" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-200">
+              <option value="">-- اختر ملف صوتي من outputs أو ارفع ملفاً --</option>
+            </select>
+            <input type="file" id="post-audio-upload" accept="audio/*" class="w-full text-[11px] text-slate-400" />
+            <label class="flex items-center gap-2 text-xs text-slate-300">
+              <input type="checkbox" id="post-audio-replace" checked class="accent-purple-500" />
+              استبدال الصوت الأصلي للفيديو (إلغاء التحديد لدمج الصوتين معاً)
+            </label>
+            <button id="btn-run-mux" onclick="runMuxAudio()" class="w-full py-2.5 rounded-xl font-black text-xs bg-purple-500 hover:bg-purple-400 text-slate-950 transition">🔊 دمج الصوت مع الفيديو (فوري بـ FFmpeg)</button>
+          </div>
+
+          <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2">
+            <div class="text-xs font-bold text-emerald-300">2. أدوات توليد الصوت المجانية (Hugging Face):</div>
+            <div class="grid grid-cols-1 gap-1.5">
+              <a href="https://huggingface.co/spaces/hkchengrex/MMAudio" target="_blank" class="px-3 py-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs flex justify-between items-center">
+                <span>🎬 MMAudio — مؤثرات صوتية للفيديو (Foley)</span><span class="text-emerald-400 text-[10px]">مجاني ↗</span>
+              </a>
+              <a href="https://huggingface.co/spaces/oddadmix/Nabra-82M-Demo" target="_blank" class="px-3 py-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs flex justify-between items-center">
+                <span>🇸🇦 نبرة (Nabra) — تعليق صوتي عربي</span><span class="text-emerald-400 text-[10px]">مجاني ↗</span>
+              </a>
+              <a href="https://huggingface.co/spaces/hexgrad/Kokoro-TTS" target="_blank" class="px-3 py-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs flex justify-between items-center">
+                <span>🎙️ Kokoro TTS — تعليق صوتي إنجليزي سينمائي</span><span class="text-emerald-400 text-[10px]">مجاني ↗</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: MODAL AI EDITS -->
+        <div id="panel-modal" class="hidden space-y-4">
+          <h2 class="text-sm font-black text-white">🎭 التعديل السينمائي (Modal L40S المجاني)</h2>
+          <p class="text-xs text-slate-400 leading-relaxed">كل الأدوات دي شغالة على كارت <b>L40S</b> من رصيدك المجاني على Modal ($30/شهر) بدون استهلاك جهازك:</p>
+          <div class="space-y-2">
+            <button onclick="openFreeFieldApp('recast')" class="w-full p-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-purple-500/30 text-right flex items-center justify-between transition">
+              <div><div class="text-xs font-bold text-white">🎭 Recast — تبديل الشخصيات في الفيديو</div><div class="text-[11px] text-slate-400">ضع ممثلك مكان أي شخص في اللقطة بنفس الحركة</div></div>
+              <span class="text-purple-400 text-xs font-bold">فتح ↗</span>
+            </button>
+            <button onclick="openFreeFieldApp('relight')" class="w-full p-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-amber-500/30 text-right flex items-center justify-between transition">
+              <div><div class="text-xs font-bold text-white">💡 Relight — تغيير إضاءة المشهد</div><div class="text-[11px] text-slate-400">تعديل اتجاه ولون الإضاءة السينمائية</div></div>
+              <span class="text-amber-400 text-xs font-bold">فتح ↗</span>
+            </button>
+            <button onclick="openFreeFieldApp('speak')" class="w-full p-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-cyan-500/30 text-right flex items-center justify-between transition">
+              <div><div class="text-xs font-bold text-white">🗣️ Speak — تحريك الشفاه والحوار (LTX-2.5)</div><div class="text-[11px] text-slate-400">جعل أي بورتريه ينطق الحوار بتزامن شفاه كامل</div></div>
+              <span class="text-cyan-400 text-xs font-bold">فتح ↗</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- TAB 5: MERGE / ASSEMBLY -->
+        <div id="panel-merge" class="hidden space-y-4">
+          <h2 class="text-sm font-black text-white">🎞️ تجميع اللقطات النهائي (Film Assembly)</h2>
+          <p class="text-[11px] text-slate-400">اضغط على اللقطات من القائمة الجانبية بالترتيب لإضافتها لقائمة الدمج، أو اضغط "إضافة اللقطة الحالية":</p>
+          <button id="btn-add-merge" onclick="addCurrentToMerge()" class="w-full py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-cyan-300 transition">➕ إضافة اللقطة المختارة لقائمة الدمج</button>
+          <div id="merge-queue" class="space-y-1.5 max-h-48 overflow-y-auto p-2 rounded-xl bg-slate-950 border border-slate-800 text-xs">
+            <div class="text-slate-500 text-center py-4">قائمة الدمج فارغة</div>
+          </div>
+          <div class="flex gap-2">
+            <button id="btn-run-merge" onclick="runMergeClips()" class="flex-1 py-2.5 rounded-xl font-black text-xs bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 transition">🎞️ دمج اللقطات في فيلم واحد</button>
+            <button onclick="clearMergeQueue()" class="px-3 py-2.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-xs">مسح</button>
+          </div>
+        </div>
+
+        <!-- Status Box -->
+        <div id="post-status" class="hidden p-3 rounded-xl bg-slate-900 border border-cyan-500/30 text-xs text-cyan-200"></div>
+      </section>
+
+      <!-- Live Video Preview Stage -->
+      <section class="flex-1 glass rounded-2xl p-4 flex flex-col items-center justify-center relative min-h-[340px]">
+        <div id="preview-empty" class="text-center space-y-2 text-slate-500">
+          <div class="text-4xl">🎬</div>
+          <div class="text-sm font-bold text-slate-300">شاشة المعاينة السينمائية</div>
+          <div class="text-xs">اختر أي لقطة من مكتبة سيندي على اليمين لعرضها ومعالجتها فوراً</div>
+        </div>
+        <video id="preview-player" controls class="hidden w-full max-h-[72vh] rounded-xl bg-black shadow-2xl"></video>
+        <img id="preview-image" class="hidden w-full max-h-[72vh] rounded-xl bg-black object-contain shadow-2xl" alt="معاينة الصورة" />
+        <div id="preview-actions" class="hidden mt-3 flex items-center gap-3">
+          <a id="preview-download" href="#" download class="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-black text-xs hover:bg-emerald-400 transition">⬇️ تحميل الفيديو النهائي</a>
+          <span id="preview-filename" class="text-xs text-slate-400 font-mono"></span>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    let allOutputs = [];
+    let selectedVideoUrl = '';
+    let selectedVideoName = '';
+    let uploadedVideoFile = null;
+    let mergeQueue = [];
+
+    function escapeHtml(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[c]));
+    }
+
+    function setButtonBusy(id, busy) {
+      const btn = document.getElementById(id);
+      if (!btn) return;
+      btn.disabled = !!busy;
+      btn.classList.toggle('opacity-60', !!busy);
+      btn.classList.toggle('cursor-not-allowed', !!busy);
+    }
+
+    function switchPostTab(tab) {
+      ['upscale','reframe','audio','modal','merge'].forEach(t => {
+        document.getElementById('panel-' + t).classList.toggle('hidden', t !== tab);
+        const btn = document.getElementById('ptab-' + t);
+        btn.className = (t === tab ? 'tab-active' : 'tab-idle font-bold') + ' px-3.5 py-1.5 rounded-lg text-xs transition';
+      });
+    }
+
+    function setStatus(msg, isErr = false) {
+      const box = document.getElementById('post-status');
+      box.classList.remove('hidden');
+      box.className = 'p-3 rounded-xl text-xs ' + (isErr ? 'bg-red-950/70 border border-red-500/40 text-red-200' : 'bg-slate-900 border border-cyan-500/30 text-cyan-200');
+      box.textContent = msg;
+    }
+
+    function showPreview(url, name, kind = '') {
+      document.getElementById('preview-empty').classList.add('hidden');
+      const player = document.getElementById('preview-player');
+      const img = document.getElementById('preview-image');
+      const isImg = kind === 'image' || /\.(png|jpe?g|webp|gif)(\?|$)/i.test(url || '');
+      if (isImg) {
+        if (player) {
+          try { player.pause(); } catch (_) {}
+          player.removeAttribute('src');
+          player.classList.add('hidden');
+        }
+        if (img) {
+          img.src = url;
+          img.classList.remove('hidden');
+        }
+      } else {
+        if (img) {
+          img.removeAttribute('src');
+          img.classList.add('hidden');
+        }
+        if (player) {
+          player.classList.remove('hidden');
+          player.src = url;
+          player.play().catch(() => {});
+        }
+      }
+      document.getElementById('preview-actions').classList.remove('hidden');
+      const dl = document.getElementById('preview-download');
+      dl.href = url;
+      dl.download = name || (isImg ? 'cindy_post_output.png' : 'cindy_post_output.mp4');
+      dl.textContent = isImg ? '⬇️ تحميل الصورة النهائية' : '⬇️ تحميل الفيديو النهائي';
+      document.getElementById('preview-filename').textContent = name || '';
+    }
+
+    async function loadOutputs() {
+      try {
+        const r = await fetch('/api/post/outputs');
+        const data = await r.json();
+        allOutputs = data.items || [];
+        const list = document.getElementById('outputs-list');
+        const audioSel = document.getElementById('post-audio-select');
+        audioSel.innerHTML = '<option value="">-- اختر ملف صوتي من outputs أو ارفع ملفاً --</option>';
+
+        if (!allOutputs.length) {
+          list.innerHTML = '<div class="text-slate-500 text-center py-8">لا توجد لقطات بعد في outputs/</div>';
+          return;
+        }
+        list.innerHTML = '';
+        allOutputs.forEach(item => {
+          if (item.kind === 'audio') {
+            const opt = document.createElement('option');
+            opt.value = item.name;
+            opt.textContent = `🎵 ${item.name} (${item.size_mb} MB)`;
+            audioSel.appendChild(opt);
+          }
+          const icon = item.kind === 'audio' ? '🎵' : (item.kind === 'image' ? '🖼️' : '🎬');
+          const btn = document.createElement('button');
+          btn.className = 'w-full text-right p-2 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-slate-800/80 flex items-center justify-between gap-2 transition';
+          btn.innerHTML = `<span class="truncate text-slate-200">${icon} ${escapeHtml(item.name)}</span><span class="text-[10px] text-slate-500 shrink-0">${escapeHtml(item.size_mb)}MB</span>`;
+          btn.onclick = () => {
+            if (item.kind === 'video') {
+              selectedVideoUrl = item.url;
+              selectedVideoName = item.name;
+              uploadedVideoFile = null;
+              document.getElementById('selected-video-label').textContent = item.name;
+              showPreview(item.url, item.name, 'video');
+            } else if (item.kind === 'image') {
+              selectedVideoUrl = '';
+              selectedVideoName = '';
+              uploadedVideoFile = null;
+              document.getElementById('selected-video-label').textContent = '🖼️ ' + item.name;
+              showPreview(item.url, item.name, 'image');
+              setStatus('🖼️ معاينة الصورة: ' + item.name);
+            } else {
+              audioSel.value = item.name;
+              setStatus('تم اختيار الملف الصوتي: ' + item.name);
+            }
+          };
+          list.appendChild(btn);
+        });
+      } catch (e) {
+        setStatus('تعذر تحميل قائمة outputs: ' + e.message, true);
+      }
+    }
+
+    function handleLocalVideoPick(ev) {
+      const f = ev.target.files && ev.target.files[0];
+      if (!f) return;
+      uploadedVideoFile = f;
+      selectedVideoName = f.name;
+      selectedVideoUrl = '';
+      document.getElementById('selected-video-label').textContent = '📤 ' + f.name;
+      showPreview(URL.createObjectURL(f), f.name, 'video');
+    }
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function ensureSelectedVideoInOutputs() {
+      if (!uploadedVideoFile) return selectedVideoName;
+      const dataUrl = await fileToBase64(uploadedVideoFile);
+      const upRes = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data_url: dataUrl, filename: uploadedVideoFile.name })
+      });
+      let upData = {};
+      try { upData = await upRes.json(); } catch (_) {}
+      if (!upRes.ok || !upData.success) {
+        throw new Error(upData.error || 'فشل رفع الفيديو إلى outputs/');
+      }
+      selectedVideoUrl = upData.url || '';
+      selectedVideoName = upData.filename || uploadedVideoFile.name;
+      uploadedVideoFile = null;
+      document.getElementById('selected-video-label').textContent = selectedVideoName;
+      loadOutputs();
+      return selectedVideoName;
+    }
+
+    async function runPostUpscale() {
+      if (!selectedVideoUrl && !uploadedVideoFile) return setStatus('اختر فيديو أولاً من القائمة أو ارفع ملفاً', true);
+      const engine = document.getElementById('post-upscale-engine').value;
+      const target_scale = document.getElementById('post-upscale-scale').value;
+      const grain_mode = document.getElementById('post-upscale-grain').value;
+      setButtonBusy('btn-run-upscale', true);
+      setStatus(engine === 'modal_seedvr2' ? '🚀 جارٍ الترقية بالذكاء الاصطناعي (SeedVR2 على Modal L40S)... قد يستغرق دقيقة' : '⚡ جارٍ الترقية محلياً بـ FFmpeg...');
+      try {
+        const payload = { filename: selectedVideoName || 'video.mp4', target_scale, grain_mode, engine };
+        if (uploadedVideoFile) payload.video_base64 = await fileToBase64(uploadedVideoFile);
+        else payload.video_url = selectedVideoUrl;
+        const r = await fetch('/api/upscale/process', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || 'فشلت الترقية');
+        setStatus('✅ ' + (d.message || 'تمت الترقية بنجاح!'));
+        showPreview(d.output_url || d.video_url, d.filename, 'video');
+        loadOutputs();
+      } catch (e) {
+        setStatus('❌ ' + e.message, true);
+      } finally {
+        setButtonBusy('btn-run-upscale', false);
+      }
+    }
+
+    async function runPostReframe() {
+      if (!selectedVideoUrl && !uploadedVideoFile) return setStatus('اختر فيديو أولاً من القائمة أو ارفع ملفاً', true);
+      const mode = document.getElementById('post-reframe-mode').value;
+      const ratio = document.getElementById('post-reframe-ratio').value;
+      setButtonBusy('btn-run-reframe', true);
+      setStatus('📐 جارٍ إعادة التأطير إلى ' + ratio + '...');
+      try {
+        let b64 = '';
+        if (uploadedVideoFile) {
+          b64 = await fileToBase64(uploadedVideoFile);
+        } else {
+          const blob = await (await fetch(selectedVideoUrl)).blob();
+          b64 = await fileToBase64(blob);
+        }
+        const r = await fetch('/api/reframe/process', {
+          method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ video_base64: b64, filename: selectedVideoName || 'video.mp4', target_ratio: ratio, ratio, mode })
+        });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || 'فشل التأطير');
+        setStatus('✅ ' + (d.message || 'تمت إعادة التأطير بنجاح!'));
+        showPreview(d.output_url || d.video_url, d.filename, 'video');
+        loadOutputs();
+      } catch (e) {
+        setStatus('❌ ' + e.message, true);
+      } finally {
+        setButtonBusy('btn-run-reframe', false);
+      }
+    }
+
+    async function runMuxAudio() {
+      if (!selectedVideoName && !uploadedVideoFile) return setStatus('اختر فيديو من مكتبة outputs أو ارفع ملفاً أولاً', true);
+      const audio_file = document.getElementById('post-audio-select').value;
+      const audioUpload = document.getElementById('post-audio-upload').files[0];
+      const replace_audio = document.getElementById('post-audio-replace').checked;
+      if (!audio_file && !audioUpload) return setStatus('اختر أو ارفع ملف صوتي أولاً', true);
+      setButtonBusy('btn-run-mux', true);
+      setStatus('🔊 جارٍ دمج الصوت مع الفيديو...');
+      try {
+        const videoFileName = await ensureSelectedVideoInOutputs();
+        if (!videoFileName) throw new Error('اختر فيديو صالحاً أولاً');
+        const payload = { video_file: videoFileName, audio_file, replace_audio };
+        if (audioUpload) payload.audio_base64 = await fileToBase64(audioUpload);
+        const r = await fetch('/api/post/mux_audio', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || 'فشل دمج الصوت');
+        setStatus('✅ ' + d.message);
+        showPreview(d.output_url || d.video_url, d.filename, 'video');
+        loadOutputs();
+      } catch (e) {
+        setStatus('❌ ' + e.message, true);
+      } finally {
+        setButtonBusy('btn-run-mux', false);
+      }
+    }
+
+    async function addCurrentToMerge() {
+      if (!selectedVideoName && !uploadedVideoFile) return setStatus('اختر لقطة من مكتبة outputs أو ارفع فيديو أولاً', true);
+      setButtonBusy('btn-add-merge', true);
+      try {
+        const videoFileName = await ensureSelectedVideoInOutputs();
+        if (!videoFileName) return setStatus('اختر لقطة صالحة أولاً', true);
+        mergeQueue.push(videoFileName);
+        renderMergeQueue();
+        setStatus('✅ تمت إضافة اللقطة إلى قائمة الدمج: ' + videoFileName);
+      } catch (e) {
+        setStatus('❌ ' + e.message, true);
+      } finally {
+        setButtonBusy('btn-add-merge', false);
+      }
+    }
+    function clearMergeQueue() { mergeQueue = []; renderMergeQueue(); }
+    function renderMergeQueue() {
+      const el = document.getElementById('merge-queue');
+      if (!mergeQueue.length) { el.innerHTML = '<div class="text-slate-500 text-center py-4">قائمة الدمج فارغة</div>'; return; }
+      el.innerHTML = mergeQueue.map((f, i) => `<div class="flex justify-between items-center bg-slate-900 px-2.5 py-1.5 rounded-lg"><span class="truncate">${i+1}. 🎬 ${escapeHtml(f)}</span><button onclick="mergeQueue.splice(${i},1);renderMergeQueue()" class="text-red-400 hover:text-red-300">✕</button></div>`).join('');
+    }
+    async function runMergeClips() {
+      if (mergeQueue.length < 2) return setStatus('أضف لقطتين على الأقل لقائمة الدمج', true);
+      setButtonBusy('btn-run-merge', true);
+      setStatus('🎞️ جارٍ دمج ' + mergeQueue.length + ' لقطات في فيلم واحد...');
+      try {
+        const r = await fetch('/api/post/merge_clips', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ files: mergeQueue }) });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || 'فشل الدمج');
+        setStatus('✅ ' + d.message);
+        showPreview(d.output_url || d.video_url, d.filename, 'video');
+        loadOutputs();
+      } catch (e) {
+        setStatus('❌ ' + e.message, true);
+      } finally {
+        setButtonBusy('btn-run-merge', false);
+      }
+    }
+
+    async function openFreeFieldApp(appId) {
+      const win = window.open('about:blank', '_blank');
+      try {
+        const r = await fetch('/api/launch_external_tool', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ tool: 'freefield' }) });
+        let d = {};
+        try { d = await r.json(); } catch (_) {}
+        if (!r.ok) throw new Error(d.error || ('تعذر تشغيل FreeField (' + r.status + ')'));
+        if (win) win.location.href = (d.url || 'http://127.0.0.1:4173') + '/#/app/' + appId;
+      } catch (e) {
+        if (win) win.close();
+        setStatus('❌ تعذر فتح FreeField: ' + e.message, true);
+      }
+    }
+
+    async function openCapRust() {
+      setButtonBusy('btn-open-caprust', true);
+      try {
+        const r = await fetch('/api/post/open_caprust', { method: 'POST', headers: {'Content-Type':'application/json'}, body: '{}' });
+        const d = await r.json().catch(() => ({}));
+        setStatus(r.ok ? '🎬 ' + (d.message || 'تم فتح CapRust بنجاح') : '❌ ' + (d.error || 'تعذر فتح CapRust'), !r.ok);
+      } catch (e) {
+        setStatus('❌ تعذر فتح CapRust: ' + e.message, true);
+      } finally {
+        setButtonBusy('btn-open-caprust', false);
+      }
+    }
+
+    loadOutputs();
+  </script>
+</body>
+</html>

@@ -15,19 +15,39 @@ import json
 import time
 import shutil
 import pathlib
+import threading
 import subprocess
 
 ACTIVE_REFRAME_PROC = None
+ACTIVE_REFRAME_LOCK = threading.Lock()
+
+
+def _silent_subprocess_kwargs():
+    if os.name == "nt":
+        return {"creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)}
+    return {}
+
 
 def cancel_active_reframe():
     global ACTIVE_REFRAME_PROC
-    if ACTIVE_REFRAME_PROC and ACTIVE_REFRAME_PROC.poll() is None:
-        try:
-            ACTIVE_REFRAME_PROC.kill()
-            ACTIVE_REFRAME_PROC = None
-            return True
-        except Exception:
-            pass
+    with ACTIVE_REFRAME_LOCK:
+        proc = ACTIVE_REFRAME_PROC
+        if proc and proc.poll() is None:
+            try:
+                if os.name == "nt":
+                    subprocess.run(
+                        ["taskkill", "/F", "/PID", str(proc.pid), "/T"],
+                        stdin=subprocess.DEVNULL,
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                        **_silent_subprocess_kwargs(),
+                    )
+                if proc.poll() is None:
+                    proc.kill()
+                ACTIVE_REFRAME_PROC = None
+                return True
+            except Exception:
+                pass
     return False
 
 def _safe_path(p):
@@ -50,7 +70,14 @@ def _probe_video(video_path):
         "-of", "json",
         _safe_path(video_path)
     ]
-    r = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    r = subprocess.run(
+        cmd,
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        **_silent_subprocess_kwargs(),
+    )
     if r.returncode != 0:
         raise RuntimeError(f"FFprobe failed: {r.stderr}")
     data = json.loads(r.stdout)
@@ -64,8 +91,16 @@ def _probe_video(video_path):
     else:
         fps = 30.0
         
-    duration = float(stream.get("duration", 0))
-    nb_frames = int(stream.get("nb_frames", 0))
+    try:
+        raw_dur = stream.get("duration")
+        duration = float(raw_dur) if raw_dur not in (None, "", "N/A") else 0.0
+    except (TypeError, ValueError):
+        duration = 0.0
+    try:
+        raw_frames = stream.get("nb_frames")
+        nb_frames = int(raw_frames) if raw_frames not in (None, "", "N/A") else 0
+    except (TypeError, ValueError):
+        nb_frames = 0
     return w, h, fps, duration, nb_frames
 
 def _detect_best_video_encoder():
@@ -73,7 +108,10 @@ def _detect_best_video_encoder():
     try:
         r = subprocess.run(
             ["ffmpeg", "-f", "lavfi", "-i", "testsrc=duration=0.1:size=64x64:rate=10", "-c:v", "h264_mf", "-f", "null", "-"],
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            **_silent_subprocess_kwargs(),
         )
         if r.returncode == 0:
             return "h264_mf", ["-b:v", "8M"]
@@ -102,6 +140,10 @@ def reframe_video_pipeline(
         target_w, target_h = 1080, 1920
     elif target_ratio == "1:1":
         target_w, target_h = 1080, 1080
+    elif target_ratio == "4:5":
+        target_w, target_h = 1080, 1350
+    elif target_ratio == "4:3":
+        target_w, target_h = 1440, 1080
     elif target_ratio == "21:9":
         target_w, target_h = 2560, 1080
     else:
@@ -143,11 +185,21 @@ def reframe_video_pipeline(
     
     global ACTIVE_REFRAME_PROC
     try:
-        ACTIVE_REFRAME_PROC = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
-        _, stderr_text = ACTIVE_REFRAME_PROC.communicate()
-        returncode = ACTIVE_REFRAME_PROC.returncode
+        proc = subprocess.Popen(
+            cmd,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            text=True,
+            **_silent_subprocess_kwargs(),
+        )
+        with ACTIVE_REFRAME_LOCK:
+            ACTIVE_REFRAME_PROC = proc
+        _, stderr_text = proc.communicate()
+        returncode = proc.returncode
     finally:
-        ACTIVE_REFRAME_PROC = None
+        with ACTIVE_REFRAME_LOCK:
+            ACTIVE_REFRAME_PROC = None
 
     if returncode != 0:
         # Fallback to pure CPU libx264 if hardware encoder fails on specific resolutions
@@ -163,11 +215,21 @@ def reframe_video_pipeline(
             _safe_path(output_path)
         ]
         try:
-            ACTIVE_REFRAME_PROC = subprocess.Popen(fallback_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
-            _, fb_stderr = ACTIVE_REFRAME_PROC.communicate()
-            fb_returncode = ACTIVE_REFRAME_PROC.returncode
+            fb_proc = subprocess.Popen(
+                fallback_cmd,
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.PIPE,
+                text=True,
+                **_silent_subprocess_kwargs(),
+            )
+            with ACTIVE_REFRAME_LOCK:
+                ACTIVE_REFRAME_PROC = fb_proc
+            _, fb_stderr = fb_proc.communicate()
+            fb_returncode = fb_proc.returncode
         finally:
-            ACTIVE_REFRAME_PROC = None
+            with ACTIVE_REFRAME_LOCK:
+                ACTIVE_REFRAME_PROC = None
 
         if fb_returncode != 0:
             raise RuntimeError(f"FFmpeg Reframe failed: {fb_stderr}")
@@ -238,18 +300,28 @@ def upscale_video_pipeline(
         "-map", "0:a?",
         "-c:v", encoder_name
     ] + encoder_flags + [
-        "-c:a", "copy",
+        "-c:a", "aac", "-b:a", "192k",
         "-pix_fmt", "yuv420p",
         _safe_path(output_path)
     ]
     
     global ACTIVE_REFRAME_PROC
     try:
-        ACTIVE_REFRAME_PROC = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
-        _, stderr_text = ACTIVE_REFRAME_PROC.communicate()
-        returncode = ACTIVE_REFRAME_PROC.returncode
+        proc = subprocess.Popen(
+            cmd,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            text=True,
+            **_silent_subprocess_kwargs(),
+        )
+        with ACTIVE_REFRAME_LOCK:
+            ACTIVE_REFRAME_PROC = proc
+        _, stderr_text = proc.communicate()
+        returncode = proc.returncode
     finally:
-        ACTIVE_REFRAME_PROC = None
+        with ACTIVE_REFRAME_LOCK:
+            ACTIVE_REFRAME_PROC = None
         
     if returncode != 0:
         # Fallback to libx264
@@ -260,16 +332,26 @@ def upscale_video_pipeline(
             "-map", "0:v:0",
             "-map", "0:a?",
             "-c:v", "libx264", "-preset", "ultrafast", "-crf", "17",
-            "-c:a", "copy",
+            "-c:a", "aac", "-b:a", "192k",
             "-pix_fmt", "yuv420p",
             _safe_path(output_path)
         ]
         try:
-            ACTIVE_REFRAME_PROC = subprocess.Popen(fallback_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
-            _, fb_err = ACTIVE_REFRAME_PROC.communicate()
-            fb_rc = ACTIVE_REFRAME_PROC.returncode
+            fb_proc = subprocess.Popen(
+                fallback_cmd,
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.PIPE,
+                text=True,
+                **_silent_subprocess_kwargs(),
+            )
+            with ACTIVE_REFRAME_LOCK:
+                ACTIVE_REFRAME_PROC = fb_proc
+            _, fb_err = fb_proc.communicate()
+            fb_rc = fb_proc.returncode
         finally:
-            ACTIVE_REFRAME_PROC = None
+            with ACTIVE_REFRAME_LOCK:
+                ACTIVE_REFRAME_PROC = None
             
         if fb_rc != 0:
             raise RuntimeError(f"FFmpeg Upscale failed: {fb_err}")

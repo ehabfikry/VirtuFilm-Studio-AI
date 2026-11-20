@@ -482,6 +482,7 @@ def load_secrets():
     return {}
 
 def fetch_live_fal_prices():
+    from concurrent.futures import ThreadPoolExecutor, as_completed
     secrets = load_secrets()
     fal_key = secrets.get('fal_api_key', '').strip()
     if not fal_key:
@@ -489,26 +490,32 @@ def fetch_live_fal_prices():
     
     headers = {'Authorization': f'Key {fal_key}'}
     pricing_map = {}
-    
-    # Query key endpoints with high priority first, small delay to avoid 429 rate limit
-    for ep in FAL_PRICING_ENDPOINTS:
+
+    def _fetch_one(ep):
         try:
-            r = requests.get(f'https://api.fal.ai/v1/models/pricing?endpoint_id={ep}', headers=headers, timeout=2.5)
+            r = requests.get(f'https://api.fal.ai/v1/models/pricing?endpoint_id={ep}', headers=headers, timeout=3.0)
             if r.status_code == 200:
                 data = r.json()
+                out = {}
                 for item in data.get('prices', []):
                     matched_ep = item.get('endpoint_id', ep)
-                    pricing_map[matched_ep] = {
+                    out[matched_ep] = {
                         'unit_price': item.get('unit_price'),
                         'unit': item.get('unit'),
                         'currency': item.get('currency', 'USD'),
                         'is_live': True
                     }
-            elif r.status_code == 429:
-                time.sleep(0.5)
+                return out
         except Exception:
             pass
-        time.sleep(0.04)
+        return {}
+
+    with ThreadPoolExecutor(max_workers=10) as ex:
+        futs = [ex.submit(_fetch_one, ep) for ep in FAL_PRICING_ENDPOINTS]
+        for fut in as_completed(futs):
+            res = fut.result()
+            if res:
+                pricing_map.update(res)
         
     return pricing_map
 

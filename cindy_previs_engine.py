@@ -30,6 +30,9 @@ from mathutils import Vector, Euler
 OUTPUT_DIR = r"C:\Users\DELL\Desktop\Cindy-AI-Director\outputs\blender_guides"
 SCENES_DIR = r"D:\Blender\scenes"
 SPEC_FILE = os.path.join(OUTPUT_DIR, "current_previs_spec.json")
+REPO_DIR = os.path.dirname(os.path.abspath(__file__)) if "__file__" in globals() else r"C:\Users\DELL\Desktop\Cindy-AI-Director"
+if REPO_DIR not in sys.path:
+    sys.path.insert(0, REPO_DIR)
 
 DEFAULT_SPEC = {
     "title": "مشهد المواجهة في الغرفة (Room Confrontation)",
@@ -793,9 +796,25 @@ def compute_framing_vectors(framing, actor_objs, scene, props_dict=None, beat_na
         cam_pos = Vector((p1.x + 1.65, p1.y - 1.15, eye1.z + 0.05))
         look_at = eye1
     elif f_upper == "WIDE_MASTER":
-        mid = (chest1 + chest2) * 0.5 if a2 else chest1
+        if len(actor_objs) >= 3:
+            eyes = [get_actor_anatomical_targets(ao)[0] for ao in actor_objs.values() if ao]
+            chests = [get_actor_anatomical_targets(ao)[1] for ao in actor_objs.values() if ao]
+            mid = sum(chests, Vector((0, 0, 0))) / max(1, len(chests))
+        else:
+            mid = (chest1 + chest2) * 0.5 if a2 else chest1
         cam_pos = Vector((mid.x, mid.y - 4.8, mid.z + 0.85))
         look_at = mid
+    elif f_upper in ("GROUP_THREE", "MEDIUM_GROUP", "THREE_SHOT"):
+        chests = [get_actor_anatomical_targets(ao)[1] for ao in actor_objs.values() if ao]
+        eyes = [get_actor_anatomical_targets(ao)[0] for ao in actor_objs.values() if ao]
+        mid_c = sum(chests, Vector((0, 0, 0))) / max(1, len(chests))
+        mid_e = sum(eyes, Vector((0, 0, 0))) / max(1, len(eyes))
+        look_at = (mid_c + mid_e) * 0.5
+        xs = [ao.location.x for ao in actor_objs.values() if ao]
+        ys = [ao.location.y for ao in actor_objs.values() if ao]
+        span = max(1.5, math.hypot(max(xs) - min(xs), max(ys) - min(ys)) if xs else 1.5)
+        dist = max(2.2, span * 1.95)
+        cam_pos = Vector((look_at.x, look_at.y - dist, look_at.z + 0.12))
     else:
         cam_pos = Vector((p1.x, p1.y - 1.85, eye1.z))
         look_at = eye1
@@ -1110,6 +1129,38 @@ def generate_previs_from_spec(spec):
                         kp.interpolation = 'BEZIER'
                         kp.easing = 'EASE_IN_OUT'
 
+        # Optional high-level kinematic planner action from spec ("approach_table", "sit_on_chair", "door_entry")
+        kinematic_action = str(a_spec.get("action") or a_spec.get("kinematic_action") or "").strip().lower()
+        if kinematic_action:
+            try:
+                import cindy_blender_bridge as cbb
+                if kinematic_action in ("approach_table", "approach", "walk_to_table"):
+                    s_pos = a_spec.get("start_pos") or kfs[0].get("pos", [0.0, -2.5, 0.0])
+                    side = str(a_spec.get("side") or a_spec.get("blocking_side") or "front").lower()
+                    target_id = a_spec.get("target_id") or a_spec.get("target_prop")
+                    target_obj = props_objs.get(target_id) if target_id else None
+                    cbb.plan_actor_approach(
+                        bpy.context, arm_obj,
+                        (float(s_pos[0]), float(s_pos[1])),
+                        side=side, target_obj=target_obj
+                    )
+                elif kinematic_action in ("sit_on_chair", "sit", "seated"):
+                    chair_id = a_spec.get("chair_id")
+                    chair_target = props_objs.get(chair_id) if chair_id else None
+                    cbb.plan_actor_sit_on_chair(bpy.context, arm_obj, chair_obj=chair_target)
+                elif kinematic_action in ("door_entry", "door_interaction", "open_door"):
+                    s_pos = a_spec.get("start_pos") or kfs[0].get("pos", [0.0, 3.8, 0.0])
+                    e_pos = a_spec.get("end_pos") or kfs[-1].get("pos", [0.0, 1.2, 0.0])
+                    door_id = a_spec.get("door_id")
+                    door_target = props_objs.get(door_id) if door_id else None
+                    cbb.plan_door_interaction(
+                        bpy.context, arm_obj, door_obj=door_target,
+                        start_xy=(float(s_pos[0]), float(s_pos[1])),
+                        end_xy=(float(e_pos[0]), float(e_pos[1]))
+                    )
+            except Exception as e_kin:
+                print(f"[PREVIS] Kinematic action '{kinematic_action}' warning: {e_kin}")
+
     # 4. Create Cinema Camera & True Spherical/Polar Trajectory Solver
     bpy.ops.object.camera_add(location=(0, -2.5, 1.6))
     cam = bpy.context.active_object
@@ -1224,6 +1275,27 @@ def generate_previs_from_spec(spec):
         cam.data.keyframe_insert("lens", frame=f)
         look_empty.keyframe_insert("location", frame=f)
 
+    # 5. Run Director Quality Gate & Scene Audit (Auto-Fix physical grounding, clearance & eye-lines)
+    try:
+        import cindy_blender_bridge as cbb
+        from cindy_director_gate import CindyDirectorGate
+        import cindy_prompt_profiles as cpp
+        from cindy_prompt_grammar import CindyPromptGrammar
+    except Exception as e_imp:
+        print(f"[PREVIS] Module import warning: {e_imp}")
+        cbb = None
+        CindyDirectorGate = None
+        cpp = None
+        CindyPromptGrammar = None
+
+    audited_actors = []
+    audit_report = {"passed": True, "actor_count": len(actor_objs), "auto_fixes_applied": [], "checks": []}
+    if cbb is not None:
+        try:
+            audited_actors, audit_report = cbb._run_scene_audit_and_extract(bpy.context, auto_fix=True)
+        except Exception as e_aud:
+            print(f"[PREVIS] Scene audit warning: {e_aud}")
+
     # Save Blend File
     blend_path = os.path.join(SCENES_DIR, "cindy_dynamic_previs.blend")
     bpy.ops.wm.save_as_mainfile(filepath=blend_path)
@@ -1245,8 +1317,201 @@ def generate_previs_from_spec(spec):
             "url": f"/outputs/blender_guides/{fname}.jpg"
         })
 
-    # Render Full MP4 Video (Compatible with Blender 4.x and Blender 5.3+)
+    # Render Primary Beauty Guide Still + Calibrated 8-bit Depth Guide Pass (frame 1 / primary beat)
     ts = int(time.time())
+    hero_frame = keyframe_records[0][0] if keyframe_records else 1
+    scene.frame_set(hero_frame)
+    beauty_filename = f"blender_guide_{ts}_rgb.png"
+    depth_filename = f"blender_guide_{ts}_depth.png"
+    beauty_path = os.path.join(OUTPUT_DIR, beauty_filename)
+    depth_path = os.path.join(OUTPUT_DIR, depth_filename)
+    latest_depth_path = os.path.join(OUTPUT_DIR, "cindy_previs_depth.png")
+
+    try:
+        if rendered_stills:
+            first_still_file = os.path.join(OUTPUT_DIR, f"{keyframe_records[0][1]}.jpg")
+            if os.path.exists(first_still_file):
+                shutil.copyfile(first_still_file, beauty_path)
+        if not os.path.exists(beauty_path):
+            scene.render.image_settings.file_format = 'PNG'
+            scene.render.image_settings.color_mode = 'RGBA'
+            scene.render.filepath = beauty_path
+            bpy.ops.render.render(write_still=True)
+    except Exception as e_b:
+        print(f"[PREVIS] Beauty guide write warning: {e_b}")
+
+    if cbb is not None:
+        try:
+            cbb._render_calibrated_depth_pass_53(scene, depth_path, near_clip=0.45, far_clip=8.0)
+            if os.path.exists(depth_path):
+                shutil.copyfile(depth_path, latest_depth_path)
+        except Exception as e_d:
+            print(f"[PREVIS] Depth pass render warning: {e_d}")
+
+    if CindyDirectorGate is not None:
+        try:
+            if os.path.exists(beauty_path):
+                b_check = CindyDirectorGate.audit_rendered_guide_image(beauty_path, pass_type="beauty")
+                audit_report.setdefault("checks", []).append(b_check)
+                if not b_check.get("passed", True):
+                    audit_report["passed"] = False
+            if os.path.exists(depth_path):
+                d_check = CindyDirectorGate.audit_rendered_guide_image(depth_path, pass_type="depth")
+                audit_report.setdefault("checks", []).append(d_check)
+                if not d_check.get("passed", True):
+                    audit_report["passed"] = False
+        except Exception as e_img_aud:
+            print(f"[PREVIS] Guide image audit warning: {e_img_aud}")
+
+    # 6. Synthesize Standardized 7-Engine Prompt Profiles (cindy_prompt_profiles.py)
+    prompt_package = {}
+    if cpp is not None:
+        try:
+            cam_samples = cbb._collect_camera_samples(bpy.context) if cbb else []
+            cam_stages = (
+                cpp.classify_camera_path(cam_samples)
+                if len(cam_samples) >= 2
+                else [cpp.CameraStage(0.0, duration_sec, "static")]
+            )
+            cast_list = []
+            for a_spec in spec.get("actors", []):
+                aname = a_spec.get("name") or a_spec.get("id", "Actor")
+                app = a_spec.get("appearance") or f"Character {aname} in dramatic lighting, realistic skin and wardrobe"
+                prop_lbl = a_spec.get("locked_prop") or ""
+                cast_list.append({"name": aname, "appearance": app, "locked_prop": prop_lbl})
+            if not cast_list and audited_actors:
+                cast_list = audited_actors
+            if not cast_list:
+                cast_list = [{"name": "Protagonist", "appearance": "Lead character in realistic cinema wardrobe", "locked_prop": ""}]
+
+            spec_beats = []
+            for a_spec in spec.get("actors", []):
+                aname = a_spec.get("name") or a_spec.get("id", "Actor")
+                kfs = a_spec.get("keyframes", [])
+                if len(kfs) >= 2:
+                    for idx_k in range(len(kfs) - 1):
+                        t0_k = float(kfs[idx_k].get("time_sec", 0.0))
+                        t1_k = float(kfs[idx_k + 1].get("time_sec", duration_sec))
+                        if t1_k <= t0_k:
+                            t1_k = min(duration_sec, t0_k + 1.5)
+                        pose_k = str(kfs[idx_k].get("pose", "STAND")).upper()
+                        act_desc = kfs[idx_k].get("action_desc") or (
+                            "strides purposefully across the room toward mark" if pose_k == "WALK"
+                            else "remains seated in focused dialogue" if pose_k == "SIT"
+                            else "gestures expressively during tense exchange" if pose_k in ("POINT", "GESTURE")
+                            else "holds ground with subtle micro-expressions and intense eye contact"
+                        )
+                        spec_beats.append(cpp.Beat(t0=round(t0_k, 2), t1=round(t1_k, 2), actor=aname, action=act_desc))
+                elif len(kfs) == 1:
+                    pose_k = str(kfs[0].get("pose", "STAND")).upper()
+                    act_desc = kfs[0].get("action_desc") or (
+                        "remains seated at the table with focused gaze" if pose_k == "SIT"
+                        else "stands poised and reacts with subtle breathing and eye contact"
+                    )
+                    spec_beats.append(cpp.Beat(t0=0.0, t1=round(duration_sec, 2), actor=aname, action=act_desc))
+
+            if not spec_beats and cbb is not None:
+                raw_beats = cbb._derive_actor_beats(bpy.context, cast_list, duration_sec)
+                spec_beats = [cpp.Beat(t0=b[0], t1=b[1], actor=b[2], action=b[3]) for b in raw_beats]
+
+            dialogue_list = []
+            for d_item in spec.get("dialogue", []):
+                if isinstance(d_item, dict) and d_item.get("line"):
+                    dialogue_list.append(cpp.Dialogue(
+                        speaker=d_item.get("speaker", cast_list[0]["name"]),
+                        line=d_item.get("line", ""),
+                        tone=d_item.get("tone", "low, measured intensity")
+                    ))
+
+            env_cfg = spec.get("environment", {})
+            env_style = str(env_cfg.get("style", "INTERIOR_DRAMATIC"))
+            env_desc = env_cfg.get("description") or f"{spec.get('title', 'Cinematic 3D Previz set')} ({env_style.replace('_', ' ').lower()}), physically grounded architecture and depth"
+            lighting_desc = env_cfg.get("lighting") or "dramatic motivating key light, soft warm fill, and crisp rim separation"
+            first_framing = beats[0].get("framing", "MEDIUM_TWO") if beats else "MEDIUM_TWO"
+            shot_type_map = {
+                "WIDE_ESTABLISHING": "Wide Establishing Shot",
+                "WIDE_MASTER": "Wide Master Shot",
+                "EXTREME_WIDE_AERIAL": "Extreme Wide Aerial Shot",
+                "WINDOW_EXTERIOR": "Exterior Through-Window Framing",
+                "BIRDS_EYE_OVERHEAD": "Overhead Bird's-Eye Shot",
+                "TOP_DOWN_GOD": "Overhead Top-Down Shot",
+                "HIGH_ANGLE_ON_ACTOR": "High-Angle Dramatic Shot",
+                "HIGH_VULNERABLE": "High-Angle Dramatic Shot",
+                "LOW_ANGLE_HERO": "Low-Angle Hero Shot",
+                "LOW_HERO": "Low-Angle Hero Shot",
+                "MEDIUM_TWO": "Medium Two-Shot",
+                "TIGHT_MEDIUM_TWO": "Tight Medium Two-Shot",
+                "GROUP_THREE": "Medium Wide Three-Shot",
+                "THREE_SHOT": "Medium Wide Three-Shot",
+                "MEDIUM_GROUP": "Medium Group Shot",
+                "OTS_A_TO_B": "Over-the-Shoulder Shot",
+                "OTS_1_TO_2": "Over-the-Shoulder Shot",
+                "OTS_B_TO_A": "Reverse Over-the-Shoulder Shot",
+                "OTS_2_TO_1": "Reverse Over-the-Shoulder Shot",
+                "CLOSEUP_A": "Close-Up Shot",
+                "CLOSEUP_B": "Close-Up Shot",
+                "FACE_CLOSE_UP": "Close-Up Shot",
+                "FACE_CLOSE_UP_ACTOR_2": "Close-Up Shot",
+                "EXTREME_CLOSE_UP_ACTOR_1": "Extreme Close-Up Shot",
+                "EXTREME_CLOSE_UP_ACTOR_2": "Extreme Close-Up Shot",
+                "FULL_BODY_ACTOR_1": "Full-Body Cowboy Shot",
+                "FULL_BODY_ACTOR_2": "Full-Body Cowboy Shot",
+                "DOOR_ENTRANCE": "Doorway Threshold Medium-Wide Shot",
+                "ORBIT_LEFT": "Arcing Medium Shot",
+                "ORBIT_RIGHT": "Arcing Medium Shot",
+            }
+            shot_type_label = shot_type_map.get(first_framing, "Medium Two-Shot" if len(cast_list) == 2 else "Medium Wide Group Shot" if len(cast_list) >= 3 else "Medium Shot")
+            lens_mm_val = float(beats[-1].get("lens_mm", 45.0))
+
+            shot_spec = cpp.ShotSpec(
+                shot_type=shot_type_label,
+                lens_mm=lens_mm_val,
+                environment=env_desc,
+                lighting=lighting_desc,
+                style=spec.get("visual_style") or "cinematic 35mm film look, photorealistic skin and fabric, subtle film grain",
+                cast=cast_list,
+                beats=spec_beats,
+                camera=cam_stages,
+                duration_s=duration_sec,
+                aspect="16:9",
+                dialogue=dialogue_list,
+                ambience=spec.get("ambience") or "natural room tone, subtle footsteps and cloth rustle",
+                has_start_frame=False,
+                references=[c["name"] for c in cast_list],
+            )
+
+            target_engine = str(spec.get("target_engine", "WAN_2_2")).upper()
+            if target_engine not in cpp.PROFILES:
+                target_engine = "WAN_2_2"
+            selected_profile = cpp.render(shot_spec, target_engine)
+            all_profiles = cpp.render_all(shot_spec)
+
+            if CindyPromptGrammar is not None:
+                lens_str = f"{int(round(lens_mm_val))}mm prime lens"
+                prompt_package = CindyPromptGrammar.build_seven_part_prompt(
+                    visual_style=shot_spec.style,
+                    shot_type=shot_type_label,
+                    camera_lens=lens_str,
+                    camera_motion=", ".join(f"{s.t0:.1f}-{s.t1:.1f}s {s.move}" for s in cam_stages),
+                    scene_environment=f"{env_desc}, {lighting_desc}",
+                    cast_and_props=cast_list,
+                    chronological_beats=[
+                        {"time": f"{b.t0:.1f}-{b.t1:.1f}s", "actor": b.actor, "action": b.action}
+                        for b in spec_beats
+                    ],
+                    audio_design=shot_spec.ambience,
+                    target_model=target_engine,
+                )
+            prompt_package["master_prompt"] = selected_profile["prompt"]
+            prompt_package["positive_prompt"] = selected_profile["prompt"]
+            prompt_package["negative_prompt"] = selected_profile["negative_prompt"]
+            prompt_package["profile_notes"] = selected_profile["notes"]
+            prompt_package["recommended_duration_s"] = selected_profile.get("recommended_duration_s") or selected_profile.get("duration_s", duration_sec)
+            prompt_package["all_tool_prompts"] = all_profiles
+        except Exception as e_pp:
+            print(f"[PREVIS] Prompt profile synthesis warning: {e_pp}")
+
+    # Render Full MP4 Video (Compatible with Blender 4.x and Blender 5.3+)
     mp4_name = f"cindy_previs_{ts}.mp4"
     mp4_path = os.path.join(OUTPUT_DIR, mp4_name)
     latest_mp4_path = os.path.join(OUTPUT_DIR, "director_confrontation_previz_v3.mp4")
@@ -1266,11 +1531,12 @@ def generate_previs_from_spec(spec):
         scene.render.image_settings.quality = 92
         scene.render.filepath = os.path.join(seq_dir, "frame_")
         bpy.ops.render.render(animation=True)
+        sp_kwargs = {"creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)} if os.name == "nt" else {}
         subprocess.run([
             "ffmpeg", "-y", "-framerate", str(fps),
             "-i", os.path.join(seq_dir, "frame_%04d.jpg"),
             "-c:v", "libx264", "-pix_fmt", "yuv420p", mp4_path
-        ], check=True)
+        ], check=True, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, **sp_kwargs)
         shutil.rmtree(seq_dir, ignore_errors=True)
 
     try:
@@ -1286,7 +1552,19 @@ def generate_previs_from_spec(spec):
         "lens_focal_length_mm": beats[-1].get("lens_mm", 45.0),
         "resolution": [960, 540],
         "video_url": f"/outputs/blender_guides/{mp4_name}",
+        "rgb_url": f"/outputs/blender_guides/{beauty_filename}" if os.path.exists(beauty_path) else (rendered_stills[0]["url"] if rendered_stills else ""),
+        "depth_url": f"/outputs/blender_guides/{depth_filename}" if os.path.exists(depth_path) else "",
         "stills": rendered_stills,
+        "prompt_package": prompt_package,
+        "audit": audit_report,
+        "meta": {
+            "timestamp": ts,
+            "frame": total_frames,
+            "duration_sec": duration_sec,
+            "lens_focal_length_mm": beats[-1].get("lens_mm", 45.0),
+            "resolution": [960, 540],
+            "camera_motion_preset": "SPHERICAL_ARC_PREVIS"
+        },
         "spec": spec
     }
     with open(os.path.join(OUTPUT_DIR, f"blender_guide_{ts}_meta.json"), "w", encoding="utf-8") as mf:
@@ -1299,9 +1577,15 @@ def generate_previs_from_spec(spec):
 
 if __name__ == "__main__":
     spec_to_run = DEFAULT_SPEC
-    if os.path.exists(SPEC_FILE):
+    custom_spec_path = None
+    if "--" in sys.argv:
+        extra_args = sys.argv[sys.argv.index("--") + 1:]
+        if extra_args and os.path.exists(extra_args[0]):
+            custom_spec_path = extra_args[0]
+    target_spec_file = custom_spec_path or (SPEC_FILE if os.path.exists(SPEC_FILE) else None)
+    if target_spec_file:
         try:
-            with open(SPEC_FILE, "r", encoding="utf-8") as f:
+            with open(target_spec_file, "r", encoding="utf-8") as f:
                 spec_to_run = json.load(f)
         except Exception as e:
             print("Warning: failed to load spec file, using default:", e)

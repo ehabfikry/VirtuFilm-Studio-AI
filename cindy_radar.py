@@ -1,15 +1,3 @@
-# ==============================================================================
-# PROPRIETARY INTELLECTUAL PROPERTY & TRADE SECRET NOTICE
-# System: VirtuFilm Studio AI (Cindy AI Director Architecture v8.0)
-# Inventor & Owner: Ehab Fikry (المخرج / إيهاب فكري)
-# Patent Reference: CAD-IP-2026-001
-# Legal Protection:
-#   1. WIPO Berne Convention (Automatic International Copyright in 181 Countries)
-#   2. Egyptian Intellectual Property Law No. 82 of 2002 (ITIDA Software Deposit)
-#   3. Trade Secret & Cryptographic SHA-256 Prior-Art Ledger
-# Unauthorized copying, reverse engineering, or redistribution is strictly prohibited.
-# ==============================================================================
-
 import os
 import json
 import time
@@ -18,315 +6,326 @@ import re
 
 RADAR_CACHE_PATH = r'C:\Users\DELL\Desktop\Cindy-AI-Director\outputs\cinema_radar_cache.json'
 
-# Curated High-Value Baseline Trends (Hollywood & Open-Weights SOTA)
-FALLBACK_BASELINE_TRENDS = [
-    {
-        "id": "openmontage_studio_engine",
-        "title": "OpenMontage (Open-Source Multi-Stage AI Studio & Timeline Engine)",
-        "source": "OpenMontageInc / GitHub (MIT License - 2026)",
-        "category": "Timeline & Automated Production",
-        "badge": "🎬 استوديو ومونتير متكامل",
-        "summary": "نظام إنتاج فيديو وكيل (Agentic) مفتوح المصدر بالكامل يحوّل وكلاء الذكاء الاصطناعي إلى طاقم إنتاج ومونتاج متكامل: من كتابة وتفكيك السيناريو، توليد الأصول البصرية والصوتية، إنشاء تايم لاين متعدد التراكات برمجياً، والمكساج والتجميع النهائي عبر FFmpeg و Remotion مع بوابات فحص الجودة الآلية.",
-        "impact_on_director": "يوفر لسيندي نموذج التايم لاين والمونتاج البرمجي المتقدم لربط مشاهد الفيلم، وتوليد المؤثرات الانتقالية وفحص جودة الصوت وتوحيد الـ FPS آلياً بدون الحاجة لبرامج مونتاج خارجية.",
-        "cost_indicator": "مفتوح المصدر (مجاني 100%)",
-        "action_prompt": "Multi-track timeline assembly with audio crossfade, subtitles burning and automated QA gates via FFmpeg"
-    },
-    {
-        "id": "resonant_local_daw",
-        "title": "Resonant (Local AI Music Studio & DAW with MCP Protocol)",
-        "source": "calesthio / Resonant (Windows Desktop / MIT)",
-        "category": "Local Music & Sound Design",
-        "badge": "🎵 استوديو موسيقى تصويرية محلي",
-        "summary": "بديل محلي مفتوح المصدر لمنصات الموسيقى السحابية (مثل Suno) مصمم لنظام Windows. يتضمن بيئة DAW كاملة (Clip Launcher, Arrangement Timeline, Mixer) لتوليد الموسيقى التصويرية، الأغاني، والوتريات محلياً بدون أي تكلفة سحابية، مع دعم خادم MCP للربط المباشر مع وكلاء الذكاء الاصطناعي.",
-        "impact_on_director": "يتيح لسيندي تأليف وتوليد تراك موسيقي ومكساج صوتي مخصص لكل مشهد سينمائي محلياً على جهاز المخرج وتصديره بصيغة WAV نقية ومزامنته مع حركة المشهد.",
-        "cost_indicator": "مجاني محلياً (Zero-Cost DAW)",
-        "action_prompt": "Cinematic orchestral score featuring sorrowful cello and delicate piano progression with dynamic build-up"
-    },
-    {
-        "id": "generative_media_skills",
-        "title": "Generative Media Skills (Research-Backed Hollywood Directorial Knowledge)",
-        "source": "calesthio / generative-media-skills (GitHub)",
-        "category": "Directorial Craft & Quality Control",
-        "badge": "📐 قاموس المهارات الإخراجية",
-        "summary": "مجموعة مهارات وقواعد إخراجية متقدمة مبنية على أبحاث سينمائية معتمدة: توجيه زوايا وعدسات الكاميرا (35mm/85mm)، محاكاة ألوان وتدرجات أشرطة السينما (Kodak/Fuji Film Stock)، تصميم طبقات الصوت والـ Foley بمستويات LUFS القياسية، وضوابط الفحص الصارم لمنع تشوهات الأيدي والملامح.",
-        "impact_on_director": "تغذية عقل سيندي الإخراجي بأعلى معايير الإخراج السينمائي الكلاسيكي وهندسة البرومبت الفوتوغرافية لمنع أي أخطاء في التوليد وضمان كادر سينمائي واقعي.",
-        "cost_indicator": "إرشادات وقواعد مفتوحة (Open Knowledge)",
-        "action_prompt": "Cinematic 35mm anamorphic shot, chiaroscuro lighting, subtle camera dolly in with natural film grain"
-    },
-    {
-        "id": "kling_4_omni_release",
-        "title": "Kling 4.0 Pro Omni & Kling 3.0 Pro (Fal.ai Commercial Suite)",
-        "source": "Kuaishou Kling AI & Fal.ai Commercial Portal (2026-11)",
-        "category": "Cinematic Video Engine",
-        "badge": "👑 قمة الإخراج السينمائي 1080p",
-        "summary": "إطلاق رسمي لأقوى أجيال Kling: جيل 4.0 Omni لتوليد مشاهد سردية طويلة حتى 30 ثانية مع صوت ستيريو محيطي مدمج ($0.157/ث)، وجيل 3.0 Pro مع حركات كاميرا مركبة ومونتاج مقاطع متعددة ($0.112/ث)، مع Motion Control 1080p لمنع أي اهتزاز في حركة الممثل.",
-        "impact_on_director": "أعلى معيار هوليوودي وثبات ملامح للممثلين، متوفرة الآن للاختيار الفوري في سيندي مع رصد لحظي لتخفيضات الأسعار.",
-        "cost_indicator": "~$0.56 - $0.78 / 5s",
-        "action_prompt": "Cinematic dynamic camera dolly forward tracking character movement with native synchronized stereo sound"
-    },
-    {
-        "id": "bytedance_seedance_suite",
-        "title": "ByteDance Seedance 2.5 & 2.0 (4K Cinema & Fast Reference)",
-        "source": "ByteDance AI Research & Fal.ai (2026-11)",
-        "category": "Multi-Reference & Character Consistency",
-        "badge": "💃 القوة السردية وحركات الأكشن",
-        "summary": "طرح حزمة Seedance الكاملة: Seedance 2.5 بدعم 50 مرجعاً بصرياً وصوتياً ومشاهد سردية 30 ثانية بتمريرة واحدة، و Seedance 2.0 4K بأعلى فيزياء لحركة الأجسام والرقص، وإصدار Fast فائق السرعة.",
-        "impact_on_director": "تحريك وتوجيه مشاهد الأكشن والرقص البشري الصعبة جداً مع دقة 4K وصوت متزامن وحفظ ملامح الشخصية عبر المشاهد.",
-        "cost_indicator": "~$0.14 - $0.30 / ثانية",
-        "action_prompt": "Ultra-realistic human choreography and fast dynamic action sequence rendered with 4K physical consistency"
-    },
-    {
-        "id": "wan_2_2_hybrid",
-        "title": "Alibaba Wan 2.2 TI2V (Unified 14B Cinema Engine)",
-        "source": "Alibaba Wan-AI & Hugging Face SOTA (2026-11)",
-        "category": "Cinematic Video Engine",
-        "badge": "💎 بطل الساحة الحالي",
-        "summary": "إطلاق معمارية Wan 2.2 الموحدة (Text-to-Video و Image-to-Video) بمحاكاة فيزيائية واقعية وانعدام تام لتشوهات أطراف الشخصيات وحركة الإضاءة ثلاثية الأبعاد.",
-        "impact_on_director": "أرخص وأدق محرك فيديو سينمائي متاح حالياً للتحريك المرجعي (I2V) بجودة 720p/1080p وبتكلفة منخفضة جداً.",
-        "cost_indicator": "~$0.04 - $0.06 / لقطة",
-        "action_prompt": "Cinematic camera push-in on subject with volumetric lighting, matching environmental audio and dramatic depth"
-    },
-    {
-        "id": "hyperflow_h3_flash",
-        "title": "MiniMax HyperFlow H3 Flash (Open Weights & 6-Step Video)",
-        "source": "Synon Video Gen AI Daily & Video Rebirth (2026-11)",
-        "category": "ComfyUI & Local Distillation",
-        "badge": "⚡ أوزان مفتوحة محلياً",
-        "summary": "إطلاق أوزان HyperFlow H3 Flash المصغرة من MiniMax H3 بحجم 14B و 6 خطوات توليد فقط (INT8). الموديل يعمل محلياً بالكامل على كروت RTX 4090 ويولد 5.2 ثانية في نحو 130 ثانية بدون أي تكلفة سحابية.",
-        "impact_on_director": "تحرير المخرج تماماً من تكاليف السحابة في مرحلة المسودات الأولية (Drafts) وتشغيل فيزياء MiniMax محلياً داخل ComfyUI.",
-        "cost_indicator": "مجاني محلياً (Open Weights)",
-        "action_prompt": "Local ComfyUI test using HyperFlow H3 Flash 14B 6-step distillation for hyper-fast drafting"
-    },
-    {
-        "id": "flux_3_max_i2v",
-        "title": "FLUX 3 Max Image-to-Video (Native Audio & End-Frames)",
-        "source": "Black Forest Labs & fal.ai Research (2026-11)",
-        "category": "Cinematic Video Engine",
-        "badge": "👑 أعلى دقة + صوت مدمج",
-        "summary": "محرك التحريك الفوتوغرافي الأقوى عالمياً حالياً من مبتكري FLUX. يدعم توليد لقطات سينمائية بطول 5 إلى 20 ثانية بنبضة واحدة مع توليد صوت محيطي متزامن (Native Audio) والتحكم بكادر البداية والنهاية بدقة 1080p.",
-        "impact_on_director": "حل معضلة المخرج في مزامنة الصوت والمؤثرات مع حركة اللقطة في ملف واحد فائق الدقة بدون الحاجة لاستوديو مونتاج صوتي منفصل.",
-        "cost_indicator": "~$0.25 / 5s (فيديو + صوت)",
-        "action_prompt": "Cinematic camera push-in on subject with volumetric lighting, matching environmental audio and dramatic depth"
-    },
-    {
-        "id": "ltx_2_5_reframe",
-        "title": "Lightricks LTX-2.5 Reframe (Generative Video Outpainting)",
-        "source": "Lightricks & fal.ai (2026-11)",
-        "category": "Aspect Ratio & Post-Production",
-        "badge": "🎨 توسيع ذكي للكادر",
-        "summary": "أداة إعادة تأطير الفيديوهات الذكية. بدلاً من القص الحاد التقليدي عند تحويل الفيديو السينمائي 16:9 إلى عمودي 9:16 أو العكس، تقوم الأداة بتوليد ورسم بقية المشهد في الأعلى والأسفل والجوانب متوافقاً مع حركة الكاميرا والفيزياء الأصلية.",
-        "impact_on_director": "تحويل أي لقطة فيلم سينمائية إلى مادة سوشيال ميديا (Reels / TikTok) بدقة 1080p بدون التضحية بأي عنصر في الكادر.",
-        "cost_indicator": "~$0.05 - $0.10 / ثانية",
-        "action_prompt": "Generative outpainting reframe from 16:9 to 9:16 vertical preserving camera continuity"
-    },
-    {
-        "id": "skyreels_v4_leaderboard",
-        "title": "SkyReels V4 (Top 10 Global Leaderboard Entry)",
-        "source": "Artificial Analysis Video Arena (2026-11)",
-        "category": "Character Consistency",
-        "badge": "🔥 المركز 9 عالمياً",
-        "summary": "دخول رسمي لنموذج SkyReels V4 ضمن المراكز العشرة الأولى عالمياً في مؤشر Artificial Analysis بدرجة 1137 نقطة متفوقاً على Seedance 2.0 في ثبات حركة الأطراف والأوجه البشرية.",
-        "impact_on_director": "خيار موثوق جداً لتحريك لقطات الممثلين القريبة دون أي تشوه في العيون أو حركة الأصابع.",
-        "cost_indicator": "~$0.15 / 5s",
-        "action_prompt": "Close-up portrait sequence with flawless eye contact and natural human micro-expressions"
-    },
-    {
-        "id": "open_micro_drama_anil",
-        "title": "Open Micro-Drama Pipeline (Screenplay → Storyboard → Multi-Scene Video)",
-        "source": "Open-Source Community (Anil Matcha / GitHub)",
-        "category": "Episodic AI Direction",
-        "badge": "🎬 معمارية المسلسلات القصيرة",
-        "summary": "معمارية مفتوحة المصدر لتقسيم الأفكار الدرامية إلى مشاهد متتالية (Multi-Agent Pipeline) وتجميعها تلقائياً في حلقة فيديو درامية قصيرة متماسكة.",
-        "impact_on_director": "تم دمجها وتطويرها في سيندي لتوليد حلقات كاملة مع الحفاظ على ترقية الجودة السينمائية 4K ومونتاج FFmpeg الخارق دون أي قيود مدفوعة.",
-        "cost_indicator": "مفتوح المصدر (MIT Inspired)",
-        "action_prompt": "Cinematic vertical micro-drama scene sequence with consistent character arc and dramatic tension"
-    },
-    {
-        "id": "duix_digital_human",
-        "title": "Duix-Avatar (Offline Digital Human & Neural Lip-Sync)",
-        "source": "Duix.com Open Source (GitHub SOTA)",
-        "category": "Actor Cloning & Speech",
-        "badge": "💎 16K+ نجمة • محلي بالكامل",
-        "summary": "حزمة أدوات مفتوحة المصدر بالكامل لاستنساخ الممثلين الرقميين ومزامنة الشفاه (Lip-Sync) في الوقت الحقيقي محلياً دون أي حاجة للإنترنت أو اشتراكات خارجية.",
-        "impact_on_director": "تحرير المخرج من تكاليف خدمات التحدث السحابية وتوفير دبلجة ومزامنة كلام سينمائية للممثل داخل الاستوديو.",
-        "cost_indicator": "مجاني محلياً 100%",
-        "action_prompt": "High fidelity photorealistic digital human monologue with natural facial micro-expressions"
-    },
-    {
-        "id": "wunjo_cinema_toolkit",
-        "title": "Wunjo Studio (Video Inpainting & Clean Plate Studio)",
-        "source": "Wunjo Open Source (C++ / Qt6 / MLT)",
-        "category": "Post-Production & VFX",
-        "badge": "🛠️ استوديو المعالجة المفتوح",
-        "summary": "منظومة إخراجية مفتوحة المصدر لمعالجة الفيديو محلياً: إزالة العناصر والميكروفونات من الكادر (Video Inpainting)، تفريغ الخلفيات وعزل الأصوات بدون أي تكلفة.",
-        "impact_on_director": "أداة VFX وتصحيح كادرات مجانية بجانب سيندي تمنح المخرج حرية تصحيح عيوب التصوير بنقرة واحدة.",
-        "cost_indicator": "مجاني محلياً (GPL v3)",
-        "action_prompt": "Cinematic visual clean plate inpainting removing unwanted objects from foreground"
-    },
-    {
-        "id": "openjourney_gemini_veo",
-        "title": "Openjourney Grid & Google Veo 3 Video Hub",
-        "source": "Next.js 15 & Google Gemini / Veo SDK",
-        "category": "Multi-Variations & Veo",
-        "badge": "⚡ شبكة الكادرات الأربعة",
-        "summary": "واجهة مفتوحة المصدر تعتمد توليد 4 تنويعات بصرية متزامنة للكادر مع دعم محركات Veo 2 و Veo 3 للفيديو عالي الجودة مع الصوت المتزامن.",
-        "impact_on_director": "إلهام متميز لاستعراض 4 خيارات إخراجية لكل لقطة في سيندي قبل اختيار الكادر الفائز للريندر النهائي.",
-        "cost_indicator": "مفتوح المصدر (MIT)",
-        "action_prompt": "4-way cinematic variation grid exploring different director camera perspectives"
-    },
-    {
-        "id": "toonflow_infinite_canvas",
-        "title": "Toonflow AI (Infinite Canvas & Short-Drama Storyboard)",
-        "source": "HBAI-Ltd (21K+ Stars / GitHub MIT)",
-        "category": "Storyboard & Drama Canvas",
-        "badge": "🎨 كانفاس الدراما اللانهائي",
-        "summary": "منصة مفتوحة المصدر لترتيب مشاهد وقصص الدراما التفاعلية على مساحة عمل بصرية غير محدودة مع إدارة ثابتة لهوية الممثل والديكور.",
-        "impact_on_director": "استلهام طريقة العرض البصري البانورامي للمشاهد وتقليل التشتت أثناء الإخراج المتتابع.",
-        "cost_indicator": "مفتوح المصدر (MIT)",
-        "action_prompt": "Panoramic multi-panel storyboard layout depicting consecutive character scenes"
-    },
-    {
-        "id": "tein_emotion_control",
-        "title": "TEIN Emotion Control & Face Replacement Workflow",
-        "source": "Sirio Berati / TEIN AI (GitHub SOTA)",
-        "category": "Actor Performance & VFX",
-        "badge": "🎭 التحكم بالانفعال والوجه",
-        "summary": "معمارية مفتوحة المصدر عبر ComfyUI لنقل الأداء البشري وتعبيرات الوجه بدقة 478 نقطة تتبع، واستبدال الممثل في المشهد دون مساس بالصوت والإضاءة.",
-        "impact_on_director": "تمكين المخرج من تسجيل انفعالاته بنفسه وتطبيقها على الممثل الرقمي بصدق تمثيلي فائق، واستبدال الدوبلير بنقرة زر.",
-        "cost_indicator": "مفتوح المصدر محلياً",
-        "action_prompt": "High fidelity emotional facial expression transfer with nuanced micro-expressions and intense eye contact"
-    },
-    {
-        "id": "nomi_video_workbench",
-        "title": "Nomi AI Video Workbench (Timeline & MCP Studio)",
-        "source": "Nomi Open Source (AGPL v3)",
-        "category": "Timeline & Multi-Model",
-        "badge": "⏱️ تايم لاين المونتاج المحلي",
-        "summary": "بيئة عمل محلية لمونتاج الفيديو بالذكاء الاصطناعي مع تايم لاين تفاعلي وربط مفتوح لأي موديل دون أي تتبع أو اشتراكات.",
-        "impact_on_director": "دعم استقلالية المخرج وربط أدوات التحرير المباشرة في جهازك دون الاعتماد على خدمات المونتاج السحابية الباهظة.",
-        "cost_indicator": "مجاني محلياً 100%",
-        "action_prompt": "Multi-track video timeline editing sequence with seamless transitions"
-    },
-    {
-        "id": "locally_uncensored_studio",
-        "title": "Locally Uncensored AI Desktop Studio",
-        "source": "PurpleDoubleD Open Source (AGPL v3)",
-        "category": "Desktop Local AI Hub",
-        "badge": "🛡️ حرية الإبداع المحلي",
-        "summary": "استوديو مكتبي محلي متكامل لتشغيل الذكاء الاصطناعي على جهاز المخرج بنقرة واحدة بدون دوكر أو تيرمينال مع حرية درامية كاملة.",
-        "impact_on_director": "دليل إرشادي عملي لتشغيل النماذج محلياً بدون قيود الرقابة السحابية التجارية على النصوص السينمائية الحماسية.",
-        "cost_indicator": "مجاني محلياً 100%",
-        "action_prompt": "Cinematic dramatic noir confrontation with dynamic lighting and intense narrative tension"
-    },
-    {
-        "id": "genjustsu_character_swap",
-        "title": "TEIN Genjustsu (Depth + SAM Character Replacement)",
-        "source": "Sirio Berati (sirioberati/Genjustsu-Open-Source-Workflow)",
-        "category": "Actor Performance & VFX",
-        "badge": "🎭 استبدال الدوبلير في المشهد",
-        "summary": "معمارية مفتوحة المصدر لدمج خرائط العمق (Depth Maps) وتقسيم SAM و Face Meshes لاستبدال الممثل في اللقطات الحركية مع الحفاظ على الصوت والإضاءة الأصلية.",
-        "impact_on_director": "تمكين المخرج من استبدال الدوبلير أو تغيير الممثل في المشاهد الخطرة دون الحاجة لإعادة تصوير الكادر.",
-        "cost_indicator": "مفتوح المصدر (MIT)",
-        "action_prompt": "Cinematic visual actor replacement preserving dynamic lighting and background depth"
-    },
-    {
-        "id": "comfyui_reactor_clean",
-        "title": "ComfyUI ReActor (Clean SFW Face Swap & CodeFormer)",
-        "source": "Gourieff (Gourieff/ComfyUI-ReActor)",
-        "category": "Actor Performance & VFX",
-        "badge": "💎 المعيار الذهبي لتبديل الوجه",
-        "summary": "الإضافة الرسمية الأنظف والأكثر استقراراً في ComfyUI لتبديل وتثبيت ملامح الممثل مع ترميم عالي الدقة للعيون ومسام الجلد عبر CodeFormer.",
-        "impact_on_director": "الحل الآمن والمجاني للمخرج لتثبيت وجه بطله عبر جميع المشاهد السينمائية بجودة 4K نظيفة.",
-        "cost_indicator": "مجاني محلياً 100% (GPL v3)",
-        "action_prompt": "Photorealistic cinematic face consistency and restoration with sharp eye reflections"
-    }
+def _translate_japan_brief_to_arabic(headline, desc, secrets=None):
+    """Translate Japanese headline & description into concise Arabic via Gemini Flash."""
+    if not (headline or desc):
+        return "", ""
+    gemini_key = ""
+    if isinstance(secrets, dict):
+        gemini_key = (secrets.get("gemini_api_key") or "").strip()
+    if not gemini_key:
+        sec_path = r"C:\Users\DELL\Desktop\Cindy-AI-Director\cindy_secrets.json"
+        if os.path.exists(sec_path):
+            try:
+                with open(sec_path, "r", encoding="utf-8") as sf:
+                    gemini_key = (json.load(sf).get("gemini_api_key") or "").strip()
+            except Exception:
+                pass
+    if gemini_key:
+        prompt = (
+            "ترجم العنوان والملخص الياباني التاليين لأخبار الذكاء الاصطناعي في صناعة الفيديو إلى العربية الواضحة والمختصرة لمخرج سينمائي.\n"
+            "أرجع JSON فقط بالشكل التالي: {\"title_ar\": \"...\", \"summary_ar\": \"...\"}\n"
+            f"Headline: {headline}\nDescription: {desc[:600]}"
+        )
+        for model_id in ("gemini-2.5-flash", "gemini-2.0-flash"):
+            try:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_id}:generateContent?key={gemini_key}"
+                r = requests.post(
+                    url,
+                    json={
+                        "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+                        "generationConfig": {"temperature": 0.2, "responseMimeType": "application/json"},
+                    },
+                    timeout=8,
+                )
+                if r.status_code == 200:
+                    txt = r.json()["candidates"][0]["content"]["parts"][0]["text"]
+                    parsed = json.loads(txt)
+                    t_ar = (parsed.get("title_ar") or "").strip()
+                    s_ar = (parsed.get("summary_ar") or "").strip()
+                    if t_ar or s_ar:
+                        return t_ar or headline, s_ar or desc
+            except Exception:
+                continue
+
+    # Fast zero-key fallback: MyMemory Translation API (Japanese -> Arabic)
+    def _gt_ar(text):
+        if not text:
+            return ""
+        try:
+            r = requests.get(
+                "https://api.mymemory.translated.net/get",
+                params={"q": text[:490], "langpair": "ja|ar"},
+                headers={"User-Agent": "Mozilla/5.0"},
+                timeout=6,
+            )
+            if r.status_code == 200:
+                tr = (r.json().get("responseData") or {}).get("translatedText") or ""
+                if tr and "MYMEMORY WARNING" not in tr.upper():
+                    return tr.strip()
+        except Exception:
+            pass
+        return text
+
+    return _gt_ar(headline), _gt_ar(desc)
 
 
+def fetch_live_synon_japan_trends(secrets=None):
+    """Dynamically discover the newest Video Gen AI Daily article from Synon Japan index."""
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+    index_url = "https://synon.co.jp/article/news/?series=video-gen-ai-daily"
+    try:
+        idx_res = requests.get(index_url, headers=headers, timeout=6)
+        if idx_res.status_code == 200:
+            articles = re.findall(r'href=["\'](/article/news/[^"\']+)["\']', idx_res.text)
+            video_articles = [a for a in articles if 'video-gen-ai-daily' in a.lower()]
+            if video_articles:
+                latest_art_path = video_articles[0]
+                art_full_url = "https://synon.co.jp" + latest_art_path
+                
+                art_res = requests.get(art_full_url, headers=headers, timeout=6)
+                art_res.encoding = 'utf-8'
+                if art_res.status_code == 200:
+                    headline = ""
+                    desc = ""
+                    pub_date = "اليوم"
+                    for m in re.findall(r'<script[^>]*type=["\']application/ld\+json["\'][^>]*>(.*?)</script>', art_res.text, re.DOTALL):
+                        try:
+                            d = json.loads(m.strip())
+                            if d.get("@type") == "NewsArticle" or "description" in d:
+                                headline = d.get("headline", "")
+                                desc = d.get("description", "")
+                                pub_date = (d.get("datePublished") or pub_date)[:10]
+                                break
+                        except Exception:
+                            pass
 
-]
+                    title_ar, desc_ar = _translate_japan_brief_to_arabic(headline, desc, secrets=secrets)
+                    summary_ar = (
+                        f"تقرير طوكيو اليومي ({pub_date}):\n"
+                        f"{desc_ar or 'متابعة يومية لأحدث إطلاقات نماذج توليد الفيديو ومقارنة الأسعار والجودة.'}"
+                    )
+
+                    impact_ar = (
+                        "الفائدة المباشرة للمخرج: متابعة يومية مترجمة لأحدث إطلاقات نماذج الفيديو العالمية وأسعار التوليد."
+                    )
+
+                    return {
+                        "id": "synon_japan_daily_monitor",
+                        "title": f"تقرير مرصد طوكيو ({pub_date}): {title_ar or 'أحدث تطورات الفيديو بالذكاء الاصطناعي'}",
+                        "source": f"Synon.co.jp ({pub_date})",
+                        "url": art_full_url,
+                        "category": "Asian AI Innovation & SOTA",
+                        "badge": f"🇯🇵 تقرير طوكيو اليومي ({pub_date})",
+                        "summary": summary_ar,
+                        "impact_on_director": impact_ar,
+                        "cost_indicator": "تحديث يومي حي (مترجم)",
+                        "action_prompt": f"Analyze latest video AI trend: {title_ar or headline or latest_art_path}"
+                    }
+    except Exception as e:
+        print("[Synon Dynamic Radar Error]:", e)
+    return None
 
 def fetch_live_huggingface_video_trends():
-    """Live API fetch: Query trending open-source video models directly from Hugging Face."""
-    url = "https://huggingface.co/api/models?pipeline_tag=text-to-video&sort=trendingScore&direction=-1&limit=5"
-    headers = {"User-Agent": "VirtuFilm-Studio-Cindy/8.0"}
-    live_items = []
+    """Live API fetch: Query top 3 trending text-to-video / image-to-video open-source models on Hugging Face."""
+    url = "https://huggingface.co/api/models?pipeline_tag=text-to-video&sort=trendingScore&direction=-1&limit=4"
+    headers = {"User-Agent": "Mozilla/5.0"}
+    items = []
     try:
         r = requests.get(url, headers=headers, timeout=6)
         if r.status_code == 200:
-            models = r.json()
-            for m in models:
-                mid = m.get("id", "")
-                downloads = m.get("downloads", 0)
-                likes = m.get("likes", 0)
-                short_name = mid.split("/")[-1]
+            data = r.json()
+            for m in data:
+                m_id = m.get('id', '')
+                likes = m.get('likes', 0)
+                downloads = m.get('downloads', 0)
+                short_name = m_id.split('/')[-1] if '/' in m_id else m_id
                 
-                # Contextualize for the Director
-                live_items.append({
+                if 'wan' in short_name.lower():
+                    desc = f"تحديث أوزان عائلة Wan (Alibaba) الأكثر رواجاً عالمياً. يتميز بالواقعية الفوتوغرافية وفهم زوايا الكاميرا المعقدة."
+                    impact = "استخدمه لتوليد المشاهد الدرامية والإضاءة الطبيعية بكفاءة عالية على جهازك أو السحابة."
+                elif 'minimax' in short_name.lower():
+                    desc = f"نسخة تسريع Turbo LoRA لنماذج MiniMax لتوليد الحركة البشرية وتثبيت الملامح بسرعة فائقة."
+                    impact = "مثالي للمشاهد التي تتطلب حركة جسدية واقعية أو حوارات سريعة."
+                else:
+                    desc = f"نموذج فيديو مفتوح المصدر يتصدر قوائم التداول العالمية (Trending Score) على منصة Hugging Face مع دعم مجتمعي واسع."
+                    impact = "يمكن دمجه مباشرة في معمل ComfyUI المحلي لتنفيذ تجارب بصرية بدون اشتراكات سحابية."
+
+                items.append({
                     "id": f"hf_{short_name.lower()}",
                     "title": f"{short_name} (Hugging Face Trending)",
-                    "source": f"Hugging Face Hub (Repo: {mid})",
-                    "category": "Open-Source Models Hub",
+                    "source": f"Hugging Face Hub (Repo: {m_id})",
+                    "url": f"https://huggingface.co/{m_id}",
+                    "category": "Open-Weights Video Engine",
                     "badge": f"🔥 {downloads:,} تنزيل • {likes} إعجاب",
-                    "summary": f"نموذج فيديو مفتوح المصدر يتصدر قوائم التداول العالمية (Trending Score) على منصة Hugging Face مع دعم مجتمعي واسع ومعدل تنزيل مرتفع.",
-                    "impact_on_director": f"إمكانية تنزيل أوزان {short_name} مجاناً وتشغيله محلياً أو على ComfyUI السحابي بدون اشتراكات مغلقة.",
-                    "cost_indicator": "مفتوح المصدر (مجاني بالكامل)",
-                    "action_prompt": f"Text-to-video cinematic sequence rendered via {short_name} open weights"
+                    "summary": desc,
+                    "impact_on_director": impact,
+                    "cost_indicator": "أوزان مفتوحة (مجاني محلياً)",
+                    "action_prompt": f"Load open weights from {m_id} into ComfyUI local pipeline"
                 })
     except Exception as e:
-        print("[HuggingFace Fetch Error]:", e)
-    return live_items
-
-def fetch_live_synon_japan_trends():
-    """Live API fetch: Query latest Video Gen AI Daily intelligence from Synon Japan."""
-    url = "https://synon.co.jp/article/news/2026-11-09-video-gen-ai-daily"
-    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
-    try:
-        r = requests.get(url, headers=headers, timeout=6)
-        if r.status_code == 200:
-            return {
-                "id": "synon_japan_daily_monitor",
-                "title": "Synon Video Gen AI Daily (مرصد الذكاء الاصطناعي الياباني)",
-                "source": "Synon.co.jp Video Intelligence (Tokyo, Japan)",
-                "category": "Asian AI Innovation & SOTA",
-                "badge": "🇯🇵 رادار طوكيو الحي",
-                "summary": "راصد يومي متقدم لأحدث قفزات نماذج الفيديو في شرق آسيا (MiniMax HyperFlow H3 Flash، تفعيل نماذج التقطير 6-Steps، وتقنيات ضغط الـ VRAM لبطاقات المستهلكين).",
-                "impact_on_director": "متابعة فورية ومباشرة لأحدث تقنيات تسريع وتوليد الفيديو الآسيوية فور صدورها في طوكيو وبكين.",
-                "cost_indicator": "مرصد بحثي مجاني ومباشر",
-                "action_prompt": "Adopt distilled 6-step video pipeline with Asian motion priors"
-            }
-    except Exception as e:
-        print("[Synon Japan Radar Fetch Error]:", e)
-    return None
+        print("[Hugging Face Radar Fetch Error]:", e)
+    return items
 
 def fetch_live_comfyui_release():
     """Live API fetch: Query latest ComfyUI core release version from GitHub."""
     url = "https://api.github.com/repos/comfyanonymous/ComfyUI/releases/latest"
-    headers = {"User-Agent": "VirtuFilm-Studio-Cindy/8.0"}
+    headers = {"User-Agent": "Mozilla/5.0"}
     try:
-        r = requests.get(url, headers=headers, timeout=5)
+        r = requests.get(url, headers=headers, timeout=6)
         if r.status_code == 200:
             rel = r.json()
-            tag = rel.get("tag_name", "v0.45+")
-            pub_date = rel.get("published_at", "")[:10]
+            tag = rel.get('tag_name', 'v0.45.0')
+            body = (rel.get('body') or '')[:300].strip().replace('\r\n', ' ')
+            date = (rel.get('published_at') or '')[:10]
             return {
-                "id": f"comfyui_core_{tag}",
+                "id": f"comfyui_core_{tag.lower().replace('.', '_')}",
                 "title": f"ComfyUI Core Engine ({tag} Latest Release)",
-                "source": f"Official GitHub Release ({pub_date})",
+                "source": f"Official GitHub Release ({date})",
                 "category": "Local Execution Framework",
                 "badge": "⚡ نواة المعمل المجاني",
-                "summary": f"تحديث نواة ComfyUI الرسمية بإصدار {tag}، متضمناً تحسينات تسريع استهلاك VRAM ودعم أحدث عقد تحريك الفيديو المفتوحة (Wan, Hunyuan, LTX).",
-                "impact_on_director": "استقرار أعلى وسرعة أكبر عند تشغيل معمل الريندر المحلي أو على كروت RunPod.",
-                "cost_indicator": "مفتوح المصدر 100%",
-                "action_prompt": "Run full local pipeline on ComfyUI latest core"
+                "summary": f"تحديث نواة ComfyUI الرسمية بإصدار {tag}، متضمناً تحسينات تسريع استهلاك VRAM ودعم أحدث عقد تحريك الفيديو ونماذج التقطير الحديثة.",
+                "impact_on_director": "يسمح لك بتشغيل نماذج 14B على كروت RTX 3060/4060 دون نفاد الذاكرة بفضل تقنيات الـ Offloading المتطورة.",
+                "cost_indicator": "مجاني ومفتوح 100%",
+                "action_prompt": "Update local ComfyUI standalone environment to latest commit"
             }
     except Exception as e:
-        print("[ComfyUI GitHub Fetch Error]:", e)
+        print("[ComfyUI Radar Fetch Error]:", e)
     return None
+
+FALLBACK_BASELINE_TRENDS = [
+    {
+        "id": "freefield_comfy_suite",
+        "title": "FreeField (بديل Higgsfield مفتوح المصدر — 120 أداة ComfyUI)",
+        "source": "neuregex / freefield (GitHub • 1.6K+ Stars)",
+        "url": "https://github.com/neuregex/freefield",
+        "category": "Open-Weights Video Engine",
+        "badge": "🔥 120 أداة مفتوحة",
+        "summary": "منصة مفتوحة المصدر فوق ComfyUI تضم 120 تطبيقاً للصور والفيديو والمؤثرات والصوت بأوزان مفتوحة بالكامل تعمل على جهازك أو السحابة.",
+        "impact_on_director": "بديل مجاني كامل لـ Higgsfield لتجربة أحدث تقنيات الفيديو والمؤثرات بدون اشتراكات شهرية.",
+        "cost_indicator": "مفتوح المصدر (مجاني محلياً)",
+        "action_prompt": "Suggest the best FreeField open-weight ComfyUI workflow for this shot"
+    },
+    {
+        "id": "openjutsu_char_swap",
+        "title": "OpenJutsu (تبديل الممثل في الفيديو بضغطة واحدة + إضاءة FLUX.3)",
+        "source": "D3voz / openjutsu (GitHub • 2.5K+ Stars)",
+        "url": "https://github.com/D3voz/openjutsu",
+        "category": "Character Consistency & Face Swap",
+        "badge": "🎭 تبديل ممثل كامل",
+        "summary": "بديل محلي مفتوح لـ Higgsfield Genjutsu مبني على ComfyUI و MiniMax H3 مع إعادة إضاءة FLUX.3 Klein لتبديل الشخصية بالكامل في أي فيديو.",
+        "impact_on_director": "تثبيت وتبديل بطل الفيلم داخل أي لقطة فيديو جاهزة مع تطابق كامل للإضاءة والظلال.",
+        "cost_indicator": "محلي مفتوح المصدر",
+        "action_prompt": "Plan an OpenJutsu character swap workflow with matching scene lighting"
+    },
+    {
+        "id": "triposplat_3d_gaussians",
+        "title": "TripoSplat (تحويل صورة واحدة إلى 3D Gaussian Splatting)",
+        "source": "VAST-AI-Research / TripoSplat (GitHub • 1.4K+ Stars)",
+        "url": "https://github.com/VAST-AI-Research/TripoSplat",
+        "category": "3D Pre-vis & Environment",
+        "badge": "🧊 3D Splat من صورة",
+        "summary": "يحوّل صورة واحدة إلى مشهد 3D Gaussian Splatting عالي الجودة لبناء الخلفيات والديكورات السينمائية ثلاثية الأبعاد.",
+        "impact_on_director": "مثالي لتحويل كادر مرجعي واحد إلى ديكور 3D قابل لتحريك الكاميرا بداخله بحرية.",
+        "cost_indicator": "مفتوح المصدر (TripoAI)",
+        "action_prompt": "Convert reference set image to 3D Gaussian Splat via TripoSplat for camera blocking"
+    },
+    {
+        "id": "video_shotcraft_recipes",
+        "title": "Video-ShotCraft (124 وصفة شوت سينمائي ومزامنة إيقاع)",
+        "source": "Vincentwei1021 / video-shotcraft (GitHub • 21K+ Stars)",
+        "url": "https://github.com/Vincentwei1021/video-shotcraft",
+        "category": "Directing & Shot Design",
+        "badge": "🎬 124 وصفة شوت",
+        "summary": "مكتبة ضخمة تضم 124 بطاقة وصفة شوت سينمائي و150 معاينة حركة مع مزامنة الإيقاع وتصميم الصوت.",
+        "impact_on_director": "تغذّي سيندي بوصفات جاهزة لحركات الكاميرا والإيقاع المونتاجي في المشاهد السريعة والإعلانات.",
+        "cost_indicator": "مفتوح المصدر",
+        "action_prompt": "Apply a cinematic Video-ShotCraft shot recipe and beat sync for this scene"
+    },
+    {
+        "id": "caprust_local_editor",
+        "title": "CapRust (بديل CapCut المجاني والمحلي على ويندوز)",
+        "source": "Domica / CapRust (Rust • Local Windows)",
+        "url": "https://github.com/Domica/CapRust",
+        "category": "Timeline & Automated Production",
+        "badge": "✂️ مونتاج محلي سريع",
+        "summary": "محرر فيديو محلي فائق السرعة مكتوب بـ Rust بديل لـ CapCut على ويندوز مع LUTs وإعادة التأطير التلقائي وإزالة العناصر والخلفيات أوفلاين.",
+        "impact_on_director": "تجميع وتلوين اللقطات المولدة من سيندي محلياً بدون علامات مائية أو اشتراك.",
+        "cost_indicator": "مجاني 100% محلياً",
+        "action_prompt": "Export shot list and LUT grading plan for CapRust final assembly"
+    },
+    {
+        "id": "overheads_camera_blocking",
+        "title": "Overheads (مخطط الكاميرات والبلوكينج العلوي للمخرجين)",
+        "source": "JesseDana / overheads (مدمج في تبويب السيناريو)",
+        "url": "/overheads_blocking.html",
+        "category": "Directing & Shot Design",
+        "badge": "📐 مخطط كاميرا مدمج",
+        "summary": "أداة تخطيط علوي (Overhead Floorplan) لوضع الممثلين والكاميرات وتقسيم الـ Beats وتصدير كود الشوتات، مدمجة الآن مباشرة في تبويب السيناريو.",
+        "impact_on_director": "تخطيط زوايا الكاميرا وخط الـ 180 درجة بصرياً في ثوانٍ قبل الرندر.",
+        "cost_indicator": "مدمج مجاناً داخل سيندي",
+        "action_prompt": "Design an overhead camera blocking diagram with 180-degree line safety"
+    },
+    {
+        "id": "openmontage_studio_engine",
+        "title": "OpenMontage (استوديو المونتاج والتايم لاين البرمجي الآلي)",
+        "source": "OpenMontageInc / GitHub (MIT License - 2026)",
+        "category": "Timeline & Automated Production",
+        "badge": "🎬 تايم لاين ومونتاج آلي",
+        "summary": "نظام تجميع آلي للمشاهد مبني على FFmpeg يدمج الكادرات المتتابعة، ويصنع انتقالات سينمائية ناعمة (Crossfade)، ويدمج الموسيقى التصويرية ويصدر الفيلم الكامل بـ 1080p فوراً.",
+        "impact_on_director": "يمكنك استخدامه مباشرة عبر زر 'تجميع الفيلم' لتوليد الفيلم النهائي ومزامنته مع الصوت دون الحاجة لفتح برامج مونتاج خارجية.",
+        "cost_indicator": "مفتوح المصدر (مجاني 100%)",
+        "action_prompt": "Multi-track timeline assembly with audio crossfade, subtitles burning and automated QA gates via FFmpeg"
+    },
+    {
+        "id": "duix_avatar_studio",
+        "title": "Duix-Avatar (الدوبلاج العصبي ومزامنة الشفاه مع الصوت العربي)",
+        "source": "Duix.com Open Source (GitHub SOTA - 16K+ Stars)",
+        "category": "Digital Human & Lip-Sync",
+        "badge": "👄 دوبلاج ومزامنة شفاه مجانية",
+        "summary": "محرك محلي أوفلاين فائق الدقة يحلل الذبذبات الصوتية ويقوم بتحريك شفاه وملامح الممثل في الصورة أو الفيديو لتطابق نطق الحوار تماماً وبدون أي اشتراك سحابي.",
+        "impact_on_director": "أداة أساسية لدبلجة المشاهد الدرامية بالعربية: ترفع الصوت وكادر البطل فيقوم بإنتاج مشهد ناطق متطابق.",
+        "cost_indicator": "محلي 100% (أوفلاين بدون إنترنت)",
+        "action_prompt": "Run Duix neural audio-driven lip synchronization on character keyframe"
+    },
+    {
+        "id": "wunjo_vfx_studio",
+        "title": "Wunjo Studio (معمل المؤثرات ومسح العناصر وتعديل الكادر)",
+        "source": "Wunjo Open Source (C++ / Qt6 / MLT)",
+        "category": "Video VFX & Inpainting",
+        "badge": "🛠️ مسح وتنظيف الكوادر",
+        "summary": "استوديو مفتوح لتنظيف لقطات الفيديو، وإزالة العناصر غير المرغوبة (Inpainting)، وتغيير الخلفيات وعزل الشخصيات بدون شاشات خضراء.",
+        "impact_on_director": "يعالج الأخطاء البصرية في لقطات الذكاء الاصطناعي (مثل ظهور أطراف مشوهة أو أجسام دخيلة) بفرشاة بسيطة لملء الخلفية طبيعياً.",
+        "cost_indicator": "مفتوح المصدر بالكامل",
+        "action_prompt": "Temporal video inpainting and object removal"
+    },
+    {
+        "id": "reactor_tein_face_swap",
+        "title": "ComfyUI ReActor & TEIN (تثبيت ملامح بطل العمل وتبديل الوجوه)",
+        "source": "Gourieff & Sirio Berati (GitHub SOTA)",
+        "category": "Character Consistency & Face Swap",
+        "badge": "🎭 تثبيت وجه الممثل",
+        "summary": "نظام استبدال ملامح عالي الجودة مع معالجة وترميم فوتوغرافي (CodeFormer) يضمن بقاء وجه بطل الفيلم ثابتاً عبر كل لقطات العمل حتى لو تحرك الجسد كدوبلير.",
+        "impact_on_director": "الحل العملي الأقوى لمشكلة 'تغير الممثل' بين مشهد وآخر؛ تثبت وجه بطلك في كل الشوتات بدقة متناهية.",
+        "cost_indicator": "محلي مجاني 100%",
+        "action_prompt": "High-fidelity face replacement with CodeFormer face restoration"
+    },
+    {
+        "id": "resonant_audio_studio",
+        "title": "Resonant (استوديو الموسيقى التصويرية والمكساج المحلي)",
+        "source": "calesthio / Resonant (Windows Desktop / MIT)",
+        "category": "Local Audio & DAW",
+        "badge": "🎵 استوديو موسيقى محلي",
+        "summary": "محطة عمل صوتية متكاملة لإنشاء وتأليف الموسيقى التصويرية والمؤثرات الصوتية للمشاهد والتحكم بها عبر بروتوكول MCP محلياً.",
+        "impact_on_director": "تأليف موسيقى أصلية لكل مشهد بالفيلم دون حقوق ملكية، وتغذيتها مباشرة في تايم لاين المونتاج.",
+        "cost_indicator": "مجاني ومفتوح المصدر",
+        "action_prompt": "Generate dynamic orchestral soundtrack adhering to scene tempo and mood"
+    }
+]
 
 def get_latest_cinema_trends(force_refresh=False, secrets=None):
     now = time.time()
     
-    # Check cache if not forced (1 hour freshness for truly live intelligence)
     if not force_refresh and os.path.exists(RADAR_CACHE_PATH):
         try:
             with open(RADAR_CACHE_PATH, 'r', encoding='utf-8') as f:
@@ -336,35 +335,23 @@ def get_latest_cinema_trends(force_refresh=False, secrets=None):
         except Exception:
             pass
 
-    # 1. Fetch live open-source trends from Hugging Face
     hf_trends = fetch_live_huggingface_video_trends()
-    
-    # 2. Fetch latest ComfyUI core release status
     comfy_item = fetch_live_comfyui_release()
+    synon_item = fetch_live_synon_japan_trends(secrets=secrets)
 
-    # 3. Fetch latest East-Asian AI intelligence from Synon Japan
-    synon_item = fetch_live_synon_japan_trends()
-
-    # 4. Combine with curated industry baseline
     combined_trends = []
-    
-    # Put live East-Asian radar & HuggingFace trending first
     if synon_item:
         combined_trends.append(synon_item)
-
     if hf_trends:
         combined_trends.extend(hf_trends[:3])
-        
     if comfy_item:
         combined_trends.append(comfy_item)
-        
-    # Append the curated film-production models
     combined_trends.extend(FALLBACK_BASELINE_TRENDS)
 
     result = {
         "timestamp": now,
         "last_updated": time.strftime("%Y-%m-%d %I:%M %p"),
-        "source_attribution": "Live Hugging Face AI Hub, GitHub Official & fal.ai Research Engine",
+        "source_attribution": "Live Hugging Face Hub, GitHub Official & Synon Video Intelligence (Tokyo)",
         "trends": combined_trends
     }
     
@@ -378,4 +365,4 @@ if __name__ == '__main__':
     data = get_latest_cinema_trends(force_refresh=True)
     print(f"Loaded {len(data['trends'])} real-world verified trends.")
     for t in data['trends']:
-        print(f"- [{t['badge']}] {t['title']} ({t['source']})")
+        print(f"- [{t['badge']}] {t['title']}")

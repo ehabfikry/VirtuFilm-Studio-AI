@@ -1,23 +1,22 @@
 ===================================================================
 VIRTUFILM STUDIO AI - CRYPTOGRAPHIC PRIOR-ART & IP TIMESTAMP LEDGER
 ===================================================================
-Creator & Film Director    : Ehab Fikry (المخرج إيهاب فكري)
+Conceived & Curated by    : Ehab Fikry (Cinema Enthusiast & Storyteller)
 Engineering & AI Systems   : Antigravity (Google DeepMind)
-Timestamp (UTC)            : 2026-11-17T17:26:45Z
-Master Architecture SHA256 : f7d362d2280a44d4f6a8929e835bee4933cb569fcf508946eb9f08b0b790a40a
+Timestamp (UTC)            : 2026-11-20T19:36:54Z
+Master Architecture SHA256 : b9bb874b299047e257ee7d366dcd494d403d65e3f257bfd2f4975ef7c792ad43
 -------------------------------------------------------------------
-8b0813f39fe1fe5f24c09ddfa9a9048cddb3f24444931ba28b434f9f8dc27136  index.html (1473361 bytes)
-9b944cf6bfc86fb96bf9eaa420b52ecf097066451b2477c9213814822b628e23  cindy_server.py (309678 bytes)
-14af1a4fb973e251dcc7718f1449b1bf0e89756dcf36064c645a78f6f46016d0  cindy_previs_engine.py (56829 bytes)
-894ad6092113d78d078889db62fe3b118314c9b723f008e41a1d4aa1e49d8422  cindy_blender_bridge.py (55826 bytes)
-8df12bfb64a2f299a1714b3abab5af8c8155d0c2e9c2f64071aab527bbe19a56  comfyui_client.py (45238 bytes)
-0619c349b9574be72e4770ff01845e5f0e5e25c50b31d1b120d25a92707a6673  cindy_storyboard.py (13896 bytes)
-53eaa4610e53e5fcd9024064401b2ec2b8c54927d7c1afae6965ec3f18e68539  cindy_pricing.py (34554 bytes)
-5aaefe3942bd9fd2b8ea6d94a4b1a895040e82fbce9faa7a9e3bb1f6bd7f1114  cindy_radar.py (29196 bytes)
-f09d9914189f9f329e766256aae76fe366de61e648b19132f42202f9126f07bb  cindy_reframe_engine.py (10051 bytes)
+a215c6b4c2654b215a4ae0e75364d14dc13a3d21439d55e643a75a829713c3f2  index.html (1493924 bytes)
+08207c917e017564e440b8e710959a3927f4b1ae796e549b55b267e13a6b9f88  cindy_server.py (339555 bytes)
+25a3dc24b01db020070fdb78b2f86468117d05a427afd1f6a182bf22c6ae87dc  cindy_previs_engine.py (73386 bytes)
+6ef11ed5912bb790796cf634fc5a5a271df7eabd7b26398f41af919510a74018  cindy_blender_bridge.py (122047 bytes)
+b9e7466d4be7940f60461d81fa4734b07a0f810535067a5374d10e9556ba65ad  comfyui_client.py (42948 bytes)
+e21bd35a3cfd995a767f4cdaf1da5ca106daa4a5d01ef3f45b499d4f87783c37  cindy_storyboard.py (14054 bytes)
+415cf3bb9f8cc0c0878896dae6f85c8372f8da0ac4da8680b58ef1b196577b29  cindy_pricing.py (34747 bytes)
+1e0a96606a02ee68b6c03ddd9f5b4a38a9f063294bb8e664330abbfb61ff7905  cindy_radar.py (23490 bytes)
+13a85559be39fee343d04cc1e288c467e88f79d2f5471da02ae963a42d95f4e8  cindy_reframe_engine.py (12327 bytes)
 b646e1f4b101c44c6cf455180274751d56bebbee7bd810b1f6928e8936399d25  cindy_production_design.py (20594 bytes)
 51a43bc62211829bf99a80269b447abb6dce96d38221cb92ad7396ee56183ba1  cindy_local_tts.py (8485 bytes)
-bb45a94326f1811af090072f33dd7f514f261af208624041103464b665fd600c  runpod_trainer.py (16096 bytes)
 682ed7844d24a94d05f03b9ce000c9c39bf020a66d1f76b5b3e285f6e83af7b4  LICENSE (2107 bytes)
 48c3f58ab3d59eef3dc8ba5d29fbf07562d03d676137c548d4633e316561ec1b  IP_LEGAL_SPECIFICATION.md (2918 bytes)
 ===================================================================

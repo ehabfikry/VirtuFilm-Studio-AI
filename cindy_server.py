@@ -1,7 +1,7 @@
 # ==============================================================================
 # PROPRIETARY INTELLECTUAL PROPERTY & TRADE SECRET NOTICE
 # System: VirtuFilm Studio AI (Cindy AI Director Architecture v8.0)
-# Inventor & Owner: Ehab Fikry (المخرج / إيهاب فكري)
+# Conceived by: Ehab Fikry (إيهاب فكري - Cinema Enthusiast & Independent Storyteller)
 # Patent Reference: CAD-IP-2026-001
 # Legal Protection:
 #   1. WIPO Berne Convention (Automatic International Copyright in 181 Countries)
@@ -31,7 +31,7 @@ Direct API Execution:
 
 - Wan 2.7 / Wan 3.0 & 2.1
 
-- Google Veo 3.1 & Google Imagen 3 (Direct API)
+- Google Imagen 3 & Nano Banana (Direct API)
 
 - Luma Dream Machine & Ray 2
 
@@ -73,7 +73,7 @@ import io
 
 import zipfile
 
-import runpod_trainer
+import mimetypes
 
 from cindy_pricing import build_daily_pricing_report
 
@@ -126,7 +126,6 @@ def generate_ip_manifest():
         "cindy_reframe_engine.py",
         "cindy_production_design.py",
         "cindy_local_tts.py",
-        "runpod_trainer.py",
         "LICENSE",
         "IP_LEGAL_SPECIFICATION.md"
     ]
@@ -177,7 +176,7 @@ def generate_ip_manifest():
             tf.write("===================================================================\n")
             tf.write("VIRTUFILM STUDIO AI - CRYPTOGRAPHIC PRIOR-ART & IP TIMESTAMP LEDGER\n")
             tf.write("===================================================================\n")
-            tf.write(f"Creator & Film Director    : Ehab Fikry (المخرج إيهاب فكري)\n")
+            tf.write(f"Conceived & Curated by    : Ehab Fikry (Cinema Enthusiast & Storyteller)\n")
             tf.write(f"Engineering & AI Systems   : Antigravity (Google DeepMind)\n")
             tf.write(f"Timestamp (UTC)            : {now_iso}\n")
             tf.write(f"Master Architecture SHA256 : {master_sha256}\n")
@@ -198,6 +197,12 @@ os.makedirs(OUTPUTS_DIR, exist_ok=True)
 
 
 
+def _silent_subprocess_kwargs():
+    if os.name == 'nt':
+        return {"creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)}
+    return {}
+
+
 def _lock_secrets_acl():
 
     """Restrict cindy_secrets.json on Windows so only the current user, SYSTEM, and Administrators can read it."""
@@ -216,7 +221,7 @@ def _lock_secrets_acl():
 
                      '/grant:r', f'{user}:(R,W)', 'SYSTEM:(F)', 'Administrators:(F)'],
 
-                    capture_output=True, timeout=5
+                    stdin=subprocess.DEVNULL, capture_output=True, timeout=5, **_silent_subprocess_kwargs()
 
                 )
 
@@ -230,8 +235,127 @@ _lock_secrets_acl()
 
 
 
+def map_model_to_prompt_profile_id(model_name):
+    """Map any Cindy UI/Fal model name to its canonical cindy_prompt_profiles.py tool profile ID."""
+    m = (model_name or '').lower()
+    if 'seedance' in m or 'bytedance' in m:
+        return 'SEEDANCE_2_5'
+    if 'kling' in m:
+        return 'KLING'
+    if 'hunyuan' in m:
+        return 'HUNYUAN_VIDEO'
+    if 'luma' in m or 'ray' in m:
+        return 'LUMA_RAY2'
+    if 'ttm' in m or 'time-to-move' in m:
+        return 'TTM'
+    return 'WAN_2_2'
+
+
+def synthesize_shot_spec_and_profiles(previs_spec=None, shot_dict=None, target_model='Wan 2.2 (Alibaba 14B)'):
+    """Build a cindy_prompt_profiles.ShotSpec from a previs_spec or shot dict and render all 7 canonical engine profiles."""
+    import cindy_prompt_profiles as cpp
+    spec = previs_spec if isinstance(previs_spec, dict) else {}
+    shot = shot_dict if isinstance(shot_dict, dict) else {}
+    duration_s = float(spec.get('duration_sec') or shot.get('duration_sec') or 6.0)
+
+    cast_list = []
+    for a in spec.get('actors', []):
+        if isinstance(a, dict):
+            aname = a.get('name') or a.get('id', 'Actor')
+            app = a.get('appearance') or f"Character {aname} in cinematic wardrobe and realistic lighting"
+            cast_list.append({'name': aname, 'appearance': app, 'locked_prop': a.get('locked_prop', '')})
+    if not cast_list:
+        cast_list = [{'name': 'Protagonist', 'appearance': shot.get('prompt') or 'Lead subject in cinematic lighting', 'locked_prop': ''}]
+
+    beats_list = []
+    for a in spec.get('actors', []):
+        if isinstance(a, dict):
+            aname = a.get('name') or a.get('id', 'Actor')
+            kfs = a.get('keyframes', [])
+            if len(kfs) >= 2:
+                for i in range(len(kfs) - 1):
+                    t0 = float(kfs[i].get('time_sec', 0.0))
+                    t1 = float(kfs[i + 1].get('time_sec', duration_s))
+                    if t1 <= t0:
+                        t1 = min(duration_s, t0 + 1.5)
+                    pose = str(kfs[i].get('pose', 'STAND')).upper()
+                    act_txt = kfs[i].get('action_desc') or (
+                        'walks forward toward the mark' if pose == 'WALK'
+                        else 'sits poised in focused conversation' if pose == 'SIT'
+                        else 'holds position with subtle micro-expressions'
+                    )
+                    beats_list.append(cpp.Beat(t0=round(t0, 2), t1=round(t1, 2), actor=aname, action=act_txt))
+            elif len(kfs) == 1:
+                pose = str(kfs[0].get('pose', 'STAND')).upper()
+                act_txt = kfs[0].get('action_desc') or ('remains seated at the table' if pose == 'SIT' else 'holds position with expressive gaze')
+                beats_list.append(cpp.Beat(t0=0.0, t1=round(duration_s, 2), actor=aname, action=act_txt))
+    if not beats_list:
+        beats_list = [cpp.Beat(t0=0.0, t1=round(duration_s, 2), actor=cast_list[0]['name'], action=shot.get('notes') or 'performs realistic dramatic action')]
+
+    cam_beats = spec.get('camera_beats', [])
+    cam_stages = []
+    if len(cam_beats) >= 2:
+        for i in range(len(cam_beats) - 1):
+            t0 = float(cam_beats[i].get('time_sec', 0.0))
+            t1 = float(cam_beats[i + 1].get('time_sec', duration_s))
+            fr = str(cam_beats[i + 1].get('framing', 'MEDIUM_TWO')).upper()
+            mv = 'dolly_in' if 'CLOSE' in fr else 'orbit_left' if 'ORBIT_LEFT' in fr else 'orbit_right' if 'ORBIT_RIGHT' in fr else 'track_right' if 'OTS' in fr else 'static'
+            cam_stages.append(cpp.CameraStage(t0=round(t0, 2), t1=round(max(t0 + 0.5, t1), 2), move=mv))
+    if not cam_stages:
+        cam_stages = [cpp.CameraStage(t0=0.0, t1=round(duration_s, 2), move='dolly_in')]
+
+    lens_mm = float(cam_beats[-1].get('lens_mm', 40.0)) if cam_beats else 40.0
+    env_cfg = spec.get('environment', {}) if isinstance(spec.get('environment'), dict) else {}
+    env_desc = env_cfg.get('description') or spec.get('title') or shot.get('title') or 'Dramatic cinematic interior set with realistic depth'
+    lighting_desc = env_cfg.get('lighting') or 'natural chiaroscuro key light with warm practical fill and rim separation'
+
+    dialogue_list = []
+    for d in (spec.get('dialogue') or shot.get('dialogue') or []):
+        if isinstance(d, dict) and d.get('line'):
+            dialogue_list.append(cpp.Dialogue(speaker=d.get('speaker', cast_list[0]['name']), line=d.get('line', ''), tone=d.get('tone', 'measured dramatic tone')))
+
+    shot_spec = cpp.ShotSpec(
+        shot_type='Medium Two-Shot' if len(cast_list) == 2 else 'Medium Wide Group Shot' if len(cast_list) >= 3 else 'Medium Shot',
+        lens_mm=lens_mm,
+        environment=env_desc,
+        lighting=lighting_desc,
+        style='cinematic 35mm film look, photorealistic skin and fabric, subtle film grain',
+        cast=cast_list,
+        beats=beats_list,
+        camera=cam_stages,
+        duration_s=duration_s,
+        aspect='16:9',
+        dialogue=dialogue_list,
+        ambience=spec.get('ambience') or shot.get('ambience') or 'ambient room tone, subtle footsteps and cloth movement',
+        has_start_frame=bool(shot.get('has_start_frame', False)),
+        references=[c['name'] for c in cast_list],
+    )
+    profile_id = map_model_to_prompt_profile_id(target_model)
+    rendered_selected = cpp.render(shot_spec, profile_id)
+    rendered_all = cpp.render_all(shot_spec)
+    return {
+        'target_profile_id': profile_id,
+        'selected_profile': rendered_selected,
+        'all_tool_prompts': rendered_all,
+    }
+
+
 def get_model_prompt_rules(model_name, mode='video'):
     m = (model_name or '').lower()
+    profile_note = ""
+    if mode == 'video':
+        try:
+            import cindy_prompt_profiles as cpp
+            pid = map_model_to_prompt_profile_id(model_name)
+            if pid in cpp.PROFILES:
+                p = cpp.PROFILES[pid]
+                profile_note = (
+                    f"\n- CANONICAL PROFILE SPEC ({p.display_name}): Word budget {p.word_budget[0]}-{p.word_budget[1]} words"
+                    + (f" (max {p.char_cap} chars)" if p.char_cap else "")
+                    + f", native audio={'Yes' if p.native_audio else 'No'}, supports negative prompt={'Yes' if p.supports_negative else 'No'}. {p.notes}"
+                )
+        except Exception:
+            profile_note = ""
     
     # 1. Alibaba Wan 2.1 & Wan 2.2 (Video)
     if 'wan' in m:
@@ -241,6 +365,7 @@ def get_model_prompt_rules(model_name, mode='video'):
             "- Describe tangible physical interactions, fluid dynamics (rain, smoke, fabric flutter), and material lighting.\n"
             "- Strictly NO quality buzzwords ('8k, masterpiece, photorealistic, cinematic'). Describe real physical details.\n"
             "- State steady camera trajectory (e.g. 'smooth tracking shot following subject at eye level')."
+            + profile_note
         )
     # 2. Tencent HunyuanVideo (13B Open-Source Video)
     elif 'hunyuan' in m:
@@ -250,6 +375,7 @@ def get_model_prompt_rules(model_name, mode='video'):
             "- Describe the subject, action, environment, lighting, and camera behavior as one seamless filmic narrative.\n"
             "- Explicitly specify camera motion: 'cinematic slow push-in', 'locked static shot', or 'smooth tracking'.\n"
             "- Strictly NO brackets, tags, or comma lists. Keep it fluid and vividly filmic."
+            + profile_note
         )
     # 3. ByteDance Seedance 2.5 (30s Single-Pass Narrative & 50 Multimodal References)
     elif 'seedance' in m or 'bytedance' in m:
@@ -264,16 +390,9 @@ def get_model_prompt_rules(model_name, mode='video'):
             "- 30-SECOND CONTINUOUS SCENE BLOCKING: Structure the 30-second continuous take into clear sequential beats (Beat 1: Establishing & approach, Beat 2: Dynamic kinetic escalation and dialogue, Beat 3: Climactic resolution), maintaining absolute identity and anatomical consistency.\n"
             "- NATIVE AUDIO & SENSORY DYNAMICS: Describe synchronized sound effects, dialogue rhythm, and environmental acoustics alongside physical movement.\n"
             "- Strictly NO empty quality buzzwords ('8k, masterpiece'); use tangible physical details, explicit entity handles, and cinematic camera trajectory."
+            + profile_note
         )
-    # 4. Google Veo 3.1 Cinematic & Fast (Video)
-    elif 'veo' in m:
-        return (
-            "CRITICAL MODEL PROMPT RULES FOR GOOGLE VEO 3.1 (Cinematic / Fast):\n"
-            "- Hollywood cinematographic grammar: [Shot Type & Framing] + [Lens & Depth of Field] + [Subject & Action] + [Lighting & Color Grade] + [Camera Trajectory].\n"
-            "- Use authentic cinema specs: 'Establishing wide shot, 35mm anamorphic lens, f/1.8 shallow depth of field, warm golden hour practical lighting with volumetric haze, slow cinematic dolly-in at 24fps'.\n"
-            "- Emphasize temporal transitions and realistic lens flares."
-        )
-    # 5. Kling AI Suite (1.5 / 1.6 Pro / Motion Control / O1 Edit)
+    # 4. Kling AI Suite (1.5 / 1.6 Pro / Motion Control / O1 Edit)
     elif 'kling' in m:
         if 'motion control' in m or 'motion-control' in m:
             return (
@@ -281,6 +400,7 @@ def get_model_prompt_rules(model_name, mode='video'):
                 "- Motion capture transfer from driving video onto character reference.\n"
                 "- Prompt formula: 'Perform precise 1080p motion capture transfer from driving choreography to the character. Preserve exact facial structure, clothing textures, and proportions while perfectly matching the driving video\'s head turns, body gestures, and camera angle trajectory without artifacts.'\n"
                 "- Keep character identity locked."
+                + profile_note
             )
         elif 'o1' in m or 'video-to-video' in m:
             return (
@@ -288,13 +408,15 @@ def get_model_prompt_rules(model_name, mode='video'):
                 "- Video restyling and delta modification.\n"
                 "- State the style or environment transformation clearly: 'Transform scene lighting from daytime to dark rainy midnight with vibrant neon reflections. Preserve original character motion, timing, and camera path completely.'\n"
                 "- State what to change vs what to preserve."
+                + profile_note
             )
         else:
             return (
-                "CRITICAL MODEL PROMPT RULES FOR KLING AI (v1.5 / v1.6 Pro):\n"
+                "CRITICAL MODEL PROMPT RULES FOR KLING AI (v1.5 / v1.6 Pro / 3.0 / 4.0):\n"
                 "- Structured cinematic blocks: [Camera Movement]: ..., [Lighting]: ..., [Subject & Action]: ..., [Atmosphere & Details]: ...\n"
                 "- Restrict to ONE single clear camera direction (e.g. slow dolly in, steady pan right). Avoid conflicting multi-moves.\n"
                 "- Emphasize facial realism, eye focus, and physical body dynamics."
+                + profile_note
             )
     # 6. Luma Ray 2 & Dream Machine
     elif 'luma' in m or 'ray' in m:
@@ -303,6 +425,7 @@ def get_model_prompt_rules(model_name, mode='video'):
                 "CRITICAL MODEL PROMPT RULES FOR LUMA RAY 2 MODIFY (Video-to-Video):\n"
                 "- Video restyling and texture modification.\n"
                 "- Prompt: 'Restyle video to [target aesthetic, e.g. 1970s 35mm film grain, warm golden hour tint, cyberpunk neon atmosphere]. Keep original camera movement trajectory and character actions locked while updating textures and lighting.'\n"
+                + profile_note
             )
         else:
             return (
@@ -310,6 +433,7 @@ def get_model_prompt_rules(model_name, mode='video'):
                 "- Luma specializes in 3D spatial camera motion and continuous trajectory.\n"
                 "- Use explicit 3D camera vector verbs: 'camera orbits 90 degrees around subject', 'dolly zoom (vertigo effect)', 'crane shot rising from ground level to high angle', 'smooth continuous tracking shot'.\n"
                 "- For I2V: Describe how the initial frame evolves smoothly in motion and camera angle without mutating anatomy."
+                + profile_note
             )
     # 7. MiniMax Hailuo (H3 Lite / H3 Max Turbo)
     elif 'minimax' in m or 'hailuo' in m:
@@ -410,6 +534,27 @@ def get_model_prompt_rules(model_name, mode='video'):
         )
     else:
         return f"CRITICAL MODEL PROMPT RULES FOR {model_name}:\n- Tailor phrasing specifically to {model_name}'s standard format and avoid generic quality clutter."
+
+
+PREFERENCES_FILE = os.path.join(os.path.dirname(__file__), 'outputs', 'user_preferences.json')
+
+def load_user_preferences():
+    if os.path.exists(PREFERENCES_FILE):
+        try:
+            with open(PREFERENCES_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {
+        "director_name": "",
+        "director_title": "مخرج العمل",
+        "custom_call": "يا فندم"
+    }
+
+def save_user_preferences(prefs):
+    os.makedirs(os.path.dirname(PREFERENCES_FILE), exist_ok=True)
+    with open(PREFERENCES_FILE, 'w', encoding='utf-8') as f:
+        json.dump(prefs, f, ensure_ascii=False, indent=2)
 
 def load_secrets():
 
@@ -1136,14 +1281,6 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
 
 
 
-        elif self.path == '/api/production/catalog':
-            try:
-                import cindy_production_design
-                self.send_json_response(200, {"success": True, "catalog": cindy_production_design.load_catalog()})
-            except Exception as e:
-                self.send_json_response(500, {"success": False, "error": str(e)})
-            return
-
         elif self.path.startswith('/api/ip/status'):
             manifest = generate_ip_manifest()
             self.send_json_response(200, {"success": True, "manifest": manifest})
@@ -1311,6 +1448,10 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
 
 
 
+        elif self.path == '/api/preferences/get':
+            prefs = load_user_preferences()
+            self.send_json_response(200, {"success": True, "preferences": prefs})
+            return
         elif self.path == '/api/radar/trends' or self.path.startswith('/api/radar/trends'):
             parsed = urllib.parse.urlparse(self.path)
             qs = urllib.parse.parse_qs(parsed.query)
@@ -1387,9 +1528,37 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                     self.wfile.write(content)
                     return
 
-            if clean in ('/', '/index.html'):
+            if clean == '/api/post/outputs':
+                outputs_dir = os.path.join(BASE_DIR, 'outputs')
+                items = []
+                if os.path.isdir(outputs_dir):
+                    for fn in os.listdir(outputs_dir):
+                        fp = os.path.join(outputs_dir, fn)
+                        if not os.path.isfile(fp):
+                            continue
+                        ext = os.path.splitext(fn)[1].lower()
+                        if ext in ('.mp4', '.mov', '.webm', '.mkv', '.mp3', '.wav', '.m4a', '.ogg'):
+                            st = os.stat(fp)
+                            items.append({
+                                "name": fn,
+                                "url": f"/outputs/{fn}",
+                                "kind": "audio" if ext in ('.mp3', '.wav', '.m4a', '.ogg') else "video",
+                                "size_mb": round(st.st_size / (1024 * 1024), 2),
+                                "mtime": st.st_mtime
+                            })
+                items.sort(key=lambda x: x["mtime"], reverse=True)
+                self.send_json_response(200, {"status": "success", "items": items[:120]})
+                return
 
-                html_path = os.path.join(BASE_DIR, 'index.html')
+            if clean in ('/', '/index.html', '/overheads_blocking.html', '/post', '/post_studio.html'):
+
+                if clean == '/overheads_blocking.html':
+                    html_name = 'overheads_blocking.html'
+                elif clean in ('/post', '/post_studio.html'):
+                    html_name = 'post_studio.html'
+                else:
+                    html_name = 'index.html'
+                html_path = os.path.join(BASE_DIR, html_name)
 
                 if os.path.exists(html_path):
 
@@ -1448,7 +1617,7 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
 
             return
 
-        max_bytes = 350 * 1024 * 1024 if self.path in ('/api/upload', '/api/bridge/complete_task', '/api/lora/train', '/api/reframe/process', '/api/production/apply', '/api/production/add_item') else 2 * 1024 * 1024
+        max_bytes = 350 * 1024 * 1024 if self.path in ('/api/upload', '/api/bridge/complete_task', '/api/lora/train', '/api/reframe/process', '/api/upscale/process', '/api/post/mux_audio', '/api/production/apply', '/api/production/add_item') else 2 * 1024 * 1024
 
         if content_length < 0 or content_length > max_bytes:
 
@@ -1467,6 +1636,164 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             payload = {}
 
 
+
+        if self.path == '/api/launch_external_tool':
+            import socket, subprocess
+            tool = str(payload.get('tool', '')).strip().lower()
+            tools_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tools')
+            active_comfy_url = (load_secrets().get('local_comfyui_url', '') or '').strip().rstrip('/')
+            def _port_open(port):
+                try:
+                    with socket.create_connection(('127.0.0.1', port), timeout=0.5):
+                        return True
+                except Exception:
+                    return False
+            try:
+                if tool == 'openjutsu':
+                    cwd = os.path.join(tools_dir, 'OpenJutsu')
+                    if not os.path.isdir(cwd):
+                        self.send_error_response(404, "مجلد OpenJutsu غير موجود داخل tools")
+                        return
+                    if active_comfy_url:
+                        with open(os.path.join(cwd, '.env.local'), 'w', encoding='utf-8') as f:
+                            f.write(f"COMFYUI_URL={active_comfy_url}\n")
+                    if not _port_open(3000):
+                        env = os.environ.copy()
+                        env['NEXT_TELEMETRY_DISABLED'] = '1'
+                        env['CI'] = '1'
+                        if active_comfy_url:
+                            env['COMFYUI_URL'] = active_comfy_url
+                        subprocess.Popen(['cmd', '/c', 'npm.cmd run dev'], cwd=cwd, env=env, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+                        for _ in range(16):
+                            time.sleep(0.5)
+                            if _port_open(3000):
+                                break
+                    self.send_json_response(200, {"status": "ok", "url": "http://127.0.0.1:3000", "message": "تم تشغيل OpenJutsu محلياً"})
+                    return
+                elif tool == 'freefield':
+                    cwd = os.path.join(tools_dir, 'FreeField')
+                    if not os.path.isdir(cwd):
+                        self.send_error_response(404, "مجلد FreeField غير موجود داخل tools")
+                        return
+                    if not _port_open(4173):
+                        env = os.environ.copy()
+                        env['PORT'] = '4173'
+                        subprocess.Popen(['cmd', '/c', 'npm.cmd run serve'], cwd=cwd, env=env, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+                        for _ in range(16):
+                            time.sleep(0.5)
+                            if _port_open(4173):
+                                break
+                    self.send_json_response(200, {"status": "ok", "url": "http://127.0.0.1:4173", "message": "تم تشغيل FreeField محلياً"})
+                    return
+                elif tool == 'triposplat':
+                    cwd = os.path.join(tools_dir, 'TripoSplat')
+                    if not os.path.isdir(cwd):
+                        self.send_error_response(404, "مجلد TripoSplat غير موجود داخل tools")
+                        return
+                    if not _port_open(7860):
+                        subprocess.Popen(['cmd', '/c', 'python run_gradio.py'], cwd=cwd, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+                        for _ in range(16):
+                            time.sleep(0.5)
+                            if _port_open(7860):
+                                break
+                    self.send_json_response(200, {"status": "ok", "url": "http://127.0.0.1:7860", "message": "تم تشغيل TripoSplat محلياً"})
+                    return
+                else:
+                    self.send_error_response(400, f"أداة غير معروفة: {tool}")
+                    return
+            except Exception as e:
+                self.send_error_response(500, f"تعذر تشغيل الأداة: {str(e)}")
+                return
+
+        if self.path == '/api/post/open_caprust':
+            import subprocess
+            caprust_exe = r"C:\Users\DELL\Desktop\CapRust\caprust-app.exe"
+            if os.path.isfile(caprust_exe):
+                subprocess.Popen([caprust_exe], cwd=os.path.dirname(caprust_exe))
+                self.send_json_response(200, {"status": "success", "message": "تم فتح CapRust للمونتاج"})
+            else:
+                self.send_error_response(404, "ملف CapRust غير موجود على الديسكتوب")
+            return
+
+        if self.path == '/api/post/merge_clips':
+            try:
+                import subprocess
+                files = payload.get('files') or []
+                if len(files) < 2:
+                    self.send_error_response(400, "اختر لقطتين على الأقل للدمج")
+                    return
+                outputs_dir = os.path.join(BASE_DIR, 'outputs')
+                valid_paths = []
+                for fn in files:
+                    safe_fn = os.path.basename(fn)
+                    fp = os.path.join(outputs_dir, safe_fn)
+                    if os.path.isfile(fp):
+                        valid_paths.append(fp)
+                if len(valid_paths) < 2:
+                    self.send_error_response(400, "لم يتم العثور على اللقطات المطلوبة في مجلد outputs")
+                    return
+                ts = int(time.time())
+                out_name = f"Merged_Film_{ts}.mp4"
+                out_path = os.path.join(outputs_dir, out_name)
+                list_path = os.path.join(outputs_dir, f"_concat_{ts}.txt")
+                with open(list_path, 'w', encoding='utf-8') as lf:
+                    for vp in valid_paths:
+                        lf.write("file '" + vp.replace("'", "'\\''") + "'\n")
+                creationflags = getattr(subprocess, 'CREATE_NO_WINDOW', 0)
+                cmd = ["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", list_path, "-c:v", "libx264", "-preset", "fast", "-crf", "18", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", out_path]
+                proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=creationflags)
+                try:
+                    os.remove(list_path)
+                except Exception:
+                    pass
+                if proc.returncode != 0 or not os.path.isfile(out_path):
+                    raise RuntimeError(proc.stderr.decode('utf-8', errors='replace')[-400:])
+                self.send_json_response(200, {"status": "success", "output_url": f"/outputs/{out_name}", "filename": out_name, "message": f"تم دمج {len(valid_paths)} لقطات بنجاح"})
+            except Exception as e:
+                self.send_error_response(500, f"خطأ أثناء دمج اللقطات: {str(e)}")
+            return
+
+        if self.path == '/api/post/mux_audio':
+            try:
+                import subprocess
+                video_fn = os.path.basename(payload.get('video_file', ''))
+                audio_fn = os.path.basename(payload.get('audio_file', ''))
+                audio_b64 = payload.get('audio_base64', '')
+                replace_audio = bool(payload.get('replace_audio', True))
+                outputs_dir = os.path.join(BASE_DIR, 'outputs')
+                v_path = os.path.join(outputs_dir, video_fn)
+                if not video_fn or not os.path.isfile(v_path):
+                    self.send_error_response(400, "اختر فيديو صالح أولاً")
+                    return
+                ts = int(time.time())
+                a_path = None
+                if audio_b64:
+                    if ',' in audio_b64:
+                        audio_b64 = audio_b64.split(',', 1)[1]
+                    a_path = os.path.join(outputs_dir, f"_tmp_audio_{ts}.mp3")
+                    with open(a_path, 'wb') as af:
+                        af.write(base64.b64decode(audio_b64))
+                elif audio_fn:
+                    cand = os.path.join(outputs_dir, audio_fn)
+                    if os.path.isfile(cand):
+                        a_path = cand
+                if not a_path:
+                    self.send_error_response(400, "اختر أو ارفع ملف صوتي للدمج")
+                    return
+                out_name = f"AudioMix_{ts}_{video_fn}"
+                out_path = os.path.join(outputs_dir, out_name)
+                creationflags = getattr(subprocess, 'CREATE_NO_WINDOW', 0)
+                if replace_audio:
+                    cmd = ["ffmpeg", "-y", "-i", v_path, "-i", a_path, "-c:v", "copy", "-map", "0:v:0", "-map", "1:a:0", "-shortest", out_path]
+                else:
+                    cmd = ["ffmpeg", "-y", "-i", v_path, "-i", a_path, "-filter_complex", "[0:a][1:a]amix=inputs=2:duration=shortest[aout]", "-map", "0:v:0", "-map", "[aout]", "-c:v", "copy", "-c:a", "aac", out_path]
+                proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=creationflags)
+                if proc.returncode != 0 or not os.path.isfile(out_path):
+                    raise RuntimeError(proc.stderr.decode('utf-8', errors='replace')[-400:])
+                self.send_json_response(200, {"status": "success", "output_url": f"/outputs/{out_name}", "filename": out_name, "message": "تم دمج الصوت مع الفيديو بنجاح"})
+            except Exception as e:
+                self.send_error_response(500, f"خطأ أثناء دمج الصوت: {str(e)}")
+            return
 
         if self.path == '/api/reframe/process':
             try:
@@ -1500,7 +1827,29 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                 secrets = load_secrets()
                 fal_key = secrets.get('fal_api_key') or os.getenv('FAL_KEY', '')
 
-                # Priority 1: High-Fidelity Generative Outpainting (LTX-2.5 Reframe)
+                # Priority 0: Free Modal Serverless L40S Generative Outpainting (LTX-2.5 via FreeField)
+                if mode == 'modal_ltx25':
+                    import cindy_modal_freefield
+                    modal_aspect = ratio if ratio in ('9:16', '16:9', '1:1', '4:5') else '9:16'
+                    final_out = cindy_modal_freefield.run_modal_video_app(
+                        app_id="reframe",
+                        pack_name="video-ltx25",
+                        input_video_path=in_path,
+                        output_video_path=out_path,
+                        extra_fields={"aspect": modal_aspect},
+                    )
+                    rel_url = f"/outputs/{os.path.basename(final_out)}"
+                    self.send_json_response(200, {
+                        "status": "success",
+                        "output_url": rel_url,
+                        "filename": os.path.basename(final_out),
+                        "ratio": modal_aspect,
+                        "mode": "modal_ltx25",
+                        "message": f"تمت إعادة التأطير التوليدي بالذكاء الاصطناعي (LTX-2.5 على Modal مجاناً) بأبعاد {modal_aspect}"
+                    })
+                    return
+
+                # Priority 1: High-Fidelity Generative Outpainting (LTX-2.5 Reframe via Fal.ai)
                 if mode == 'generative' and fal_key:
                     # Upload video to Fal CDN storage
                     video_cloud_url = self._resolve_media_for_fal(f"/outputs/{os.path.basename(in_path)}", fal_key)
@@ -1644,12 +1993,24 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                     return
                     
                 out_path = os.path.join(outputs_dir, f"Upscale_{target_scale.upper()}_{timestamp}_{os.path.basename(in_path)}")
-                final_out = cindy_reframe_engine.upscale_video_pipeline(
-                    input_video_path=in_path,
-                    output_video_path=out_path,
-                    target_scale=target_scale,
-                    grain_strength=grain_mode
-                )
+                upscale_engine = payload.get('engine', 'local_ffmpeg')
+                if upscale_engine == 'modal_seedvr2':
+                    import cindy_modal_freefield
+                    final_out = cindy_modal_freefield.run_modal_video_app(
+                        app_id="upscale-video",
+                        pack_name="upscale",
+                        input_video_path=in_path,
+                        output_video_path=out_path,
+                    )
+                    msg = "تمت ترقية الفيديو بالذكاء الاصطناعي (SeedVR2 على Modal L40S مجاناً من رصيدك)"
+                else:
+                    final_out = cindy_reframe_engine.upscale_video_pipeline(
+                        input_video_path=in_path,
+                        output_video_path=out_path,
+                        target_scale=target_scale,
+                        grain_strength=grain_mode
+                    )
+                    msg = f"تمت ترقية دقة الفيديو بنجاح إلى {target_scale.upper()} السينمائية محلياً"
                 
                 rel_url = f"/outputs/{os.path.basename(final_out)}"
                 res = {
@@ -1657,7 +2018,8 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                     "output_url": rel_url,
                     "filename": os.path.basename(final_out),
                     "target_scale": target_scale.upper(),
-                    "message": f"تمت ترقية دقة الفيديو بنجاح إلى {target_scale.upper()} السينمائية مجاناً وبأعلى جودة"
+                    "engine": upscale_engine,
+                    "message": msg
                 }
                 self.send_json_response(200, res)
                 return
@@ -1676,38 +2038,19 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json_response(200, {'success': True, 'message': 'تم إلغاء الريندر فوراً.'})
             return
 
-        if self.path == '/api/production/add_item':
-            try:
-                import cindy_production_design
-                cat = payload.get('category', 'costumes')
-                title = payload.get('title', '')
-                desc = payload.get('description', '')
-                era = payload.get('era', 'مخصص')
-                prompt_enhancer = payload.get('prompt_enhancer', '')
-                image_b64 = payload.get('image_base64', '')
-                new_item = cindy_production_design.add_custom_item(cat, title, desc, era, prompt_enhancer, image_b64)
-                self.send_json_response(200, {"success": True, "item": new_item})
-            except Exception as e:
-                self.send_json_response(500, {"success": False, "error": str(e)})
-            return
-
-        if self.path == '/api/production/apply':
-            try:
-                import cindy_production_design
-                scene_img_b64 = payload.get('scene_image', '')
-                mask_b64 = payload.get('mask_image', '')
-                item_id = payload.get('item_id', '')
-                custom_prompt = payload.get('custom_prompt', '')
-                lighting_config = payload.get('lighting_config', {})
-                custom_image_b64 = payload.get('custom_image', '')
-                res = cindy_production_design.apply_production_design(scene_img_b64, mask_b64, item_id, custom_prompt, lighting_config, custom_image_b64)
-                self.send_json_response(200, res)
-            except Exception as e:
-                self.send_json_response(500, {"success": False, "error": str(e)})
-            return
-
         if self.path == '/api/previs/generate':
             self.handle_generate_previs(payload)
+            return
+
+        if self.path == '/api/prompt/adapt_profile':
+            try:
+                target_model = payload.get('target_model') or payload.get('model') or 'Wan 2.2 (Alibaba 14B)'
+                previs_spec = payload.get('previs_spec') or payload.get('spec')
+                shot_dict = payload.get('shot') or payload
+                res = synthesize_shot_spec_and_profiles(previs_spec=previs_spec, shot_dict=shot_dict, target_model=target_model)
+                self.send_json_response(200, {"success": True, **res})
+            except Exception as e:
+                self.send_json_response(500, {"success": False, "error": str(e)})
             return
 
         if self.path == '/api/pipeline/execute':
@@ -2092,6 +2435,8 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
         elif self.path == '/api/pricing/refresh':
             self.handle_pricing_daily(force_refresh=True)
 
+        elif self.path == '/api/preferences/save':
+            self.handle_preferences_save(payload)
         elif self.path == '/api/vault/update':
 
             self.handle_vault_update(payload)
@@ -2100,6 +2445,8 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
 
             self.handle_vault_test_key(payload)
 
+        elif self.path == '/api/chat/clear':
+            self.handle_chat_clear()
         elif self.path == '/api/chat':
 
             self.handle_chat(payload)
@@ -2207,6 +2554,20 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             self.send_error_response(404, "Endpoint not found.")
 
 
+
+    def handle_preferences_save(self, payload):
+        try:
+            prefs = load_user_preferences()
+            if 'director_name' in payload:
+                prefs['director_name'] = str(payload.get('director_name', '')).strip()
+            if 'director_title' in payload:
+                prefs['director_title'] = str(payload.get('director_title', 'مخرج العمل')).strip()
+            if 'custom_call' in payload:
+                prefs['custom_call'] = str(payload.get('custom_call', 'يا فندم')).strip()
+            save_user_preferences(prefs)
+            self.send_json_response(200, {"success": True, "message": "تم حفظ تخصيص المناداة بنجاح!", "preferences": prefs})
+        except Exception as e:
+            self.send_error_response(500, f"Error saving preferences: {str(e)}")
 
     def handle_vault_update(self, payload):
 
@@ -2703,7 +3064,7 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             has_video = True
 
         engine_stills = engine_result.get("stills", [])
-        stills = [f for f in os.listdir(b_dir) if f.endswith(".jpg") and "depth" not in f.lower()]
+        stills = [f for f in os.listdir(b_dir) if f.lower().endswith((".jpg", ".jpeg", ".png")) and "depth" not in f.lower()]
         stills.sort(key=lambda x: os.path.getmtime(os.path.join(b_dir, x)), reverse=True)
 
         if engine_stills:
@@ -2713,8 +3074,9 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             rgb_url = f"/outputs/blender_guides/{stills[0]}" if stills else ""
             storyboard_urls = [f"/outputs/blender_guides/{f}" for f in stills[:6]]
 
-        depth_files = [f for f in os.listdir(b_dir) if "depth" in f.lower() and f.endswith(".jpg")]
-        depth_url = f"/outputs/blender_guides/{depth_files[0]}" if depth_files else rgb_url
+        depth_files = [f for f in os.listdir(b_dir) if "depth" in f.lower() and f.lower().endswith((".png", ".jpg"))]
+        depth_files.sort(key=lambda x: os.path.getmtime(os.path.join(b_dir, x)), reverse=True)
+        depth_url = engine_result.get("depth_url") or (f"/outputs/blender_guides/{depth_files[0]}" if depth_files else rgb_url)
 
         meta = engine_result.get("meta", {})
         if not meta:
@@ -2731,11 +3093,14 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             "has_guide": bool(rgb_url or has_video),
             "has_video": has_video,
             "video_url": video_url,
+            "depth_video_url": engine_result.get("depth_video_url", ""),
             "rgb_url": rgb_url,
             "depth_url": depth_url,
             "meta": meta,
             "storyboard": storyboard_urls,
-            "stills_detail": engine_stills
+            "stills_detail": engine_stills,
+            "prompt_package": engine_result.get("prompt_package", {}),
+            "audit": engine_result.get("audit", {})
         })
 
     def handle_generate_previs(self, payload):
@@ -2992,6 +3357,22 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             "frames_count": len(frames)
         }
 
+    def handle_chat_clear(self):
+        try:
+            b_dir = os.path.join(OUTPUTS_DIR, "blender_guides")
+            spec_path = os.path.join(b_dir, "current_previs_spec.json")
+            if os.path.exists(spec_path):
+                try:
+                    os.remove(spec_path)
+                except Exception:
+                    pass
+            self.send_json_response(200, {
+                "success": True,
+                "message": "تم تصفير ذاكرة المحادثة والمشهد الحالي بنجاح مع الاحتفاظ بكامل المعرفة الإخراجية لسيندي!"
+            })
+        except Exception as e:
+            self.send_error_response(500, f"Error clearing chat: {str(e)}")
+
     def handle_chat(self, payload):
         """
         Cindy Chat Assistant, 1st Assistant Director (1st AD) & 3D Pre-vis Architect:
@@ -3060,9 +3441,19 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             "NO PREVIOUS SCENE IS LOCKED: Start fresh and listen 100% to what the Director wants right now. Do NOT mention or fall back to any old scene.\n\n"
         )
 
+        pref_user = load_user_preferences()
+        p_name = (pref_user.get('director_name') or '').strip()
+        p_call = (pref_user.get('custom_call') or 'يا فندم').strip()
+        p_title = (pref_user.get('director_title') or 'مخرج العمل').strip()
+        if p_name:
+            user_addr_instruction = f"DIRECTOR PERSONALIZATION: The user's preferred name is '{p_name}' and title is '{p_title}'. Address them respectfully and warmly as '{p_call}' or '{p_title} {p_name}'.\n"
+        else:
+            user_addr_instruction = f"DIRECTOR ADDRESSING: Address the user respectfully and professionally as '{p_call}' (or Director / Filmmaker in English).\n"
+
         sys_inst = (
+            user_addr_instruction +
             "You are Cindy (سيندي), an elite First Assistant Director (1st AD), Director of Photography (DP), "
-            "and 3D Pre-vis Architect working directly with The Film Director (أستاذنا المخرج / أستاذ إيهاب).\n"
+            "and 3D Pre-vis Architect working directly with The Filmmaker / Director (المخرج / صانع العمل / يا فندم).\n"
             "CRITICAL BEHAVIORAL RULES:\n"
             "1. NEVER be stuck on a previous or pre-made scene! Listen 100% to what the Director is saying right now.\n"
             "2. ADAPTIVE CONVERSATIONAL LANGUAGE & STRICT RULES:\n"
@@ -3072,23 +3463,22 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             "3. EXPERT TOOL & MODEL RECOMMENDATION (ترشيح الأداة والموديل الأنسب بذكاء فوري):\n"
             "   - If the Director asks you to recommend a tool or model (e.g. 'اقترحيلي أداة مناسبة', 'ايه أحسن موديل للقطة دي', 'أعمل دي بإيه؟'):\n"
             "     * Direct and sharp recommendation: name the exact tool on Fal.ai, explain why it fits the shot/edit artistically, state its estimated cost clearly in Egyptian pounds/dollars, and give him the optimal prompt.\n"
-            "     * Match criteria:\n"
-            "       - لقطات طويلة سردية (حتى 30ث) ومراجع متعددة (50 مرجع): ByteDance Seedance 2.5 Omni Ref (~$1.20 / 5s).\n"
-            "       - حركة أكشن ورقص وفيزياء 4K: ByteDance Seedance 2.0 4K Cinema (~$1.50) أو Seedance 2.0 Fast (~$0.70).\n"
-            "       - أعلى جودة هوليوودية 1080p وصوت ستيريو: Kling 4.0 Pro Omni (~$0.78 / 5s) أو Kling 3.0 Pro (~$0.56).\n"
+            "     * Match criteria (always prefer FREE Modal L40S engines for drafts/budget unless Director asks for commercial Fal.ai):\n"
+            "       - 🟢 توليد فيديو مجاني على Modal L40S (من رصيد $30/شهر): Modal LTX-2.5 (نص أو صورة لفيديو) أو Modal MiniMax H3 أو Modal Wan 2.2 Camera (تحريك صورة بحركات كاميرا).\n"
+            "       - ✂️ ما بعد الإنتاج (في تطبيق VirtuFilm AI Post-Production): الترقية لـ 4K بـ SeedVR2 على Modal مجاناً، إعادة التأطير LTX-2.5 على Modal مجاناً، استوديو الصوت والمؤثرات (MMAudio / Nabra / دمج FFmpeg)، وتبديل الشخصيات والإضاءة (Recast / Relight / Speak) والتجميع النهائي + CapRust.\n"
+            "       - لقطات طويلة سردية (حتى 30ث) ومراجع متعددة (50 مرجع - Fal.ai مدفوع): ByteDance Seedance 2.5 Omni Ref (~$1.20 / 5s).\n"
+            "       - حركة أكشن ورقص وفيزياء 4K (Fal.ai مدفوع): ByteDance Seedance 2.0 4K Cinema (~$1.50) أو Seedance 2.0 Fast (~$0.70).\n"
+            "       - أعلى جودة هوليوودية 1080p وصوت ستيريو (Fal.ai مدفوع): Kling 4.0 Pro Omni (~$0.78 / 5s) أو Kling 3.0 Pro (~$0.56).\n"
             "       - نقل حركة الممثل من فيديو مرجعي: Kling Motion Control 1080p ($0.63).\n"
             "       - كادر بداية ونهاية: Kling 1.6 Pro I2V ($0.49) أو Luma Ray 2 I2V ($0.50).\n"
-            "       - قفل ملامح الشخصية مع لورا: MiniMax H3 I2V LoRA (~$0.25) أو LTX-2.3 22B Cinema LoRA (~$0.18).\n"
-            "       - مزامنة الشفاه مع الصوت العربي: Sync Lipsync 2.0 (~$0.05 / 5s) أو MuseTalk (~$0.03).\n"
-            "       - تحكم مداري وحركة كاميرا 3D: MiniMax Camera Controls (~$0.25) أو PixVerse V6 (~$0.18).\n"
-            "       - درافت سريع ورخيص: Alibaba Wan 2.1 ($0.03) أو MiniMax H3 Lite ($0.04).\n"
-            "       - رفع جودة فيديو لـ 4K: Topaz Video Upscale (~$0.12).\n"
-            "       - تعديل صور وكوادر مع لورا: FLUX 3 Klein Edit LoRA (~$0.012) أو Qwen Image 2512 LoRA (~$0.035).\n"
-            "       - استكشاف ديكور ثلاثي الأبعاد لايف: LingBot-World 2.0 أو ABot-World-0.\n"
-            "       - المونتاج وتجميع المشاهد برمجياً: OpenMontage Multi-Stage Pipeline & FFmpeg.\n"
-            "       - تأليف الموسيقى التصويرية محلياً مجاناً: Resonant AI Music Studio (Windows DAW via MCP).\n"
-            "     * In `shot`, always set `suggested_model` to that recommended tool so he can execute it with 1-click!\n"
-            "4. ADVANCED CINEMATOGRAPHY CRAFT (مستوحى من أبحاث Generative Media Skills):\n"
+            "       - تخطيط الكاميرات والبلوكينج العلوي (Overhead Blocking): أداة Overheads المدمجة في تبويب السيناريو.\n"
+            "       - تحويل صورة واحدة لمشهد 3D Gaussian Splatting مجاناً: TripoSplat (Hugging Face Space).\n"
+            "     * In `shot`, always set `suggested_model` to that recommended tool (e.g. `Modal LTX-2.5` for free or `Kling 4.0 Pro Omni` for paid) so he can review and execute it with 1-click!\n"
+            "4. CHARACTER LOCK PROTOCOL (قفل ملامح وشكل الشخصية في كل اللقطات — MANDATORY):\n"
+            "   - Whenever a character is introduced or discussed, lock an exact immutable visual DNA block (exact age, ethnicity, skin tone, facial structure, eye color, hairstyle/beard, signature outfit with exact colors & fabrics, and distinguishing features).\n"
+            "   - In EVERY subsequent `shot.prompt` where that character appears, you MUST inject that exact Character Lock description VERBATIM at the beginning of the English prompt (never paraphrase, shorten, or alter hair/wardrobe/age across shots unless the Director explicitly requests a wardrobe/look change).\n"
+            "   - If the Director has an active LoRA trigger word, place it at the very start of the Character Lock block.\n"
+            "5. ADVANCED CINEMATOGRAPHY CRAFT (مستوحى من أبحاث Generative Media Skills):\n"
             "   - When crafting the Master English Prompt ('shot.prompt'), always follow high-end directorial rules:\n"
             "     * Camera & Optics: Specify precise 35mm / 50mm / 85mm anamorphic prime lenses, shallow depth of field (f/1.8 to f/2.8), and purposeful camera motivation (e.g. slow intentional push-in, low-angle tracking hero, high-tension eye-level steadycam).\n"
             "     * Color & Lighting: Specify lighting scheme (Chiaroscuro, Rembrant side-key, volumetric haze, tungsten warm vs cool blue noir), matching color palette (Kodak Vision3 500T 5219 texture or natural 35mm film grain).\n"
@@ -3112,18 +3502,21 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             '      {"id": "dog_1", "type": "dog", "name": "Small Brown Dog", "pos": [0.0, -0.6, 0.0], "color": [0.45, 0.28, 0.15], "scale": 1.0, "look_at": [0.0, 0.5, 0.5]}\n'
             '    ],\n'
             '    "actors": [\n'
-            '      {"id": "actor_1", "name": "Abdelaziz", "color": [0.85, 0.45, 0.2], "height_m": 1.82, "keyframes": [{"time_sec": 0.0, "pos": [0.0, 2.0, 0.0], "look_at": [0.0, -0.6, 0.3], "pose": "WALK"}, {"time_sec": 3.5, "pos": [0.0, 0.2, 0.0], "look_at": [0.0, -0.6, 0.25], "pose": "KNEEL"}]}\n'
+            '      {"id": "actor_1", "name": "Abdelaziz", "color": [0.85, 0.45, 0.2], "height_m": 1.82, "kinematic_action": "approach_table", "blocking_side": "front", "keyframes": [{"time_sec": 0.0, "pos": [0.0, 2.0, 0.0], "look_at": [0.0, -0.6, 0.3], "pose": "WALK"}, {"time_sec": 3.5, "pos": [0.0, 0.2, 0.0], "look_at": [0.0, -0.6, 0.25], "pose": "KNEEL"}]}\n'
             '    ],\n'
+            '    "dialogue": [{"speaker": "Abdelaziz", "line": "Optional spoken line", "tone": "low intensity"}],\n'
+            '    "ambience": "Optional ambient soundscape and foley",\n'
             '    "camera_beats": [\n'
             '      {"time_sec": 0.0, "name": "Beat 1", "framing": "FULL_BODY_ACTOR_1", "lens_mm": 35, "transition": "SMOOTH"},\n'
             '      {"time_sec": 3.5, "name": "Beat 2", "framing": "MEDIUM_TWO", "lens_mm": 40, "transition": "SMOOTH"}\n'
             '    ]\n'
             "  }\n"
+            "- Optional `kinematic_action` on an actor: `approach_table` (with `blocking_side`: `front`, `back`, `left`, `right`), `sit_on_chair` (with optional `chair_id`), or `door_entry` (with optional `door_id`).\n"
             "- Supported `framing` values in `camera_beats`:\n"
             "  `EXTREME_WIDE_AERIAL` (space/sky high altitude), `WINDOW_EXTERIOR` (outside bedroom window looking in), "
             "`BIRDS_EYE_OVERHEAD`, `HIGH_ANGLE_ON_ACTOR`, `LOW_ANGLE_HERO`, `FACE_CLOSE_UP`, `FACE_CLOSE_UP_ACTOR_2`, "
             "`EXTREME_CLOSE_UP_ACTOR_1`, `EXTREME_CLOSE_UP_ACTOR_2`, `DOOR_ENTRANCE`, `MEDIUM_TWO`, `TIGHT_MEDIUM_TWO`, "
-            "`OTS_1_TO_2`, `OTS_2_TO_1`, `FULL_BODY_ACTOR_1`, `FULL_BODY_ACTOR_2`, `ORBIT_LEFT`, `ORBIT_RIGHT`, `WIDE_MASTER`, "
+            "`GROUP_THREE`, `MEDIUM_GROUP`, `THREE_SHOT`, `OTS_1_TO_2`, `OTS_2_TO_1`, `FULL_BODY_ACTOR_1`, `FULL_BODY_ACTOR_2`, `ORBIT_LEFT`, `ORBIT_RIGHT`, `WIDE_MASTER`, "
             "or `CUSTOM` (with `cam_pos: [x,y,z]` and `look_at: [x,y,z]`).\n"
             "- Supported `environment.type`: `bedroom` (with open window frame & bed), `street`, `room`, `corridor`, `alley`.\n"
             "- `transition` in `camera_beats`: `SMOOTH` (continuous camera motion), `WHIP` (fast whip pan), or `CUT` (instant 1-frame editorial cut).\n\n"
@@ -3235,13 +3628,32 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                 except Exception as e:
                     print(f"[CINDY-AD-LLM] Error saving previs_spec: {e}")
 
+            shot_obj = llm_parsed.get("shot") if llm_parsed.get("has_shot", should_render) else None
+            prompt_profiles_pkg = None
+            if isinstance(updated_spec, dict) or isinstance(shot_obj, dict):
+                try:
+                    target_m = (shot_obj.get("suggested_model") if isinstance(shot_obj, dict) else None) or current_model
+                    prompt_profiles_pkg = synthesize_shot_spec_and_profiles(
+                        previs_spec=updated_spec if isinstance(updated_spec, dict) else None,
+                        shot_dict=shot_obj if isinstance(shot_obj, dict) else None,
+                        target_model=target_m
+                    )
+                    if isinstance(shot_obj, dict):
+                        shot_obj["prompt_profiles"] = prompt_profiles_pkg.get("all_tool_prompts", {})
+                        shot_obj["target_profile_id"] = prompt_profiles_pkg.get("target_profile_id", "WAN_2_2")
+                        if not (shot_obj.get("prompt") or "").strip():
+                            shot_obj["prompt"] = (prompt_profiles_pkg.get("selected_profile") or {}).get("prompt", "")
+                except Exception as e_prof:
+                    print(f"[CINDY-AD-LLM] Prompt profiles synthesis warning: {e_prof}")
+
             self.send_json_response(200, {
                 "success": True,
                 "reply": llm_parsed.get("reply") or "معاك يا أستاذنا المخرج، سامعاك وجاهزة لأي توجيه في المشهد.",
                 "should_render_previs": should_render,
                 "previs_spec": updated_spec if isinstance(updated_spec, dict) else None,
                 "has_shot": bool(llm_parsed.get("has_shot", should_render)),
-                "shot": llm_parsed.get("shot") if llm_parsed.get("has_shot", should_render) else None,
+                "shot": shot_obj,
+                "prompt_profiles": prompt_profiles_pkg,
                 "voice_text": llm_parsed.get("voice_text") or "أنا معاك يا أستاذنا وسامعة توجيهك.",
                 "reel_video_url": reel_info.get("video_url") if reel_info else None,
                 "reel_composite_b64": reel_info.get("composite_b64") if reel_info else None
@@ -3631,6 +4043,64 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
 
 
 
+        # MODAL SERVERLESS L40S EXECUTION (FREE MONTHLY CREDITS VIA FREEFIELD)
+        if str(model).startswith('Modal '):
+            try:
+                import cindy_modal_freefield
+                outputs_dir = os.path.join(BASE_DIR, 'outputs')
+                os.makedirs(outputs_dir, exist_ok=True)
+                ts = int(time.time())
+                out_name = f"Modal_{re.sub(r'[^a-zA-Z0-9]+', '_', model)}_{ts}.mp4"
+                out_path = os.path.join(outputs_dir, out_name)
+
+                # Resolve optional local image for I2V
+                img_path = None
+                raw_img = payload.get('image_url') or payload.get('image') or ''
+                if raw_img and '/outputs/' in raw_img:
+                    cand = os.path.join(outputs_dir, os.path.basename(raw_img.split('?')[0]))
+                    if os.path.isfile(cand):
+                        img_path = cand
+
+                if 'MiniMax H3' in model:
+                    app_id, pack_name = 'h3-video', 'video-h3'
+                    fields = {'prompt': prompt}
+                    extra_files = None
+                elif 'Wan 2.2' in model:
+                    if not img_path:
+                        self.send_error_response(400, "موديل Modal Wan 2.2 Camera يتطلب اختيار صورة مرجعية (Image-to-Video).")
+                        return
+                    app_id, pack_name = 'camera-moves', 'video-wan-camera'
+                    fields = {'prompt': prompt}
+                    extra_files = {'image': img_path}
+                else:
+                    # Modal LTX-2.5 (auto T2V or I2V if image provided)
+                    app_id = 'video' if img_path else 'video-t2v'
+                    pack_name = 'video-ltx25'
+                    fields = {'prompt': prompt}
+                    extra_files = {'image': img_path} if img_path else None
+
+                final_out = cindy_modal_freefield.run_modal_video_app(
+                    app_id=app_id,
+                    pack_name=pack_name,
+                    input_video_path=None,
+                    output_video_path=out_path,
+                    extra_fields=fields,
+                    extra_files=extra_files,
+                )
+                rel_url = f"/outputs/{os.path.basename(final_out)}"
+                self.send_json_response(200, {
+                    "status": "success",
+                    "video_url": rel_url,
+                    "url": rel_url,
+                    "filename": os.path.basename(final_out),
+                    "model": model,
+                    "message": f"تم توليد الفيديو بنجاح على Modal L40S مجاناً ({model})"
+                })
+                return
+            except Exception as e:
+                self.send_error_response(500, f"خطأ أثناء التوليد على Modal ({model}): {str(e)}")
+                return
+
         # FAL.AI DIRECT EXECUTION
 
         fal_key = secrets.get('fal_api_key', '')
@@ -3658,6 +4128,9 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
         # Note: Fal hosts the closest published versions (e.g. Seedance v1 Pro, Kling 2.5 Turbo Pro, Hailuo 02 Pro).
 
         endpoint_mapping = {
+                "Modal LTX-2.5": "modal/ltx-2.5",
+                "Modal MiniMax H3": "modal/minimax-h3",
+                "Modal Wan 2.2 Camera": "modal/wan-2.2-camera",
 
             "flux-3-max-i2v": "blackforestlabs/flux-3-max/image-to-video",
 
@@ -3686,9 +4159,9 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
 
             "MiniMax H3 Lite": "fal-ai/minimax-video",
 
-            "hunyuan-video": "fal-ai/hunyuan-video-image-to-video",
+            "hunyuan-video": "fal-ai/hunyuan-video",
 
-            "Tencent HunyuanVideo": "fal-ai/hunyuan-video-image-to-video",
+            "Tencent HunyuanVideo": "fal-ai/hunyuan-video",
 
             "hunyuan-video-i2v": "fal-ai/hunyuan-video/image-to-video",
 
@@ -3697,6 +4170,8 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             "CogVideoX-5B (THUDM)": "fal-ai/cogvideox-5b",
 
             "cogvideox-i2v": "fal-ai/cogvideox-5b/image-to-video",
+            "CogVideoX-5B Image-to-Video": "fal-ai/cogvideox-5b/image-to-video",
+            "Stability SVD-XT": "fal-ai/fast-svd-lcm",
 
             "wan-2.1": "fal-ai/wan-t2v",
             "Wan 2.1 Image-to-Video": "fal-ai/wan-i2v",
@@ -3748,23 +4223,28 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             "Runway Gen-3 I2V": "fal-ai/runway-gen3/turbo/image-to-video",
             "runway-gen3": "fal-ai/runway/gen3/turbo",
 
-            "Google Veo 3.1 Cinematic": "fal-ai/veo3.1/image-to-video",
+            "Google Veo 3.1 Cinematic": "fal-ai/veo3",
 
-            "Google Veo 3.1 Fast": "fal-ai/veo3.1/image-to-video",
+            "Google Veo 3.1 Fast": "fal-ai/veo3/fast",
 
-            "Google Veo 3.1 Lite": "fal-ai/veo3.1/image-to-video",
+            "Google Veo 3.1 Lite": "fal-ai/veo3/fast",
 
-            "Gemini Omni Flash 1.1": "fal-ai/veo3.1/image-to-video",
+            "Gemini Omni Flash 1.1": "fal-ai/veo3/fast",
 
             "flux-3-max": "fal-ai/flux/schnell",
 
             "flux-schnell": "fal-ai/flux/schnell",
+            "fal-ai/flux/schnell": "fal-ai/flux/schnell",
 
             "flux-dev": "fal-ai/flux/dev",
+            "fal-ai/flux/dev": "fal-ai/flux/dev",
 
             "flux-ultra": "fal-ai/flux-pro/v1.1-ultra",
+            "fal-ai/flux-pro/v1.1-ultra": "fal-ai/flux-pro/v1.1-ultra",
+            "fal-ai/stable-diffusion-v35-large": "fal-ai/stable-diffusion-v35-large",
 
             "recraft-v3": "fal-ai/recraft-v3",
+            "fal-ai/recraft-v3": "fal-ai/recraft-v3",
             "fal-ai/qwen-image-edit-2511": "fal-ai/qwen-image-edit-2511",
             "qwen-image-edit-2511": "fal-ai/qwen-image-edit-2511",
             "Qwen-Image-Edit-2511": "fal-ai/qwen-image-edit-2511",
@@ -3772,6 +4252,9 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
             "qwen": "fal-ai/qwen-image-edit-2511",
 
             "ideogram-v2": "fal-ai/ideogram/v2",
+            "fal-ai/ideogram/v2": "fal-ai/ideogram/v2",
+            "fal-ai/nano-banana": "fal-ai/nano-banana",
+            "fal-ai/nano-banana-pro": "fal-ai/nano-banana-pro",
 
             "mmaudio": "fal-ai/mmaudio-v2",
             "fal-ai/mmaudio-v2": "fal-ai/mmaudio-v2",
@@ -4208,11 +4691,25 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
 
             # 4. Handle Image-to-Video (Start Frame + Optional End Frame) or T2V upgraded with attached image_url
             elif any(k in ep for k in ['image-to-video', 'reference-to-video', 'i2v']) or (custom_params.get('image_url') or '').strip():
+                explicit_i2v_ep = any(k in ep for k in ['image-to-video', 'reference-to-video', 'i2v'])
+                img_input = (custom_params.get('image_url') or '').strip()
                 if ep == 'fal-ai/wan-t2v':
                     target_endpoint = 'fal-ai/wan-i2v'
                     ep = target_endpoint
-                elif ep in ('fal-ai/kling-video/v1/standard/text-to-video', 'fal-ai/kling-video/v1.5/pro/text-to-video'):
+                elif ep in ('fal-ai/kling-video/v1/standard/text-to-video', 'fal-ai/kling-video/v1.5/pro/text-to-video', 'fal-ai/kling-video/v1.6/pro/text-to-video'):
                     target_endpoint = 'fal-ai/kling-video/v1.6/pro/image-to-video'
+                    ep = target_endpoint
+                elif ep == 'fal-ai/kling-video/v3/pro/text-to-video':
+                    target_endpoint = 'fal-ai/kling-video/v3/pro/image-to-video'
+                    ep = target_endpoint
+                elif ep == 'fal-ai/kling-video/v4/pro/text-to-video':
+                    target_endpoint = 'fal-ai/kling-video/v4/pro/image-to-video'
+                    ep = target_endpoint
+                elif ep == 'fal-ai/hunyuan-video':
+                    target_endpoint = 'fal-ai/hunyuan-video-image-to-video'
+                    ep = target_endpoint
+                elif ep in ('fal-ai/veo3', 'fal-ai/veo3/fast'):
+                    target_endpoint = 'fal-ai/veo3.1/image-to-video'
                     ep = target_endpoint
                 elif ep == 'fal-ai/luma-dream-machine':
                     target_endpoint = 'fal-ai/luma-dream-machine/ray-2/image-to-video'
@@ -4221,8 +4718,7 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                     target_endpoint = 'fal-ai/runway-gen3/turbo/image-to-video'
                     ep = target_endpoint
 
-                img_input = (custom_params.get('image_url') or '').strip()
-                if not img_input:
+                if not img_input and explicit_i2v_ep:
                     img_files = sorted([f for f in os.listdir(OUTPUTS_DIR) if f.lower().endswith(('.jpg', '.jpeg', '.png', '.webp')) and 'depth' not in f.lower()],
                                        key=lambda x: os.path.getmtime(os.path.join(OUTPUTS_DIR, x)), reverse=True)
                     if img_files:
@@ -4336,7 +4832,11 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
 
                 applied = 6  # video-01 is fixed length
 
-
+            try:
+                import cindy_prompt_profiles as _cpp
+                _cpp.apply_endpoint_prompt_profile(target_endpoint, req_body, custom_params)
+            except Exception:
+                pass
 
             try:
 
@@ -5360,7 +5860,11 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
 
                 }
 
-
+        try:
+            import cindy_prompt_profiles as _cpp
+            _cpp.apply_endpoint_prompt_profile(ep, req_body, payload)
+        except Exception:
+            pass
 
         try:
 
@@ -6536,7 +7040,11 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
 
                 }
 
-
+            try:
+                import cindy_prompt_profiles as _cpp
+                _cpp.apply_endpoint_prompt_profile(video_ep, v_body, payload)
+            except Exception:
+                pass
 
             v_sub = requests.post(
 
@@ -7777,8 +8285,8 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                         workflow, seed = comfyui_client.build_cogvideox_workflow(uploaded_name, prompt_text, ckpt, width, height, 49, steps, fps)
                         engine_label = "THUDM CogVideoX-5B"
                     else:
-                        workflow, seed = comfyui_client.build_svd_video_workflow(uploaded_name, ckpt, width, height, video_frames, motion_bucket_id, fps, steps)
-                        engine_label = "Stability AI SVD-XT"
+                        workflow, seed = comfyui_client.build_wan21_video_workflow(uploaded_name, prompt_text, ckpt, width, height, video_frames, steps, fps)
+                        engine_label = "Wan 2.1 I2V (Default DiT)"
 
                     res = comfyui_client.execute_comfyui_workflow(raw_url, workflow, OUTPUTS_DIR, timeout_seconds=400)
                     fname = res["filename"]
