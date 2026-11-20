@@ -7,10 +7,10 @@
     "WIPO Berne Convention (181 Member States - Automatic Author Protection)",
     "Cryptographic SHA-256 Prior-Art & Git Timestamp Ledger"
   ],
-  "generated_at_utc": "2026-11-17T17:26:45Z",
-  "master_sha256": "f7d362d2280a44d4f6a8929e835bee4933cb569fcf508946eb9f08b0b790a40a",
-  "tracked_files_count": 14,
-  "total_protected_bytes": 2078829,
+  "generated_at_utc": "2026-11-20T19:36:54Z",
+  "master_sha256": "b9bb874b299047e257ee7d366dcd494d403d65e3f257bfd2f4975ef7c792ad43",
+  "tracked_files_count": 13,
+  "total_protected_bytes": 2190582,
   "security_controls": {
     "localhost_isolation": "127.0.0.1 Only (Strict Host & Origin Guard)",
     "zero_leak_vault": "Local cindy_secrets.json (Excluded from Git & Static HTTP)",
@@ -18,49 +18,49 @@
   },
   "files": {
     "index.html": {
-      "sha256": "8b0813f39fe1fe5f24c09ddfa9a9048cddb3f24444931ba28b434f9f8dc27136",
-      "size_bytes": 1473361,
-      "modified_utc": "2026-11-17T17:07:40Z"
+      "sha256": "a215c6b4c2654b215a4ae0e75364d14dc13a3d21439d55e643a75a829713c3f2",
+      "size_bytes": 1493924,
+      "modified_utc": "2026-11-20T19:35:40Z"
     },
     "cindy_server.py": {
-      "sha256": "9b944cf6bfc86fb96bf9eaa420b52ecf097066451b2477c9213814822b628e23",
-      "size_bytes": 309678,
-      "modified_utc": "2026-11-17T17:26:12Z"
+      "sha256": "08207c917e017564e440b8e710959a3927f4b1ae796e549b55b267e13a6b9f88",
+      "size_bytes": 339555,
+      "modified_utc": "2026-11-20T19:11:26Z"
     },
     "cindy_previs_engine.py": {
-      "sha256": "14af1a4fb973e251dcc7718f1449b1bf0e89756dcf36064c645a78f6f46016d0",
-      "size_bytes": 56829,
-      "modified_utc": "2026-11-17T10:24:00Z"
+      "sha256": "25a3dc24b01db020070fdb78b2f86468117d05a427afd1f6a182bf22c6ae87dc",
+      "size_bytes": 73386,
+      "modified_utc": "2026-11-20T19:08:39Z"
     },
     "cindy_blender_bridge.py": {
-      "sha256": "894ad6092113d78d078889db62fe3b118314c9b723f008e41a1d4aa1e49d8422",
-      "size_bytes": 55826,
-      "modified_utc": "2026-11-17T10:24:00Z"
+      "sha256": "6ef11ed5912bb790796cf634fc5a5a271df7eabd7b26398f41af919510a74018",
+      "size_bytes": 122047,
+      "modified_utc": "2026-11-20T19:08:41Z"
     },
     "comfyui_client.py": {
-      "sha256": "8df12bfb64a2f299a1714b3abab5af8c8155d0c2e9c2f64071aab527bbe19a56",
-      "size_bytes": 45238,
-      "modified_utc": "2026-11-13T05:22:18Z"
+      "sha256": "b9e7466d4be7940f60461d81fa4734b07a0f810535067a5374d10e9556ba65ad",
+      "size_bytes": 42948,
+      "modified_utc": "2026-11-19T02:52:44Z"
     },
     "cindy_storyboard.py": {
-      "sha256": "0619c349b9574be72e4770ff01845e5f0e5e25c50b31d1b120d25a92707a6673",
-      "size_bytes": 13896,
-      "modified_utc": "2026-11-13T03:05:39Z"
+      "sha256": "e21bd35a3cfd995a767f4cdaf1da5ca106daa4a5d01ef3f45b499d4f87783c37",
+      "size_bytes": 14054,
+      "modified_utc": "2026-11-20T19:08:34Z"
     },
     "cindy_pricing.py": {
-      "sha256": "53eaa4610e53e5fcd9024064401b2ec2b8c54927d7c1afae6965ec3f18e68539",
-      "size_bytes": 34554,
-      "modified_utc": "2026-11-17T10:24:00Z"
+      "sha256": "415cf3bb9f8cc0c0878896dae6f85c8372f8da0ac4da8680b58ef1b196577b29",
+      "size_bytes": 34747,
+      "modified_utc": "2026-11-19T17:50:30Z"
     },
     "cindy_radar.py": {
-      "sha256": "5aaefe3942bd9fd2b8ea6d94a4b1a895040e82fbce9faa7a9e3bb1f6bd7f1114",
-      "size_bytes": 29196,
-      "modified_utc": "2026-11-17T10:24:00Z"
+      "sha256": "1e0a96606a02ee68b6c03ddd9f5b4a38a9f063294bb8e664330abbfb61ff7905",
+      "size_bytes": 23490,
+      "modified_utc": "2026-11-20T02:54:27Z"
     },
     "cindy_reframe_engine.py": {
-      "sha256": "f09d9914189f9f329e766256aae76fe366de61e648b19132f42202f9126f07bb",
-      "size_bytes": 10051,
-      "modified_utc": "2026-11-13T01:43:52Z"
+      "sha256": "13a85559be39fee343d04cc1e288c467e88f79d2f5471da02ae963a42d95f4e8",
+      "size_bytes": 12327,
+      "modified_utc": "2026-11-20T19:08:09Z"
     },
     "cindy_production_design.py": {
       "sha256": "b646e1f4b101c44c6cf455180274751d56bebbee7bd810b1f6928e8936399d25",
@@ -71,11 +71,6 @@
       "sha256": "51a43bc62211829bf99a80269b447abb6dce96d38221cb92ad7396ee56183ba1",
       "size_bytes": 8485,
       "modified_utc": "2026-11-11T17:14:54Z"
-    },
-    "runpod_trainer.py": {
-      "sha256": "bb45a94326f1811af090072f33dd7f514f261af208624041103464b665fd600c",
-      "size_bytes": 16096,
-      "modified_utc": "2026-11-13T05:34:38Z"
     },
     "LICENSE": {
       "sha256": "682ed7844d24a94d05f03b9ce000c9c39bf020a66d1f76b5b3e285f6e83af7b4",

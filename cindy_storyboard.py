@@ -281,7 +281,8 @@ def stitch_episode_videos(video_sources, output_filename=None):
             final_output_path
         ])
 
-        p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=180)
+        sp_kwargs = {"creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)} if os.name == "nt" else {}
+        p = subprocess.run(cmd, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=180, **sp_kwargs)
         if p.returncode != 0:
             print(f"[Episode Stitch FFmpeg Error]: {p.stderr}")
             raise RuntimeError(f"FFmpeg episode stitching failed: {p.stderr[-200:]}")

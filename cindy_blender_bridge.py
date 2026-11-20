@@ -996,14 +996,23 @@ def _render_calibrated_depth_pass_53(scene, out_path, near_clip=0.45, far_clip=8
     old_filepath = scene.render.filepath
     old_format = scene.render.image_settings.file_format
     old_color_mode = scene.render.image_settings.color_mode
+    old_engine = scene.render.engine
 
     try:
+        if old_engine == 'BLENDER_WORKBENCH':
+            for eng_cand in ('BLENDER_EEVEE_NEXT', 'BLENDER_EEVEE', 'CYCLES'):
+                try:
+                    scene.render.engine = eng_cand
+                    break
+                except Exception:
+                    continue
         vl.material_override = mat
         scene.render.filepath = out_path
         scene.render.image_settings.file_format = 'PNG'
         scene.render.image_settings.color_mode = 'BW'
         bpy.ops.render.render(write_still=True)
     finally:
+        scene.render.engine = old_engine
         vl.material_override = old_override
         scene.render.filepath = old_filepath
         scene.render.image_settings.file_format = old_format
@@ -1030,6 +1039,15 @@ def _detect_actor_pose(obj, frame):
         return "sitting"
     if any(k in joined for k in ("crouch", "kneel", "squat")):
         return "crouching"
+    # Check procedural bone rotation (e.g. Thigh_L / Thigh_R flexed >= 45 degrees in Previz rigs)
+    pose_bones = getattr(getattr(obj, "pose", None), "bones", None)
+    if pose_bones:
+        thigh_l = pose_bones.get("Thigh_L")
+        thigh_r = pose_bones.get("Thigh_R")
+        if (thigh_l and abs(math.degrees(thigh_l.rotation_euler.x)) >= 45.0) or (
+            thigh_r and abs(math.degrees(thigh_r.rotation_euler.x)) >= 45.0
+        ):
+            return "sitting"
     return "standing"
 
 
@@ -1054,12 +1072,50 @@ def _measure_armature_bounds(context, obj):
     return min_z, max_z, max(0.0, max_z - min_z), max(0.0, max_x - min_x), max(0.0, max_y - min_y)
 
 
+def _strip_object_fcurves(obj, data_path, indices):
+    """Safely remove object-level F-Curves for specific array indices (Blender 4.x & 5.x compatible)."""
+    ad = getattr(obj, "animation_data", None)
+    if not ad:
+        return 0
+    actions = []
+    if ad.action:
+        actions.append(ad.action)
+    if ad.nla_tracks:
+        for tr in ad.nla_tracks:
+            for st in tr.strips:
+                if getattr(st, "action", None):
+                    actions.append(st.action)
+
+    removed = 0
+    seen = set()
+    for act in actions:
+        if act is None or act.name in seen:
+            continue
+        seen.add(act.name)
+        fcurve_collections = []
+        if hasattr(act, "fcurves") and act.fcurves is not None:
+            fcurve_collections.append(act.fcurves)
+        if hasattr(act, "layers"):
+            for layer in act.layers:
+                for strip in getattr(layer, "strips", []):
+                    for cb in getattr(strip, "channelbags", []):
+                        if hasattr(cb, "fcurves"):
+                            fcurve_collections.append(cb.fcurves)
+        for fcs in fcurve_collections:
+            to_del = [fc for fc in fcs if fc.data_path == data_path and fc.array_index in indices]
+            for fc in to_del:
+                fcs.remove(fc)
+                removed += 1
+    return removed
+
+
 def _auto_fix_actor_physics(context, obj, target_standing_height=1.75):
     """
-    Cindy Active Brain Auto-Fix:
-    1. Detects & restores Mixamo Y-up -> Z-up upright orientation if X-rotation (90 deg) was wiped.
+    Cindy Active Brain Auto-Fix (v2 - Decisive):
+    1. Detects wiped Mixamo Y-up -> Z-up upright orientation (X=90deg) and strips ALL corrupt
+       object-level X/Y rotation F-Curves so the actor NEVER seesaws/flips between keyframes.
     2. Normalizes abnormal scale on the standing frame so adult human height ~= 1.75m.
-    3. Grounds the actor cleanly to Z=0.0 across key animation frames (preventing Mixamo Sitting hip-drop).
+    3. Grounds the actor cleanly to Z=0.0 across densely sampled frames (every 6 frames).
     Returns a list of applied fix descriptions.
     """
     import math
@@ -1069,31 +1125,37 @@ def _auto_fix_actor_physics(context, obj, target_standing_height=1.75):
 
     f_start = scene.frame_start
     f_end = scene.frame_end
-    f_mid = (f_start + f_end) // 2
+    step = max(4, (f_end - f_start) // 16)
+    sample_frames = sorted(set(list(range(f_start, f_end + 1, step)) + [f_end]))
 
     ad = getattr(obj, "animation_data", None)
-    key_frames = sorted(set([f_start, f_mid, f_end, orig_frame]))
-    if ad and ad.nla_tracks:
-        for track in ad.nla_tracks:
-            for strip in track.strips:
-                fs = int(max(f_start, min(f_end, strip.frame_start)))
-                fe = int(max(f_start, min(f_end, strip.frame_end)))
-                key_frames.extend([fs, fe])
-        key_frames = sorted(set(key_frames))
-
     has_anim = bool(ad and (ad.action is not None or len(ad.nla_tracks) > 0))
 
-    # 1. Upright check: catch wiped Mixamo FBX X=90deg rotation (actor lying flat: dz << max(dx, dy))
+    # 1. Upright check across frames: if ANY frame shows Mixamo X=90 wiped (lying flat or X~0),
+    #    strip ALL X/Y object rotation_euler F-Curves and lock X=90deg, Y=0deg permanently.
+    needs_upright_lock = False
     scene.frame_set(f_start)
     pose_start = _detect_actor_pose(obj, f_start)
     _, _, h_start, dx, dy = _measure_armature_bounds(context, obj)
+    started_mixamo_x90 = abs(math.degrees(obj.rotation_euler.x) - 90.0) < 25.0
     if pose_start == "standing" and h_start < 0.90 and max(dx, dy) > 1.25 and abs(obj.rotation_euler.x) < 0.2:
-        for kf in key_frames:
-            scene.frame_set(kf)
-            obj.rotation_euler.x = math.radians(90.0)
-            if has_anim or len(key_frames) > 1:
-                obj.keyframe_insert(data_path="rotation_euler", index=0, frame=kf)
-        fixes.append(f"{obj.name}: restored Mixamo upright X=90deg (was lying flat dz={h_start:.2f}m, max_xy={max(dx,dy):.2f}m)")
+        needs_upright_lock = True
+    else:
+        for sf_check in sample_frames:
+            scene.frame_set(sf_check)
+            _, _, h_c, dx_c, dy_c = _measure_armature_bounds(context, obj)
+            is_lying_flat = (h_c < 0.85 and max(dx_c, dy_c) > 1.25)
+            lost_mixamo_x90 = started_mixamo_x90 and abs(math.degrees(obj.rotation_euler.x) - 90.0) > 20.0
+            if is_lying_flat or lost_mixamo_x90:
+                if abs(math.degrees(obj.rotation_euler.x)) < 75.0:
+                    needs_upright_lock = True
+                    break
+
+    if needs_upright_lock:
+        stripped = _strip_object_fcurves(obj, "rotation_euler", {0, 1})
+        obj.rotation_euler.x = math.radians(90.0)
+        obj.rotation_euler.y = 0.0
+        fixes.append(f"{obj.name}: locked Mixamo upright X=90deg, Y=0deg (stripped {stripped} corrupt X/Y F-Curves)")
         scene.frame_set(f_start)
         _, _, h_start, dx, dy = _measure_armature_bounds(context, obj)
 
@@ -1103,15 +1165,364 @@ def _auto_fix_actor_physics(context, obj, target_standing_height=1.75):
         obj.scale = (obj.scale.x * sf, obj.scale.y * sf, obj.scale.z * sf)
         fixes.append(f"{obj.name}: rescaled {h_start:.2f}m -> {target_standing_height:.2f}m (factor {sf:.3f})")
 
-    # 3. Multi-frame floor grounding (catches Mixamo Sitting/Crouching sinking below Z=0)
-    for kf in key_frames:
+    # 3. Clean multi-frame floor grounding across dense samples (prevents Mixamo hip-drop)
+    z_fixed_count = 0
+    for kf in sample_frames:
         scene.frame_set(kf)
         min_z, _, _, _, _ = _measure_armature_bounds(context, obj)
         if abs(min_z) > 0.03:
             obj.location.z -= min_z
-            if has_anim or len(key_frames) > 1:
+            if has_anim:
                 obj.keyframe_insert(data_path="location", index=2, frame=kf)
-            fixes.append(f"{obj.name} @f{kf}: grounded Z by {-min_z:+.3f}m")
+            z_fixed_count += 1
+    if z_fixed_count > 0:
+        fixes.append(f"{obj.name}: grounded Z=0.0 cleanly across {z_fixed_count} sampled frames")
+
+    scene.frame_set(orig_frame)
+    context.view_layer.update()
+    return fixes
+
+
+def _actor_forward_offset(context, obj):
+    """
+    Measure the rig's real facing instead of assuming the Mixamo convention.
+    Returns `off` such that the world-heading phi = rotation_euler.z + off, where
+    forward = (sin(phi), -cos(phi)). Uses left/right hip (fallback shoulder) bones.
+    Returns 0.0 (the Mixamo convention) when the bones can't be found.
+    """
+    import math
+    scene = context.scene
+    keep = scene.frame_current
+    scene.frame_set(scene.frame_start)
+    context.view_layer.update()
+    try:
+        pbones = getattr(getattr(obj, "pose", None), "bones", None)
+        if not pbones:
+            return 0.0
+
+        def find(*keys):
+            for b in pbones:
+                n = b.name.lower().split(':')[-1].replace('_', '').replace('.', '').replace('-', '')
+                if n in keys:
+                    return b
+            return None
+
+        left = find('leftupleg', 'lefthip', 'leftthigh', 'thighl', 'upperlegl')
+        right = find('rightupleg', 'righthip', 'rightthigh', 'thighr', 'upperlegr')
+        if not (left and right):
+            left = find('leftshoulder', 'leftarm', 'shoulderl')
+            right = find('rightshoulder', 'rightarm', 'shoulderr')
+        if not (left and right):
+            return 0.0
+        mw = obj.matrix_world
+        right_vec = (mw @ right.head) - (mw @ left.head)
+        right_vec.z = 0.0
+        if right_vec.length < 1e-4:
+            return 0.0
+        fwd = Vector((0.0, 0.0, 1.0)).cross(right_vec)   # up x right = forward
+        phi = math.atan2(fwd.x, -fwd.y)
+        off = phi - obj.rotation_euler.z
+        return (off + math.pi) % (2 * math.pi) - math.pi
+    finally:
+        scene.frame_set(keep)
+
+
+def _auto_fix_spatial_clearance_and_facing(context):
+    """
+    Cindy Active Brain Spatial Fix:
+    1. Table Clearance & Chair Sync: Prevents actors from clipping into tables by pushing
+       penetrating X/Y keyframes outside the table (+cloth) bounding box with body margin,
+       and sliding the corresponding chair along so the actor sits cleanly on it.
+    2. Walk Facing Direction: Ensures Mixamo rigs (where rot_z=0 faces -Y, +90 faces +X)
+       face their actual walking velocity vector instead of walking backwards.
+    """
+    import math
+    from mathutils import Vector
+
+    scene = context.scene
+    orig_frame = scene.frame_current
+    fixes = []
+
+    # 1. Find primary hero table/desk bounds (including cloth) by world bbox center near origin
+    depsgraph = context.evaluated_depsgraph_get()
+    table_objs = []
+    for o in scene.objects:
+        low = o.name.lower()
+        if o.type == 'MESH' and not o.hide_viewport and any(k in low for k in ('table', 'desk', 'counter')):
+            ev = o.evaluated_get(depsgraph)
+            pts = [ev.matrix_world @ Vector(c) for c in ev.bound_box]
+            cx = 0.5 * (min(p.x for p in pts) + max(p.x for p in pts))
+            cy = 0.5 * (min(p.y for p in pts) + max(p.y for p in pts))
+            if abs(cx) < 1.5 and abs(cy) < 1.5:
+                table_objs.append(o)
+
+    has_table = len(table_objs) > 0
+    t_min_x = t_min_y = float('inf')
+    t_max_x = t_max_y = float('-inf')
+    if has_table:
+        for t in table_objs:
+            ev = t.evaluated_get(depsgraph)
+            for c in ev.bound_box:
+                wc = ev.matrix_world @ Vector(c)
+                t_min_x, t_max_x = min(t_min_x, wc.x), max(t_max_x, wc.x)
+                t_min_y, t_max_y = min(t_min_y, wc.y), max(t_max_y, wc.y)
+
+    margin = 0.14  # snug body clearance outside table/desk
+    safe_min_x, safe_max_x = t_min_x - margin, t_max_x + margin
+    safe_min_y, safe_max_y = t_min_y - margin, t_max_y + margin
+
+    chairs = [
+        o for o in scene.objects
+        if o.type == 'MESH' and not o.hide_viewport and 'chair' in o.name.lower()
+    ]
+    shifted_chairs = set()
+
+    f_start, f_end = scene.frame_start, scene.frame_end
+    step = max(4, (f_end - f_start) // 24)
+    coarse_frames = sorted(set(list(range(f_start, f_end + 1, step)) + [f_end]))
+    # Collision pass runs on (almost) every frame so Blender interpolation can't re-introduce penetration
+    fine_step = 1 if (f_end - f_start) <= 240 else max(2, (f_end - f_start) // 120)
+    sample_frames = sorted(set(list(range(f_start, f_end + 1, fine_step)) + [f_end]))
+
+    fwd_offsets = {o.name: _actor_forward_offset(context, o)
+                   for o in scene.objects if o.type == 'ARMATURE' and not o.hide_viewport}
+
+    for obj in scene.objects:
+        if obj.type != 'ARMATURE' or obj.hide_viewport:
+            continue
+        ad = getattr(obj, "animation_data", None)
+        has_anim = bool(ad and (ad.action is not None or len(ad.nla_tracks) > 0))
+
+        # 1. Fix backwards walk facing on moving frames FIRST (before collision pushback)
+        facing_fixed = 0
+        scene.frame_set(f_start)
+        rz_first = obj.rotation_euler.z
+        scene.frame_set(f_end)
+        rz_last = obj.rotation_euler.z
+        # No deliberate turn authored in the clip -> start/end heading must follow the walk heading
+        rot_is_static = abs((rz_last - rz_first + math.pi) % (2 * math.pi) - math.pi) < 1e-3
+        walk_best = (0.0, None)   # (distance, heading) of the strongest moving segment
+        for i in range(len(coarse_frames) - 1):
+            f0, f1 = coarse_frames[i], coarse_frames[i + 1]
+            scene.frame_set(f0)
+            p0 = obj.location.copy()
+            rz = obj.rotation_euler.z
+            scene.frame_set(f1)
+            p1 = obj.location.copy()
+            dx, dy = p1.x - p0.x, p1.y - p0.y
+            dist = math.hypot(dx, dy)
+            if dist > 0.12:
+                # Mixamo forward with X=90deg is (sin(rz), -cos(rz))
+                desired_rz = math.atan2(dx, -dy) - fwd_offsets.get(obj.name, 0.0)
+                if dist > walk_best[0]:
+                    walk_best = (dist, desired_rz)
+                diff = (desired_rz - rz + math.pi) % (2 * math.pi) - math.pi
+                if abs(math.degrees(diff)) > 75.0:
+                    scene.frame_set(f0)
+                    # Unwrapped target (rz + shortest diff) so Blender never spins the long way round
+                    obj.rotation_euler.z = rz + diff
+                    if has_anim:
+                        obj.keyframe_insert(data_path="rotation_euler", index=2, frame=f0)
+                    facing_fixed += 1
+        # Boundary frames: ease-in/out leaves the first/last segments "too slow" to be judged, so
+        # Blender would spin the actor between a wrong start/end key and the corrected middle keys.
+        # Only done when no turn was authored (rot_is_static) and a backwards walk was detected.
+        if rot_is_static and facing_fixed > 0 and walk_best[1] is not None:
+            for fb_ in (f_start, f_end):
+                scene.frame_set(fb_)
+                cur = obj.rotation_euler.z
+                d_b = (walk_best[1] - cur + math.pi) % (2 * math.pi) - math.pi
+                if abs(math.degrees(d_b)) > 75.0:
+                    obj.rotation_euler.z = cur + d_b
+                    if has_anim:
+                        obj.keyframe_insert(data_path="rotation_euler", index=2, frame=fb_)
+        if facing_fixed > 0:
+            fixes.append(f"{obj.name}: corrected walk facing direction on {facing_fixed} frames")
+
+        # 2. Push any penetrating X/Y keyframes outside the table/desk (accounts for Mixamo Hips root motion)
+        pushed_delta_x = 0.0
+        pushed_delta_y = 0.0
+        pushed_frames = 0
+        if has_table:
+            child_meshes = [c for c in obj.children if c.type == 'MESH' and not c.hide_viewport]
+            for kf in sample_frames:
+                scene.frame_set(kf)
+                dg = context.evaluated_depsgraph_get()
+                if child_meshes:
+                    xs, ys = [], []
+                    for cm in child_meshes:
+                        ev_m = cm.evaluated_get(dg)
+                        for pt in ev_m.bound_box:
+                            wpt = ev_m.matrix_world @ Vector(pt)
+                            xs.append(wpt.x)
+                            ys.append(wpt.y)
+                    bx0, bx1, by0, by1 = min(xs), max(xs), min(ys), max(ys)
+                else:
+                    bx0 = bx1 = obj.location.x
+                    by0 = by1 = obj.location.y
+                # Torso core (shrunk 25%) - SAME criterion the Director Gate verifies afterwards
+                cx_, cy_ = (bx1 - bx0) * 0.25, (by1 - by0) * 0.25
+                bx0, bx1, by0, by1 = bx0 + cx_, bx1 - cx_, by0 + cy_, by1 - cy_
+
+                if bx0 < safe_max_x and bx1 > safe_min_x and by0 < safe_max_y and by1 > safe_min_y:
+                    # Minimal translation that separates the body box from the (margin-expanded) desk box
+                    best_dx = (safe_max_x - bx0) if (safe_max_x - bx0) < (bx1 - safe_min_x) else -(bx1 - safe_min_x)
+                    best_dy = (safe_max_y - by0) if (safe_max_y - by0) < (by1 - safe_min_y) else -(by1 - safe_min_y)
+                    if abs(best_dx) <= abs(best_dy):
+                        obj.location.x += best_dx
+                        if abs(best_dx) > abs(pushed_delta_x):
+                            pushed_delta_x = best_dx
+                        if has_anim:
+                            obj.keyframe_insert(data_path="location", index=0, frame=kf)
+                    else:
+                        obj.location.y += best_dy
+                        if abs(best_dy) > abs(pushed_delta_y):
+                            pushed_delta_y = best_dy
+                        if has_anim:
+                            obj.keyframe_insert(data_path="location", index=1, frame=kf)
+                    pushed_frames += 1
+
+        if pushed_frames > 0:
+            fixes.append(f"{obj.name}: cleared table clipping across {pushed_frames} frames (dx={pushed_delta_x:+.2f}m, dy={pushed_delta_y:+.2f}m)")
+            # Slide the nearest chair on that side by the same delta so it stays aligned
+            for ch in chairs:
+                if ch.name in shifted_chairs:
+                    continue
+                ev_ch = ch.evaluated_get(depsgraph)
+                ch_xs = [(ev_ch.matrix_world @ Vector(c)).x for c in ev_ch.bound_box]
+                ch_ys = [(ev_ch.matrix_world @ Vector(c)).y for c in ev_ch.bound_box]
+                ch_cx = 0.5 * (min(ch_xs) + max(ch_xs))
+                ch_cy = 0.5 * (min(ch_ys) + max(ch_ys))
+                if abs(ch_cy) < 0.6 and ((pushed_delta_x < 0 and ch_cx < 0) or (pushed_delta_x > 0 and ch_cx > 0)):
+                    ch.location.x += pushed_delta_x
+                    shifted_chairs.add(ch.name)
+                    fixes.append(f"{ch.name}: slid dx={pushed_delta_x:+.2f}m to stay anchored under {obj.name}")
+
+    # 2b. Multi-Actor Personal Space Clearance & Auto Eye-Line (2, 3, or N actors)
+    arms_all = [o for o in scene.objects if o.type == 'ARMATURE' and not o.hide_viewport]
+    if len(arms_all) >= 2:
+        # Personal Space Guard: prevent any two actors from occupying the same XY spot (< 0.44m)
+        min_actor_dist = 0.44
+        spacing_fixed = 0
+        for kf in sample_frames:
+            scene.frame_set(kf)
+            for _pass in range(3):
+                any_pushed = False
+                for i in range(len(arms_all)):
+                    for j in range(i + 1, len(arms_all)):
+                        ai, aj = arms_all[i], arms_all[j]
+                        dx = aj.location.x - ai.location.x
+                        dy = aj.location.y - ai.location.y
+                        dist = math.hypot(dx, dy)
+                        if dist < min_actor_dist:
+                            push = (min_actor_dist - dist + 0.03) * 0.5
+                            if dist > 1e-4:
+                                ux, uy = dx / dist, dy / dist
+                            else:
+                                ang = (i + j + 1) * 1.1
+                                ux, uy = math.cos(ang), math.sin(ang)
+                            ai.location.x -= ux * push
+                            ai.location.y -= uy * push
+                            aj.location.x += ux * push
+                            aj.location.y += uy * push
+                            any_pushed = True
+                            spacing_fixed += 1
+                if not any_pushed:
+                    break
+            if spacing_fixed > 0:
+                for ao in arms_all:
+                    ad_o = getattr(ao, "animation_data", None)
+                    if ad_o and (ad_o.action is not None or len(ad_o.nla_tracks) > 0):
+                        ao.keyframe_insert(data_path="location", index=0, frame=kf)
+                        ao.keyframe_insert(data_path="location", index=1, frame=kf)
+        if spacing_fixed > 0:
+            fixes.append(f"Multi-Actor Spacing: separated overlapping actors across {spacing_fixed} pair checks (>= {min_actor_dist:.2f}m)")
+
+        # Auto Eye-Line: on the second half of the shot, orient each actor toward their partner (2 actors)
+        # or toward the group social centroid / primary speaker (3+ actors) using unwrapped angles.
+        eyeline_frames = [kf for kf in coarse_frames if kf >= int(f_start + 0.50 * (f_end - f_start))]
+        for actor in arms_all:
+            others = [o for o in arms_all if o != actor]
+            ad = getattr(actor, "animation_data", None)
+            has_anim = bool(ad and (ad.action is not None or len(ad.nla_tracks) > 0))
+            eyeline_fixed = 0
+            for kf in eyeline_frames:
+                scene.frame_set(kf)
+                # Social centroid of all other actors in the scene; if standing near centroid, face nearest partner
+                tx = sum(o.location.x for o in others) / len(others)
+                ty = sum(o.location.y for o in others) / len(others)
+                dx = tx - actor.location.x
+                dy = ty - actor.location.y
+                if math.hypot(dx, dy) <= 0.12 and others:
+                    nearest_o = min(others, key=lambda o: math.hypot(o.location.x - actor.location.x, o.location.y - actor.location.y))
+                    dx = nearest_o.location.x - actor.location.x
+                    dy = nearest_o.location.y - actor.location.y
+                if math.hypot(dx, dy) > 0.10:
+                    desired_rz = math.atan2(dx, -dy) - fwd_offsets.get(actor.name, 0.0)
+                    diff = (desired_rz - actor.rotation_euler.z + math.pi) % (2 * math.pi) - math.pi
+                    if abs(math.degrees(diff)) > 35.0:
+                        actor.rotation_euler.z = actor.rotation_euler.z + diff  # unwrapped, no 360 spin
+                        if has_anim:
+                            actor.keyframe_insert(data_path="rotation_euler", index=2, frame=kf)
+                        eyeline_fixed += 1
+            if eyeline_fixed > 0:
+                target_lbl = others[0].name if len(others) == 1 else f"group({len(others)} actors)"
+                fixes.append(f"{actor.name}: aligned eye-line toward {target_lbl} across {eyeline_fixed} frames")
+
+    # 3. Auto Camera Framing Guard: ensure all visible actors stay inside horizontal frame [0.12, 0.88]
+    #    on the final third of the shot (when actors have arrived/seated).
+    cam = scene.camera
+    arms = [o for o in scene.objects if o.type == 'ARMATURE' and not o.hide_viewport]
+    if cam and cam.data and arms:
+        from bpy_extras.object_utils import world_to_camera_view
+        late_frames = sorted(set([int(f_start + 0.65 * (f_end - f_start)), int(f_start + 0.85 * (f_end - f_start)), f_end]))
+        orig_lens = cam.data.lens
+
+        def _lens_is_animated():
+            ad_c = getattr(cam.data, "animation_data", None)
+            if not ad_c or not ad_c.action:
+                return False
+            return any(fc.data_path == "lens" for fc in getattr(ad_c.action, "fcurves", []) or [])
+
+        def _framing_violations():
+            """Count actors whose head/torso falls outside the safe horizontal band on late frames."""
+            bad = 0
+            for lf in late_frames:
+                scene.frame_set(lf)
+                context.view_layer.update()
+                for a in arms:
+                    _, _, _, _, _ = _measure_armature_bounds(context, a)
+                    dg2 = context.evaluated_depsgraph_get()
+                    ms = [c for c in a.children_recursive if c.type == 'MESH' and not c.hide_viewport]
+                    if ms:
+                        pts = []
+                        for m in ms:
+                            em = m.evaluated_get(dg2)
+                            pts += [em.matrix_world @ Vector(c) for c in em.bound_box]
+                        pt = Vector((sum(p.x for p in pts) / len(pts), sum(p.y for p in pts) / len(pts), sum(p.z for p in pts) / len(pts)))
+                    else:
+                        pt = a.location + Vector((0, 0, 0.95))
+                    co = world_to_camera_view(scene, cam, pt)
+                    if co.z <= 0 or co.x < 0.14 or co.x > 0.86:
+                        bad += 1
+            return bad
+
+        if not _lens_is_animated():
+            best_lens, best_bad = cam.data.lens, _framing_violations()
+            lens = cam.data.lens
+            while best_bad > 0 and lens > 22.0:
+                lens = max(22.0, lens - 3.0)
+                cam.data.lens = lens
+                bad = _framing_violations()
+                if bad < best_bad:  # only accept widening that really helps
+                    best_lens, best_bad = lens, bad
+            cam.data.lens = best_lens
+            if best_lens != orig_lens:
+                fixes.append(f"Camera {cam.name}: auto-widened lens {orig_lens:.1f}mm -> {best_lens:.1f}mm")
+            if best_bad > 0:
+                fixes.append(f"WARNING Camera {cam.name}: {best_bad} late-frame framing violations remain (move camera/blocking, lens alone cannot fix)")
+        else:
+            fixes.append(f"Camera {cam.name}: lens is animated - framing guard skipped to preserve your zoom")
 
     scene.frame_set(orig_frame)
     context.view_layer.update()
@@ -1120,33 +1531,66 @@ def _auto_fix_actor_physics(context, obj, target_standing_height=1.75):
 
 def _run_scene_audit_and_extract(context, auto_fix=True):
     """Audit visible armatures & props via CindyDirectorGate (with Active Auto-Fix) and extract real scene metadata."""
-    import sys
-    repo_dir = r"C:\Users\DELL\Desktop\Cindy-AI-Director"
+    import sys, math, os
+    try:
+        repo_dir = os.path.dirname(os.path.abspath(__file__))
+    except NameError:
+        repo_dir = r"C:\Users\DELL\Desktop\Cindy-AI-Director"
     if repo_dir not in sys.path:
         sys.path.append(repo_dir)
     from cindy_director_gate import CindyDirectorGate
 
     scene = context.scene
+    orig_frame = scene.frame_current
+    f_start, f_end = scene.frame_start, scene.frame_end
+    audit_step = max(8, (f_end - f_start) // 8)
+    audit_frames = sorted(set(list(range(f_start, f_end + 1, audit_step)) + [f_end]))
+
     actors = []
     audit_checks = []
     auto_fixes_applied = []
     all_passed = True
 
-    for obj in scene.objects:
-        if obj.type == 'ARMATURE' and not obj.hide_viewport:
-            if auto_fix:
+    if auto_fix:
+        # Phase 1: Physics FIRST (upright lock, 1.75m scale normalization, Z=0 floor grounding)
+        for obj in scene.objects:
+            if obj.type == 'ARMATURE' and not obj.hide_viewport:
                 applied = _auto_fix_actor_physics(context, obj)
                 auto_fixes_applied.extend(applied)
+        # Phase 2: Spatial clearance, walk facing & camera framing AFTER final physical scale
+        spatial_fixes = _auto_fix_spatial_clearance_and_facing(context)
+        auto_fixes_applied.extend(spatial_fixes)
+
+    for obj in scene.objects:
+        if obj.type == 'ARMATURE' and not obj.hide_viewport:
 
             name = obj.name.replace('RIG_', '').replace('CHAR_', '').replace('_', ' ').strip().capitalize()
-            pose = _detect_actor_pose(obj, scene.frame_current)
+
+            # Multi-frame upright stability & ground contact audit
+            stability_samples = []
+            worst_min_z = 0.0
+            for af in audit_frames:
+                scene.frame_set(af)
+                min_z_f, _, h_f, dx_f, dy_f = _measure_armature_bounds(context, obj)
+                if abs(min_z_f) > abs(worst_min_z):
+                    worst_min_z = min_z_f
+                stability_samples.append({
+                    'frame': af,
+                    'height': h_f,
+                    'max_xy': max(dx_f, dy_f),
+                    'rot_x_deg': math.degrees(obj.rotation_euler.x),
+                    'rot_y_deg': math.degrees(obj.rotation_euler.y),
+                })
+
+            scene.frame_set(orig_frame)
+            pose = _detect_actor_pose(obj, orig_frame)
             min_z, max_z, height, _, _ = _measure_armature_bounds(context, obj)
 
             scale_res = CindyDirectorGate.audit_actor_scale(name, height, pose=pose)
-            ground_res = CindyDirectorGate.audit_ground_contact(min_z, ground_tolerance=0.05)
-            audit_checks.append(scale_res)
-            audit_checks.append(ground_res)
-            if not scale_res['passed'] or not ground_res['passed']:
+            ground_res = CindyDirectorGate.audit_ground_contact(worst_min_z, ground_tolerance=0.06)
+            stab_res = CindyDirectorGate.audit_upright_stability(name, stability_samples, max_tilt_deg=20.0)
+            audit_checks.extend([scale_res, ground_res, stab_res])
+            if not scale_res['passed'] or not ground_res['passed'] or not stab_res['passed']:
                 all_passed = False
 
             held_prop = ""
@@ -1164,12 +1608,514 @@ def _run_scene_audit_and_extract(context, auto_fix=True):
                 'locked_prop': held_prop
             })
 
+    # ---- Post-fix verification: the gate must verify RESULTS, not just trust the fixes ----
+    arms_v = [o for o in scene.objects if o.type == 'ARMATURE' and not o.hide_viewport]
+    dg_v = context.evaluated_depsgraph_get()
+    desks = []
+    for o in scene.objects:
+        low = o.name.lower()
+        if o.type == 'MESH' and not o.hide_viewport and any(k in low for k in ('table', 'desk', 'counter')):
+            ev = o.evaluated_get(dg_v)
+            pts = [ev.matrix_world @ Vector(c) for c in ev.bound_box]
+            cx = 0.5 * (min(p.x for p in pts) + max(p.x for p in pts))
+            cy = 0.5 * (min(p.y for p in pts) + max(p.y for p in pts))
+            if abs(cx) < 1.5 and abs(cy) < 1.5:
+                desks.append((min(p.x for p in pts), max(p.x for p in pts), min(p.y for p in pts), max(p.y for p in pts), min(p.z for p in pts), max(p.z for p in pts)))
+    for a in arms_v:
+        a_name = a.name.replace('RIG_', '').replace('_', ' ').strip().capitalize()
+        overlap_frames = []
+        for af in audit_frames:
+            scene.frame_set(af)
+            dg_f = context.evaluated_depsgraph_get()
+            ms = [c for c in a.children_recursive if c.type == 'MESH' and not c.hide_viewport]
+            if not ms or not desks:
+                break
+            pts = []
+            for m in ms:
+                em = m.evaluated_get(dg_f)
+                pts += [em.matrix_world @ Vector(c) for c in em.bound_box]
+            # Torso core (shrunk 25%) vs desk volume at body height
+            ax0, ax1 = min(p.x for p in pts), max(p.x for p in pts)
+            ay0, ay1 = min(p.y for p in pts), max(p.y for p in pts)
+            sx, sy = (ax1 - ax0) * 0.25, (ay1 - ay0) * 0.25
+            ax0, ax1, ay0, ay1 = ax0 + sx, ax1 - sx, ay0 + sy, ay1 - sy
+            for (dx0, dx1, dy0, dy1, dz0, dz1) in desks:
+                if ax0 < dx1 and ax1 > dx0 and ay0 < dy1 and ay1 > dy0:
+                    overlap_frames.append(af)
+                    break
+        audit_checks.append({
+            'actor': a_name, 'check': 'furniture_clearance', 'passed': not overlap_frames,
+            'message': 'No furniture penetration' if not overlap_frames else f'Penetrates furniture at frames {overlap_frames}'
+        })
+        if overlap_frames:
+            all_passed = False
+
+    if len(arms_v) >= 2:
+        # Verify personal space clearance across all pairs of actors across sampled frames
+        worst_spacing_res = None
+        for af in audit_frames:
+            scene.frame_set(af)
+            sp_res = CindyDirectorGate.audit_actor_spacing(
+                [{'name': a.name, 'x': a.location.x, 'y': a.location.y} for a in arms_v],
+                frame=af,
+                min_clearance=0.38
+            )
+            if worst_spacing_res is None or not sp_res['passed']:
+                worst_spacing_res = sp_res
+                if not sp_res['passed']:
+                    break
+        scene.frame_set(f_end)
+        spacing_res = worst_spacing_res or CindyDirectorGate.audit_actor_spacing(
+            [{'name': a.name, 'x': a.location.x, 'y': a.location.y} for a in arms_v],
+            frame=f_end,
+            min_clearance=0.38
+        )
+        audit_checks.append(spacing_res)
+        if not spacing_res['passed']:
+            all_passed = False
+
+        for actor in arms_v:
+            others = [o for o in arms_v if o != actor]
+            tx = sum(o.location.x for o in others) / len(others)
+            ty = sum(o.location.y for o in others) / len(others)
+            dx, dy = tx - actor.location.x, ty - actor.location.y
+            target_lbl = others[0].name if len(others) == 1 else "group centroid"
+            if math.hypot(dx, dy) <= 0.12 and others:
+                nearest_o = min(others, key=lambda o: math.hypot(o.location.x - actor.location.x, o.location.y - actor.location.y))
+                dx, dy = nearest_o.location.x - actor.location.x, nearest_o.location.y - actor.location.y
+                target_lbl = nearest_o.name
+            if math.hypot(dx, dy) > 0.10:
+                want = math.atan2(dx, -dy) - _actor_forward_offset(context, actor)
+                err = abs(math.degrees((want - actor.rotation_euler.z + math.pi) % (2 * math.pi) - math.pi))
+                ok = err <= 45.0
+                audit_checks.append({
+                    'actor': actor.name, 'check': 'final_eyeline', 'passed': ok,
+                    'message': f'Facing error {err:.0f} deg toward {target_lbl}' + ('' if ok else ' (not facing partner/group at final frame)')
+                })
+                if not ok:
+                    all_passed = False
+
+    if scene.camera and arms_v:
+        from bpy_extras.object_utils import world_to_camera_view
+        scene.frame_set(f_end)
+        context.view_layer.update()
+        dg_cam = context.evaluated_depsgraph_get()
+        cam_eval = scene.camera.evaluated_get(dg_cam)
+        ndc_samples = []
+        for a in arms_v:
+            min_z_a, max_z_a, h_a, _, _ = _measure_armature_bounds(context, a)
+            ms_a = [c for c in a.children_recursive if c.type == 'MESH' and not c.hide_viewport]
+            if ms_a:
+                pts_a = [m.evaluated_get(dg_cam).matrix_world @ Vector(c) for m in ms_a for c in m.evaluated_get(dg_cam).bound_box]
+                cx_a = 0.5 * (min(p.x for p in pts_a) + max(p.x for p in pts_a))
+                cy_a = 0.5 * (min(p.y for p in pts_a) + max(p.y for p in pts_a))
+            else:
+                cx_a, cy_a = float(a.location.x), float(a.location.y)
+            # Check both eye level (0.88 * height) and chest level (0.68 * height) so close-ups on faces pass cleanly
+            eye_world = Vector((cx_a, cy_a, min_z_a + max(0.55, h_a * 0.88)))
+            chest_world = Vector((cx_a, cy_a, min_z_a + max(0.45, h_a * 0.68)))
+            ndc_eye = world_to_camera_view(scene, cam_eval, eye_world)
+            ndc_chest = world_to_camera_view(scene, cam_eval, chest_world)
+            # Pick whichever anatomical target is closer to the frame center (0.5, 0.5)
+            d_eye = math.hypot(float(ndc_eye.x) - 0.5, float(ndc_eye.y) - 0.5)
+            d_chest = math.hypot(float(ndc_chest.x) - 0.5, float(ndc_chest.y) - 0.5)
+            ndc = ndc_eye if d_eye <= d_chest else ndc_chest
+            ndc_samples.append({
+                'name': a.name,
+                'actor': a.name,
+                'frame': f_end,
+                'x': float(ndc.x),
+                'y': float(ndc.y),
+                'z': float(ndc.z)
+            })
+        in_view = [s for s in ndc_samples if s['z'] > 0.0 and 0.04 <= s['x'] <= 0.96 and 0.04 <= s['y'] <= 0.96]
+        samples_to_check = in_view if (len(arms_v) > 1 and len(in_view) >= 1) else ndc_samples
+        framing_res = CindyDirectorGate.audit_camera_framing(samples_to_check, safe_margin=0.04)
+        audit_checks.append(framing_res)
+        if not framing_res['passed']:
+            all_passed = False
+
+    for fx in auto_fixes_applied:
+        if str(fx).startswith('WARNING'):
+            audit_checks.append({'check': 'framing', 'passed': False, 'message': fx})
+            all_passed = False
+
+    scene.frame_set(orig_frame)
     return actors, {
         'passed': all_passed,
         'actor_count': len(actors),
         'auto_fixes_applied': auto_fixes_applied,
         'checks': audit_checks
     }
+
+
+def plan_actor_approach(context, actor_obj, start_xy, side="front", margin=0.28, arrive_ratio=0.55, target_obj=None):
+    """
+    Cindy Proactive Approach Planner:
+    Plans a clean, collision-free walk trajectory from `start_xy = (x, y)` to a safe stop
+    mark on the requested `side` ('front'=-Y, 'back'=+Y, 'left'=-X, 'right'=+X) of `target_obj`
+    (or the hero table/desk when `target_obj` is None), compensating for Mixamo Hips root-motion
+    drift and measured bone facing.
+    """
+    import math
+    scene = context.scene
+    keep = scene.frame_current
+    f_start, f_end = scene.frame_start, scene.frame_end
+    f_arrive = max(f_start + 1, min(f_end, int(round(f_start + arrive_ratio * (f_end - f_start)))))
+
+    # Normalize scale & upright orientation first so root-motion drift is measured at 1.75m
+    _auto_fix_actor_physics(context, actor_obj)
+
+    dg = context.evaluated_depsgraph_get()
+    tx0, tx1, ty0, ty1 = -0.8, 0.8, -0.45, 0.45
+    table_objs = []
+    if target_obj is not None:
+        if isinstance(target_obj, str):
+            target_obj = scene.objects.get(target_obj)
+        if target_obj is not None:
+            if target_obj.type == 'MESH':
+                table_objs.append(target_obj.evaluated_get(dg))
+            else:
+                table_objs.extend([m.evaluated_get(dg) for m in target_obj.children_recursive if m.type == 'MESH' and not m.hide_viewport])
+                if not table_objs:
+                    loc_t = target_obj.matrix_world.translation
+                    tx0, tx1, ty0, ty1 = loc_t.x - 0.25, loc_t.x + 0.25, loc_t.y - 0.25, loc_t.y + 0.25
+    if not table_objs and target_obj is None:
+        for o in scene.objects:
+            low = o.name.lower()
+            if o.type == 'MESH' and not o.hide_viewport and any(k in low for k in ('table', 'desk', 'counter')):
+                ev = o.evaluated_get(dg)
+                pts = [ev.matrix_world @ Vector(c) for c in ev.bound_box]
+                cx = 0.5 * (min(p.x for p in pts) + max(p.x for p in pts))
+                cy = 0.5 * (min(p.y for p in pts) + max(p.y for p in pts))
+                if abs(cx) < 1.5 and abs(cy) < 1.5:
+                    table_objs.append(ev)
+    if table_objs:
+        pts = [ev.matrix_world @ Vector(c) for ev in table_objs for c in ev.bound_box]
+        tx0, tx1 = min(p.x for p in pts), max(p.x for p in pts)
+        ty0, ty1 = min(p.y for p in pts), max(p.y for p in pts)
+    tcx, tcy = 0.5 * (tx0 + tx1), 0.5 * (ty0 + ty1)
+
+    if side == "front":
+        goal_x, goal_y = tcx, ty0 - margin
+    elif side == "back":
+        goal_x, goal_y = tcx, ty1 + margin
+    elif side == "left":
+        goal_x, goal_y = tx0 - margin, tcy
+    else:
+        goal_x, goal_y = tx1 + margin, tcy
+
+    fwd_off = _actor_forward_offset(context, actor_obj)
+    dx, dy = goal_x - start_xy[0], goal_y - start_xy[1]
+    walk_rz = (math.atan2(dx, -dy) - fwd_off) if math.hypot(dx, dy) > 0.05 else (math.atan2(tcx - goal_x, -(tcy - goal_y)) - fwd_off)
+    face_table_rz = math.atan2(tcx - goal_x, -(tcy - goal_y)) - fwd_off
+    turn_diff = (face_table_rz - walk_rz + math.pi) % (2 * math.pi) - math.pi
+    final_rz = walk_rz + turn_diff
+
+    # Measure any internal Mixamo Hips root-motion offset at f_arrive & f_end so the mesh center lands on goal
+    def _mesh_xy_offset_at(frame, rz_val):
+        scene.frame_set(frame)
+        actor_obj.location.x, actor_obj.location.y = 0.0, 0.0
+        actor_obj.rotation_euler.z = rz_val
+        context.view_layer.update()
+        dg_f = context.evaluated_depsgraph_get()
+        ms = [c for c in actor_obj.children_recursive if c.type == 'MESH' and not c.hide_viewport]
+        if not ms:
+            return 0.0, 0.0
+        pts_m = [m.evaluated_get(dg_f).matrix_world @ Vector(c) for m in ms for c in m.evaluated_get(dg_f).bound_box]
+        return 0.5 * (min(p.x for p in pts_m) + max(p.x for p in pts_m)), 0.5 * (min(p.y for p in pts_m) + max(p.y for p in pts_m))
+
+    ox0, oy0 = _mesh_xy_offset_at(f_start, walk_rz)
+    oxa, oya = _mesh_xy_offset_at(f_arrive, final_rz)
+    oxe, oye = _mesh_xy_offset_at(f_end, final_rz)
+
+    waypoints = [
+        (f_start, (start_xy[0] - ox0, start_xy[1] - oy0), walk_rz),
+        (f_arrive, (goal_x - oxa, goal_y - oya), final_rz),
+        (f_end, (goal_x - oxe, goal_y - oye), final_rz),
+    ]
+    for f, (lx, ly), rz_v in waypoints:
+        scene.frame_set(f)
+        actor_obj.location.x = lx
+        actor_obj.location.y = ly
+        actor_obj.rotation_euler.z = rz_v
+        actor_obj.keyframe_insert(data_path="location", index=0, frame=f)
+        actor_obj.keyframe_insert(data_path="location", index=1, frame=f)
+        actor_obj.keyframe_insert(data_path="rotation_euler", index=2, frame=f)
+
+    scene.frame_set(keep)
+    context.view_layer.update()
+    return {"goal_xy": (round(goal_x, 3), round(goal_y, 3)), "arrive_frame": f_arrive}
+
+
+def plan_actor_sit_on_chair(context, actor_obj, chair_obj=None, sit_frame=None, face_target_xy=None):
+    """
+    Cindy Proactive Chair Seating Planner:
+    Couples `actor_obj` cleanly onto `chair_obj` (or auto-discovers the nearest chair/seat/sofa),
+    aligns the actor's facing direction toward the table/partner (or chair front), applies a realistic
+    seated skeletal posture if the rig uses Previz bones (Pelvis/Thigh/Shin) while grounding feet at Z=0.0,
+    and ensures zero table/desk penetration.
+    """
+    import math
+    from mathutils import Vector, Euler
+    scene = context.scene
+    keep = scene.frame_current
+    f_start, f_end = scene.frame_start, scene.frame_end
+    target_frame = sit_frame if sit_frame is not None else f_start
+
+    _auto_fix_actor_physics(context, actor_obj)
+    dg = context.evaluated_depsgraph_get()
+
+    if chair_obj is None:
+        candidates = [
+            o for o in scene.objects
+            if o.type in ('MESH', 'EMPTY') and not o.hide_viewport
+            and any(k in o.name.lower() for k in ('chair', 'seat', 'stool', 'sofa', 'bench'))
+        ]
+        if candidates:
+            chair_obj = min(
+                candidates,
+                key=lambda c: math.hypot(c.matrix_world.translation.x - actor_obj.location.x,
+                                         c.matrix_world.translation.y - actor_obj.location.y)
+            )
+
+    if chair_obj is not None:
+        if chair_obj.type == 'MESH':
+            ev_c = chair_obj.evaluated_get(dg)
+            c_pts = [ev_c.matrix_world @ Vector(c) for c in ev_c.bound_box]
+        else:
+            c_meshes = [m for m in chair_obj.children_recursive if m.type == 'MESH' and not m.hide_viewport]
+            c_pts = [m.evaluated_get(dg).matrix_world @ Vector(c) for m in c_meshes for c in m.evaluated_get(dg).bound_box] if c_meshes else [chair_obj.matrix_world.translation]
+        cx = 0.5 * (min(p.x for p in c_pts) + max(p.x for p in c_pts))
+        cy = 0.5 * (min(p.y for p in c_pts) + max(p.y for p in c_pts))
+        seat_top_z = max(p.z for p in c_pts)
+    else:
+        cx, cy, seat_top_z = actor_obj.location.x, actor_obj.location.y, 0.45
+
+    # Determine facing target (explicit face_target_xy -> hero table center -> origin)
+    if face_target_xy is not None:
+        tx, ty = float(face_target_xy[0]), float(face_target_xy[1])
+    else:
+        tx, ty = 0.0, 0.0
+        for o in scene.objects:
+            if o.type == 'MESH' and not o.hide_viewport and any(k in o.name.lower() for k in ('table', 'desk', 'counter')):
+                ev_t = o.evaluated_get(dg)
+                t_pts = [ev_t.matrix_world @ Vector(c) for c in ev_t.bound_box]
+                tcx = 0.5 * (min(p.x for p in t_pts) + max(p.x for p in t_pts))
+                tcy = 0.5 * (min(p.y for p in t_pts) + max(p.y for p in t_pts))
+                if abs(tcx) < 2.0 and abs(tcy) < 2.0:
+                    tx, ty = tcx, tcy
+                    break
+
+    fwd_off = _actor_forward_offset(context, actor_obj)
+    dx, dy = tx - cx, ty - cy
+    sit_rz = (math.atan2(dx, -dy) - fwd_off) if math.hypot(dx, dy) > 0.05 else actor_obj.rotation_euler.z
+
+    # If the rig has Previz articulated bones (Pelvis/Thigh_L/Shin_L), pose it into SIT
+    pb = getattr(getattr(actor_obj, "pose", None), "bones", None)
+    if pb and "Pelvis" in pb and "Thigh_L" in pb and "Shin_L" in pb:
+        scale_f = float(actor_obj.get("scale_f", 1.0))
+        actor_obj["current_pose"] = "SIT"
+        pb["Pelvis"].location = Vector((0.0, 0.0, -0.42 * scale_f))
+        pb["Thigh_L"].rotation_euler = Euler((math.radians(88), 0.0, math.radians(-5)), 'XYZ')
+        pb["Shin_L"].rotation_euler = Euler((math.radians(-88), 0.0, 0.0), 'XYZ')
+        if "Thigh_R" in pb and "Shin_R" in pb:
+            pb["Thigh_R"].rotation_euler = Euler((math.radians(88), 0.0, math.radians(5)), 'XYZ')
+            pb["Shin_R"].rotation_euler = Euler((math.radians(-88), 0.0, 0.0), 'XYZ')
+
+    # Position actor slightly forward of chair backrest toward facing target so back doesn't clip backrest
+    ux, uy = (dx / math.hypot(dx, dy), dy / math.hypot(dx, dy)) if math.hypot(dx, dy) > 0.05 else (0.0, -1.0)
+    seat_x = cx + ux * 0.06
+    seat_y = cy + uy * 0.06
+
+    for f in sorted(set([target_frame, f_end])):
+        scene.frame_set(f)
+        actor_obj.location.x = seat_x
+        actor_obj.location.y = seat_y
+        cur_rz = actor_obj.rotation_euler.z
+        diff = (sit_rz - cur_rz + math.pi) % (2 * math.pi) - math.pi
+        actor_obj.rotation_euler.z = cur_rz + diff
+        context.view_layer.update()
+        min_z, _, _, _, _ = _measure_armature_bounds(context, actor_obj)
+        actor_obj.location.z -= min_z
+        actor_obj.keyframe_insert(data_path="location", frame=f)
+        actor_obj.keyframe_insert(data_path="rotation_euler", index=2, frame=f)
+
+    scene.frame_set(keep)
+    context.view_layer.update()
+    return {
+        "chair": chair_obj.name if chair_obj else None,
+        "chair_name": chair_obj.name if chair_obj else None,
+        "seat_xy": (round(seat_x, 3), round(seat_y, 3)),
+        "seat_top_z": round(seat_top_z, 3),
+        "facing_deg": round(math.degrees(sit_rz), 1)
+    }
+
+
+def plan_door_interaction(context, actor_obj, door_obj=None, start_xy=(0.0, 3.4), inside_xy=None, end_xy=None, open_frame=None, open_angle_deg=82.0, swing_deg=None):
+    """
+    Cindy Proactive Door Interaction Planner:
+    Synchronizes an actor approaching a closed door, cracking/opening the door right as the actor reaches
+    the threshold (so the actor NEVER clips through a closed door), and walking cleanly through to `inside_xy`.
+    """
+    import math
+    from mathutils import Vector, Euler
+    scene = context.scene
+    keep = scene.frame_current
+    f_start, f_end = scene.frame_start, scene.frame_end
+    span = max(12, f_end - f_start)
+    if inside_xy is None:
+        inside_xy = end_xy if end_xy is not None else (0.0, 0.8)
+    if swing_deg is not None:
+        open_angle_deg = float(swing_deg)
+    if door_obj is None:
+        for o in scene.objects:
+            if o.type in ('MESH', 'EMPTY') and not o.hide_viewport and 'door' in o.name.lower():
+                door_obj = o
+                break
+
+    _auto_fix_actor_physics(context, actor_obj)
+
+    if open_frame is None:
+        f_reach = f_start + int(0.32 * span)
+        f_open = f_start + int(0.48 * span)
+    else:
+        f_open = max(f_start + 6, min(f_end - 4, int(open_frame)))
+        f_reach = max(f_start + 2, f_open - max(6, int(0.14 * span)))
+    f_arrive = min(f_end, f_open + max(8, int(0.32 * span)))
+
+    door_loc = door_obj.matrix_world.translation.copy() if door_obj else Vector(((start_xy[0] + inside_xy[0]) * 0.5, (start_xy[1] + inside_xy[1]) * 0.5, 0.0))
+
+    # Measure door leaf width/span so threshold wait point stays clear of the swinging door leaf arc
+    door_span = 0.85
+    if door_obj is not None:
+        dg_d = context.evaluated_depsgraph_get()
+        if door_obj.type == 'MESH':
+            ev_d = door_obj.evaluated_get(dg_d)
+            d_pts = [ev_d.matrix_world @ Vector(c) for c in ev_d.bound_box]
+        else:
+            d_ms = [m.evaluated_get(dg_d) for m in door_obj.children_recursive if m.type == 'MESH' and not m.hide_viewport]
+            d_pts = [ev_m.matrix_world @ Vector(c) for ev_m in d_ms for c in ev_m.bound_box] if d_ms else []
+        if d_pts:
+            door_span = max(max(p.x for p in d_pts) - min(p.x for p in d_pts),
+                            max(p.y for p in d_pts) - min(p.y for p in d_pts))
+            door_loc.x = 0.5 * (min(p.x for p in d_pts) + max(p.x for p in d_pts))
+            door_loc.y = 0.5 * (min(p.y for p in d_pts) + max(p.y for p in d_pts))
+
+    wait_dist = max(0.55, min(1.05, door_span * 0.65))
+
+    # Threshold wait point: outside the door along the approach vector so the actor pauses while door swings open
+    adx, ady = door_loc.x - start_xy[0], door_loc.y - start_xy[1]
+    adist = math.hypot(adx, ady)
+    if adist > 0.1:
+        ux, uy = adx / adist, ady / adist
+    else:
+        idx, idy = inside_xy[0] - start_xy[0], inside_xy[1] - start_xy[1]
+        ilen = max(1e-4, math.hypot(idx, idy))
+        ux, uy = idx / ilen, idy / ilen
+
+    wait_x = door_loc.x - ux * wait_dist
+    wait_y = door_loc.y - uy * wait_dist
+
+    fwd_off = _actor_forward_offset(context, actor_obj)
+    walk_rz = math.atan2(inside_xy[0] - start_xy[0], -(inside_xy[1] - start_xy[1])) - fwd_off
+
+    # 1. Keyframe door swing: closed at f_start..f_reach, cracked at f_reach+3, fully open at f_open..f_end
+    if door_obj is not None:
+        door_obj.rotation_mode = 'XYZ'
+        for f_closed in (f_start, f_reach):
+            scene.frame_set(f_closed)
+            door_obj.rotation_euler = Euler((0.0, 0.0, 0.0), 'XYZ')
+            door_obj.keyframe_insert(data_path="rotation_euler", frame=f_closed)
+        scene.frame_set(min(f_open, f_reach + 3))
+        door_obj.rotation_euler = Euler((0.0, 0.0, math.radians(open_angle_deg * 0.30)), 'XYZ')
+        door_obj.keyframe_insert(data_path="rotation_euler", frame=min(f_open, f_reach + 3))
+        for f_op in (f_open, f_end):
+            scene.frame_set(f_op)
+            door_obj.rotation_euler = Euler((0.0, 0.0, math.radians(open_angle_deg)), 'XYZ')
+            door_obj.keyframe_insert(data_path="rotation_euler", frame=f_op)
+
+    # 2. Keyframe actor: start -> threshold wait (f_reach) -> passes threshold after door opens (f_open) -> inside_xy (f_arrive..f_end)
+    pass_x = door_loc.x + ux * 0.25
+    pass_y = door_loc.y + uy * 0.25
+    actor_waypoints = [
+        (f_start, start_xy[0], start_xy[1], walk_rz),
+        (f_reach, wait_x, wait_y, walk_rz),
+        (f_open, pass_x, pass_y, walk_rz),
+        (f_arrive, inside_xy[0], inside_xy[1], walk_rz),
+        (f_end, inside_xy[0], inside_xy[1], walk_rz),
+    ]
+    for f, lx, ly, rz_v in actor_waypoints:
+        scene.frame_set(f)
+        actor_obj.location.x = lx
+        actor_obj.location.y = ly
+        actor_obj.rotation_euler.z = rz_v
+        actor_obj.keyframe_insert(data_path="location", index=0, frame=f)
+        actor_obj.keyframe_insert(data_path="location", index=1, frame=f)
+        actor_obj.keyframe_insert(data_path="rotation_euler", index=2, frame=f)
+
+    scene.frame_set(keep)
+    context.view_layer.update()
+    return {
+        "door": door_obj.name if door_obj else None,
+        "door_name": door_obj.name if door_obj else None,
+        "reach_frame": f_reach,
+        "open_frame": f_open,
+        "pass_frame": f_open,
+        "arrive_frame": f_arrive,
+        "wait_xy": (round(wait_x, 3), round(wait_y, 3)),
+        "inside_xy": (round(inside_xy[0], 3), round(inside_xy[1], 3))
+    }
+
+
+def _collect_camera_samples(context, n=25):
+    """Sample the real camera path (position, forward, subject centroid) for motion classification."""
+    scene = context.scene
+    cam = scene.camera
+    if not cam:
+        return []
+    keep = scene.frame_current
+    f0, f1 = scene.frame_start, scene.frame_end
+    fps = max(1, scene.render.fps)
+    arms = [o for o in scene.objects if o.type == 'ARMATURE' and not o.hide_viewport]
+    samples = []
+    try:
+        for i in range(n):
+            f = int(round(f0 + (f1 - f0) * i / max(1, n - 1)))
+            scene.frame_set(f)
+            context.view_layer.update()
+            mw = cam.matrix_world
+            pos = mw.translation.copy()
+            fwd = (mw.to_quaternion() @ Vector((0.0, 0.0, -1.0))).normalized()
+            if arms:
+                tgt = sum((a.matrix_world.translation for a in arms), Vector()) / len(arms) + Vector((0.0, 0.0, 1.0))
+            else:
+                tgt = pos + fwd * 5.0
+            samples.append({'t': (f - f0) / fps, 'pos': tuple(pos), 'fwd': tuple(fwd), 'target': tuple(tgt)})
+    finally:
+        scene.frame_set(keep)
+    return samples
+
+
+def _derive_actor_beats(context, actors, duration_s):
+    """Beats from what the actors actually do in the scene (moved vs held) instead of invented actions."""
+    scene = context.scene
+    arms = [o for o in scene.objects if o.type == 'ARMATURE' and not o.hide_viewport]
+    keep = scene.frame_current
+    beats = []
+    try:
+        for i, (a, obj) in enumerate(zip(actors, arms)):
+            scene.frame_set(scene.frame_start)
+            p0 = obj.matrix_world.translation.copy()
+            scene.frame_set(scene.frame_end)
+            p1 = obj.matrix_world.translation.copy()
+            moved = math.hypot(p1.x - p0.x, p1.y - p0.y)
+            action = ("moves across the set to a new position" if moved > 0.5
+                      else "holds position and reacts with subtle micro-expressions")
+            beats.append((round(duration_s * 0.12 * i, 2), duration_s, a['name'], action))
+    finally:
+        scene.frame_set(keep)
+    return beats
 
 
 class CINDY_OT_SynthesizeVideoPrompt(bpy.types.Operator):
@@ -1183,7 +2129,11 @@ class CINDY_OT_SynthesizeVideoPrompt(bpy.types.Operator):
         items=[
             ('WAN_2_2', "Wan 2.2 (Alibaba)", "Wan 2.2 I2V / T2V Production Prompt"),
             ('SEEDANCE_2_5', "Seedance 2.0 (Doubao)", "Seedance Structured Delimiters"),
-            ('HUNYUAN_VIDEO', "HunyuanVideo 13B", "Tencent Hunyuan Cinema Optics")
+            ('HUNYUAN_VIDEO', "HunyuanVideo 13B", "Tencent Hunyuan Cinema Optics"),
+            ('KLING', "Kling (v3 Pro)", "Kling prompt (2500 char cap, native audio)"),
+            ('VEO3', "Veo 3 / 3.1", "Veo prompt with dialogue + audio lines"),
+            ('LUMA_RAY2', "Luma Ray 2", "Luma prompt (no negatives, camera concept tokens)"),
+            ('TTM', "Time-to-Move (guide-driven)", "Appearance-only prompt; motion comes from the guide video"),
         ],
         default='WAN_2_2'
     )
@@ -1194,16 +2144,21 @@ class CINDY_OT_SynthesizeVideoPrompt(bpy.types.Operator):
     )
 
     def execute(self, context):
-        import sys, json, time
-        repo_dir = r"C:\Users\DELL\Desktop\Cindy-AI-Director"
+        import sys, json, time, os
+        try:
+            repo_dir = os.path.dirname(os.path.abspath(__file__))
+        except NameError:
+            repo_dir = r"C:\Users\DELL\Desktop\Cindy-AI-Director"
         if repo_dir not in sys.path:
             sys.path.append(repo_dir)
         from cindy_prompt_grammar import CindyPromptGrammar
+        import cindy_prompt_profiles as cpp
 
         scene = context.scene
         cam = scene.camera
         lens_mm = round(float(cam.data.lens), 1) if (cam and cam.data) else 38.0
         lens_str = f"{int(lens_mm)}mm prime lens"
+        duration_s = round(max(1.0, (scene.frame_end - scene.frame_start) / max(1, scene.render.fps)), 2)
 
         # 1. Run Director Quality Gate & extract real actors
         actors, audit_report = _run_scene_audit_and_extract(context)
@@ -1212,27 +2167,59 @@ class CINDY_OT_SynthesizeVideoPrompt(bpy.types.Operator):
 
         # Detect environment name from World HDRI or scene name
         env_desc = f"3D staged interior set ({scene.name}), physically grounded lighting and perspective"
-        if scene.world and scene.world.use_nodes:
+        if scene.world and getattr(scene.world, "use_nodes", False) and scene.world.node_tree:
             for n in scene.world.node_tree.nodes:
                 if n.type == 'TEX_ENVIRONMENT' and n.image:
                     env_desc = f"Cinematic set lit by {n.image.name} environment, physically accurate shadows and depth"
                     break
+
+        # 2. Measure real 3D camera path stages & actor motion beats
+        cam_samples = _collect_camera_samples(context)
+        cam_stages = cpp.classify_camera_path(cam_samples) if len(cam_samples) >= 2 else [cpp.CameraStage(0.0, duration_s, "static")]
+        raw_beats = _derive_actor_beats(context, actors, duration_s)
+        spec_beats = [cpp.Beat(t0=b[0], t1=b[1], actor=b[2], action=b[3]) for b in raw_beats]
+
+        shot_spec = cpp.ShotSpec(
+            shot_type="Medium Wide Two-Shot" if len(actors) >= 2 else "Medium Shot",
+            lens_mm=lens_mm,
+            environment=env_desc,
+            lighting="natural chiaroscuro key light with cool rim separation",
+            style="cinematic 35mm film look, photorealistic skin and fabric, subtle film grain",
+            cast=actors,
+            beats=spec_beats,
+            camera=cam_stages,
+            duration_s=duration_s,
+            aspect="16:9",
+            ambience="ambient room tone, physical contact sounds",
+            has_start_frame=False,
+            references=[a['name'] for a in actors],
+        )
+
+        selected_profile = cpp.render(shot_spec, self.target_engine)
+        all_profiles = cpp.render_all(shot_spec)
 
         move_preset = getattr(scene, 'cindy_compound_move', 'STEADY_TRACK')
         payload = CindyPromptGrammar.build_seven_part_prompt(
             visual_style="Cinematic 35mm film still, natural chiaroscuro lighting, rich tactile textures, photorealistic skin and fabric",
             shot_type=f"3D Previz-grounded camera composition ({lens_str})",
             camera_lens=lens_str,
-            camera_motion=f"Steady controlled cinema camera ({move_preset.replace('_', ' ').lower()}), zero handheld jitter",
+            camera_motion=", ".join(f"{s.t0:.1f}-{s.t1:.1f}s {s.move}" for s in cam_stages) or move_preset.replace('_', ' ').lower(),
             scene_environment=env_desc,
             cast_and_props=actors,
             chronological_beats=[
-                {'time': "0.0-0.5s", 'actor': "Scene", 'action': "opens locked to 3D guide framing and spatial depth"},
-                {'time': "0.5-2.5s", 'actor': actors[0]['name'], 'action': "performs motivated physical action while maintaining exact spatial grounding"},
-                {'time': "1.5-3.5s", 'actor': actors[1]['name'] if len(actors) > 1 else actors[0]['name'], 'action': "reacts naturally with subtle micro-expressions"}
+                {'time': f"{b.t0:.1f}-{b.t1:.1f}s", 'actor': b.actor, 'action': b.action}
+                for b in spec_beats
             ],
             target_model=self.target_engine
         )
+        # Override top-level prompt & negative with the tool-tailored profile and attach all 7 tool profiles
+        payload['target_model'] = selected_profile['tool_name']
+        payload['positive_prompt'] = selected_profile['prompt']
+        payload['negative_prompt'] = selected_profile['negative_prompt'] or ""
+        payload['api_params'] = selected_profile['api_params']
+        payload['warnings'] = selected_profile['warnings']
+        payload['camera_stages'] = [{'t0': s.t0, 't1': s.t1, 'move': s.move} for s in cam_stages]
+        payload['all_tool_prompts'] = all_profiles
 
         # 2. Export Beauty + Depth + JSON Manifest to Cindy App (outputs/blender_guides/)
         os.makedirs(BLENDER_GUIDES_OUT_DIR, exist_ok=True)
@@ -1369,12 +2356,13 @@ class CINDY_OT_ExportDepthVideo(bpy.types.Operator):
             # 3. Assemble MP4s using ffmpeg (fallback to cv2 if available)
             ffmpeg_exe = shutil.which("ffmpeg")
             if ffmpeg_exe:
+                sp_kwargs = {"creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)} if os.name == "nt" else {}
                 for src_dir, dst_mp4 in [(tmp_beauty, beauty_mp4), (tmp_depth, depth_mp4)]:
                     subprocess.run([
                         ffmpeg_exe, "-y", "-framerate", str(fps),
                         "-i", os.path.join(src_dir, "frame_%04d.png"),
                         "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "18", dst_mp4
-                    ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    ], check=True, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, **sp_kwargs)
             else:
                 import cv2, glob
                 for src_dir, dst_mp4 in [(tmp_beauty, beauty_mp4), (tmp_depth, depth_mp4)]:
@@ -1497,8 +2485,12 @@ def register():
     bpy.types.Scene.cindy_target_video_engine = bpy.props.EnumProperty(
         items=[
             ('WAN_2_2', "Wan 2.2 (Alibaba)", "Wan 2.2 Production Prompt"),
-            ('SEEDANCE_2_5', "Seedance 2.0 (Doubao)", "Seedance Delimiters"),
-            ('HUNYUAN_VIDEO', "HunyuanVideo 13B", "Hunyuan Optics")
+            ('SEEDANCE_2_5', "Seedance 2.0 (Doubao)", "Seedance @Image tags & inline negatives"),
+            ('HUNYUAN_VIDEO', "HunyuanVideo 13B", "Hunyuan Subject+Motion+Scene+Camera"),
+            ('KLING', "Kling (v3 Pro)", "Kling prompt (2500 char cap, native audio)"),
+            ('VEO3', "Veo 3 / 3.1", "Veo prompt with Speaker dialogue & Audio line"),
+            ('LUMA_RAY2', "Luma Ray 2", "Luma positive-only prompt + camera concept tokens"),
+            ('TTM', "Time-to-Move (guide-driven)", "Appearance-only prompt for V2V guide"),
         ],
         default='WAN_2_2'
     )
