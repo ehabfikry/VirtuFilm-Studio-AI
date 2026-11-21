@@ -7,6 +7,8 @@ Direct scenes with an AI Director (**Cindy**) featuring **Character Lock**, gene
 
 ## 🎥 Demo Showcase
 
+<img width="2752" height="1536" alt="Woman_wearing_leather_jacket_eb7027b8_2K" src="https://github.com/user-attachments/assets/1dd1577f-7eb4-4a44-8f2e-544f8250d6a4" />
+
 - **[▶️ Watch VirtuFilm AI Promo Master (1080p)](assets/VirtuFilm_AI_Promo_Master_1080p.mp4)** — End-to-end promo generated with **LTX-2.5** & Character Lock inside VirtuFilm AI Studio.
 
 https://github.com/user-attachments/assets/39d0a5cb-08ff-4724-8afe-97683e32d8a8
