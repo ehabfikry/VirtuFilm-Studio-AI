@@ -1,20 +1,19 @@
+
+
+https://github.com/user-attachments/assets/b040e458-2f60-4c4c-8f00-a94e303e9cf8
+
 # 🎬 VirtuFilm AI Studio
 
 **An End-to-End Local AI Filmmaking & Post-Production Desktop Suite (BYOK — Bring Your Own Key).**
 
 Direct scenes with an AI Director (**Cindy**) featuring **Character Lock**, generate storyboards & cinema shots with top video models, train commercially licensed actor LoRAs, and finish in 4K with dedicated Post-Production — all running locally on your machine with **zero monthly SaaS lock-in**.
 
-![Platform](https://img.shields.io/badge/Platform-Windows%20Desktop-0078D6?style=flat-square)
-![Python](https://img.shields.io/badge/Backend-Python%203.10+-3776AB?style=flat-square)
-![Mode](https://img.shields.io/badge/Pricing-BYOK%20(Bring%20Your%20Own%20Key)-10B981?style=flat-square)
-
----
 
 ## 🎥 Demo Showcase
 
 - **[▶️ Watch VirtuFilm AI Promo Master (1080p)](assets/VirtuFilm_AI_Promo_Master_1080p.mp4)** — End-to-end promo generated with **LTX-2.5** & Character Lock inside VirtuFilm AI Studio.
 
----
+https://github.com/user-attachments/assets/39d0a5cb-08ff-4724-8afe-97683e32d8a8
 
 ## ✨ Two Focused Desktop Apps, One Shared Studio
 
