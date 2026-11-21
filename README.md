@@ -10,6 +10,12 @@ Direct scenes with an AI Director (**Cindy**) featuring **Character Lock**, gene
 
 ---
 
+## 🎥 Demo Showcase
+
+- **[▶️ Watch VirtuFilm AI Promo Master (1080p)](assets/VirtuFilm_AI_Promo_Master_1080p.mp4)** — End-to-end promo generated with **LTX-2.5** & Character Lock inside VirtuFilm AI Studio.
+
+---
+
 ## ✨ Two Focused Desktop Apps, One Shared Studio
 
 VirtuFilm AI splits your workflow cleanly into two standalone desktop apps (Chrome/Edge App Mode) sharing the same local backend (`http://127.0.0.1:8765`) and `outputs/` media library:
