@@ -1,7 +1,3 @@
-
-
-https://github.com/user-attachments/assets/b040e458-2f60-4c4c-8f00-a94e303e9cf8
-
 # 🎬 VirtuFilm AI Studio
 
 **An End-to-End Local AI Filmmaking & Post-Production Desktop Suite (BYOK — Bring Your Own Key).**
