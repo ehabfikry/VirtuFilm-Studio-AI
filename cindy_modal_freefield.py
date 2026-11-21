@@ -197,7 +197,7 @@ def _ensure_pack_downloaded(pack_name, wait_sec=300):
     raise RuntimeError(f"جاري تحميل موديلات '{pack_name}' على سيرفر Modal لأول مرة — حاول مرة أخرى بعد دقيقتين.")
 
 
-def run_modal_video_app(app_id, pack_name, input_video_path, output_video_path, extra_fields=None, extra_files=None, poll_timeout=600):
+def run_modal_video_app(app_id, pack_name, input_video_path, output_video_path, extra_fields=None, extra_files=None, poll_timeout=1800):
     """
     Runs a FreeField video app ('upscale-video', 'reframe', 'recast', 'relight', 'speak', etc.) on Modal L40S GPU
     and saves the resulting MP4 directly to output_video_path.

@@ -80,8 +80,8 @@
           <div>
             <label class="block text-xs text-slate-400 mb-1.5">محرك الترقية:</label>
             <select id="post-upscale-engine" class="w-full bg-slate-950 border border-emerald-500/40 rounded-xl p-2.5 text-xs text-emerald-200 font-bold">
+              <option value="fal_seedvr2">🎬 Fal.ai — SeedVR2 4K (سريع — مدفوع)</option>
               <option value="modal_seedvr2">🚀 AI حقيقي — SeedVR2 على Modal L40S (مجاني من رصيدك)</option>
-              <option value="local_ffmpeg">⚡ محلي فوري — FFmpeg 4K (ثوانٍ بدون نت)</option>
             </select>
           </div>
           <div class="grid grid-cols-2 gap-2">
@@ -110,9 +110,8 @@
           <div>
             <label class="block text-xs text-slate-400 mb-1.5">محرك التأطير:</label>
             <select id="post-reframe-mode" class="w-full bg-slate-950 border border-cyan-500/40 rounded-xl p-2.5 text-xs text-cyan-200 font-bold">
+              <option value="generative">🎬 Fal.ai — LTX-2.5 (سريع — مدفوع)</option>
               <option value="modal_ltx25">⚡ Modal AI — LTX-2.5 Outpainting (مجاني من رصيدك)</option>
-              <option value="smart_ambient">🚀 محلي فوري — Smart Ambient (ثوانٍ مجاناً)</option>
-              <option value="generative">🎬 Fal.ai — LTX-2.5 (مدفوع)</option>
             </select>
           </div>
           <div>
@@ -386,7 +385,7 @@
       const target_scale = document.getElementById('post-upscale-scale').value;
       const grain_mode = document.getElementById('post-upscale-grain').value;
       setButtonBusy('btn-run-upscale', true);
-      setStatus(engine === 'modal_seedvr2' ? '🚀 جارٍ الترقية بالذكاء الاصطناعي (SeedVR2 على Modal L40S)... قد يستغرق دقيقة' : '⚡ جارٍ الترقية محلياً بـ FFmpeg...');
+      setStatus(engine === 'fal_seedvr2' ? '🎬 جارٍ الترقية إلى 4K عبر Fal.ai SeedVR2...' : '🚀 جارٍ الترقية بالذكاء الاصطناعي (SeedVR2 على Modal L40S)...');
       try {
         const payload = { filename: selectedVideoName || 'video.mp4', target_scale, grain_mode, engine };
         if (uploadedVideoFile) payload.video_base64 = await fileToBase64(uploadedVideoFile);

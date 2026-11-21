@@ -1994,7 +1994,55 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                     
                 out_path = os.path.join(outputs_dir, f"Upscale_{target_scale.upper()}_{timestamp}_{os.path.basename(in_path)}")
                 upscale_engine = payload.get('engine', 'local_ffmpeg')
-                if upscale_engine == 'modal_seedvr2':
+                if upscale_engine == 'fal_seedvr2':
+                    secrets = load_secrets()
+                    fal_key = payload.get('fal_key') or secrets.get('fal_api_key') or os.getenv('FAL_KEY', '')
+                    if not fal_key:
+                        raise RuntimeError("مفتاح Fal.ai غير موجود — أضفه في الإعدادات أولاً.")
+                    video_cloud_url = self._resolve_media_for_fal(f"/outputs/{os.path.basename(in_path)}", fal_key)
+                    if not video_cloud_url or not video_cloud_url.startswith('http'):
+                        raise RuntimeError("تعذر رفع الفيديو إلى سحابة Fal.ai للترقية.")
+                    fal_payload = {
+                        "video_url": video_cloud_url,
+                        "upscale_mode": "target",
+                        "target_resolution": "2160p" if target_scale == "4k" else "1080p",
+                    }
+                    sub_r = requests.post(
+                        "https://queue.fal.run/fal-ai/seedvr/upscale/video",
+                        headers={'Authorization': f'Key {fal_key}', 'Content-Type': 'application/json'},
+                        json=fal_payload,
+                        timeout=30,
+                    )
+                    if sub_r.status_code not in (200, 201, 202):
+                        raise RuntimeError(f"خطأ في إرسال طلب الترقية إلى Fal.ai: {sub_r.text[:200]}")
+                    q_info = sub_r.json()
+                    st_url = q_info.get('status_url')
+                    res_url = q_info.get('response_url')
+                    gen_video_url = None
+                    for _ in range(180):
+                        time.sleep(3)
+                        chk_st = requests.get(st_url, headers={'Authorization': f'Key {fal_key}'}, timeout=15)
+                        if chk_st.status_code in (200, 202):
+                            st_data = chk_st.json()
+                            status_val = st_data.get('status')
+                            if status_val == 'COMPLETED':
+                                chk_res = requests.get(res_url, headers={'Authorization': f'Key {fal_key}'}, timeout=20)
+                                if chk_res.status_code == 200:
+                                    r_data = chk_res.json()
+                                    gen_video_url = (r_data.get('video') or {}).get('url') or r_data.get('video_url')
+                                    break
+                            elif status_val == 'FAILED':
+                                raise RuntimeError(f"فشلت ترقية Fal.ai SeedVR2: {st_data.get('error', 'Unknown')}")
+                    if not gen_video_url:
+                        raise RuntimeError("انتهى وقت الانتظار لترقية الفيديو على Fal.ai.")
+                    dl_r = requests.get(gen_video_url, timeout=120)
+                    if dl_r.status_code != 200:
+                        raise RuntimeError(f"تعذر تحميل الفيديو المرقّى من Fal.ai (HTTP {dl_r.status_code})")
+                    with open(out_path, 'wb') as f_out:
+                        f_out.write(dl_r.content)
+                    final_out = out_path
+                    msg = f"تمت ترقية الفيديو بنجاح إلى {target_scale.upper()} عبر Fal.ai SeedVR2 🎬"
+                elif upscale_engine == 'modal_seedvr2':
                     import cindy_modal_freefield
                     final_out = cindy_modal_freefield.run_modal_video_app(
                         app_id="upscale-video",
@@ -3639,9 +3687,15 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
                         target_model=target_m
                     )
                     if isinstance(shot_obj, dict):
-                        shot_obj["prompt_profiles"] = prompt_profiles_pkg.get("all_tool_prompts", {})
+                        cindy_prompt = (shot_obj.get("prompt") or "").strip()
+                        all_profs = prompt_profiles_pkg.get("all_tool_prompts", {})
+                        if len(cindy_prompt) >= 40 and isinstance(all_profs, dict):
+                            for _pid, _pdata in all_profs.items():
+                                if isinstance(_pdata, dict):
+                                    _pdata["prompt"] = cindy_prompt
+                        shot_obj["prompt_profiles"] = all_profs
                         shot_obj["target_profile_id"] = prompt_profiles_pkg.get("target_profile_id", "WAN_2_2")
-                        if not (shot_obj.get("prompt") or "").strip():
+                        if not cindy_prompt:
                             shot_obj["prompt"] = (prompt_profiles_pkg.get("selected_profile") or {}).get("prompt", "")
                 except Exception as e_prof:
                     print(f"[CINDY-AD-LLM] Prompt profiles synthesis warning: {e_prof}")
@@ -3732,6 +3786,7 @@ class CindySecureHandler(http.server.SimpleHTTPRequestHandler):
 
         # Robust extraction supporting mode/model/endpoint keys from index.html
         endpoint = payload.get('endpoint') or payload.get('model') or 'fal-ai/flux/schnell'
+        model = endpoint
 
         prompt = payload.get('prompt', '')
 
